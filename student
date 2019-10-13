@@ -1,0 +1,123 @@
+---
+title: "Test de Student"
+author: "s.jaubert"
+output:
+  pdf_document: default
+  html_document: default
+---
+## Test de Student
+
+Le test de Student permet de comparer deux moyennes d'échantillons afin de voir si ceux-ci sont vraisemblablement issues de la même population (hypothése nulle H0) ou, au contraire, significativement différentes.
+
+Plus simplement : ce test donne la probabilité qu'une différence observée soit due au hasard.
+
+Cette probabilité s'appelle la p-value.
+
+**Analyser les résultats d'un test de Student :**
+
+p-value < 0.05 - différence significative avec une probabilité de 95%
+
+p-value < 0.01 - différence significative avec une probabilité de 99%
+
+p-value < 0.001 - différence significative avec une probabilité de 99.9%
+
+```{r}
+# Comparaison de x et y
+x = c(1,3,2,3,2,5,3,4,2,4,4) 
+y = c(3,2,8,8,3,2,3,5,6,7,5)
+resultat<-t.test(x,y)
+```
+
+```{r}
+#Récupérer la p-value : probabilité que les deux échantillons soient d'une même population
+
+resultat$p.value
+
+#Afficher le nombre de degré de liberté (pour calcul du test manuellement), 
+#de l'intervalle de confiance à 95% par défaut,
+#le résultat t du test :
+
+resultat$parameter
+resultat$conf.int
+resultat$statistic
+```
+
+*Exemple*
+```{r}
+taille_pop <- c(rnorm(19000,175,10),rnorm(21000,168,6))
+ech_h <- c(taille_pop[13:112])
+ech_f <- c(taille_pop[22013:22112])
+sx_pop = c(rep("M",19000), rep("F",21000))
+ordre = 1:length(taille_pop)
+ordre = sample(ordre) 
+taille_pop = taille_pop[ordre]
+sx_pop = sx_pop[ordre]
+
+ech_t1 <- c(taille_pop[13:112])
+ech_t2 <- c(taille_pop[1013:1112])
+# La population de Périgueux a été recensée et la taille des individus notés.
+# On compare de deux échantillons d'individus : ech_t1 et ech_t2
+# On comparer aussi deux échantillons d'hommes et de femmes : ech_h et ech_f
+```
+
+1- Faire un test de student afin de déterminer si les échantillons ech_t1 et ech_t2 appartiennent probablement à des populations différentes.
+```{r}
+resultat = t.test(ech_t1, ech_t2, var.equal=TRUE)
+resultat$p.value
+# Les individus viennent de la même population : celle de Périgueux
+
+```
+
+2- Faire un test de student afin de déterminer si les échantillons ech_h et ech_f appartiennent probablement à des populations différentes
+```{r}
+resultat = t.test(ech_h, ech_f, var.equal=TRUE)
+resultat$p.value
+# Il y a une diff?rence significative entre les hommes et les femmes de P?rigueux
+
+```
+
+3- Tracer un histogramme de la taille des habitants de Périgueux (taille_pop)
+
+```{r}
+# MOYENNE MOBILE PAR ITERATION
+meanbp = function(vector) {
+    #Methode cf. Mosteller et Tukey, 1977 : permet de pond?rer les valeurs en fonctions de la distance qui les s?pare de la m?diane
+    if (length(vector) >2) {
+        EIQ = abs(quantile(vector,probs=0.75)-quantile(vector,probs=0.25))
+         Z = (vector - median(vector))/(3*EIQ)
+        for (i in c(1:length(vector))) {
+           if (abs(Z[i])>1) {Z[i]=1}
+        }
+        w = (1-Z^2)^2
+        moyenne = sum(vector*w)/sum(w)
+        #Methode compl?ment A.M. : permet de pond?rer les valeurs en fonctions de la distance qui les s?pare de la moyenne calcul?e pr?c?dement (1000 cycles maximum)
+        for (j in c(1:1000)) {
+            moyenne_old = moyenne
+                d = abs(vector-moyenne)
+                EIQ = (quantile(d,probs=0.75))+(quantile(d,probs=0.25))
+                  Z = (vector - moyenne)/(3*EIQ)
+                for (i in c(1:length(vector))) {
+                   if (abs(Z[i])>1) {Z[i]=1}
+                }
+                w = (1-Z^2)^2
+                moyenne = sum(vector*w)/sum(w)
+            variation = sd(vector)/(moyenne_old-moyenne)
+            if (moyenne ==moyenne_old) { break } # si moyenne ne bouge plus
+            if (variation > 1000) { break} # si le signal sur bruit est ?lev?
+        }
+    }
+    else {moyenne = mean(vector)}
+    return(moyenne)
+}
+```
+
+
+```{r}
+hist(taille_pop,col="yellow",breaks=40)
+abline(v=mean(taille_pop),col="red")
+abline(v=median(taille_pop),col="blue")
+# Aller copier-coller la fonction meanbp
+abline(v=meanbp(taille_pop),col="green")
+```
+
+

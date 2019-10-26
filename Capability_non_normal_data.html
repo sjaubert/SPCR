@@ -421,7 +421,7 @@ q1&lt;-qcc(diameter,type = &quot;xbar&quot;,center = 2)</code></pre>
 <li>Hypothèse alternative <span class="math inline">\(H_{1}\)</span> : Les données ne sont pas distribuées normalement</li>
 </ul>
 <p>Bien entendu comme dans tous tests d’hypothèse, le bénéfice du doute est accordé à l’hypothèse nulle. Un tel test déterminera s’il existe suffisament de preuves pour rejeter <span class="math inline">\(H_{0}\)</span>. Passer le test, ne signifie pas que les données sont normales mais si le test échoue alors il faudra utiliser une autre approche.</p>
-<p>Le test le plus courament utilisé est le test de Shapiro et Wilk. Ce test développé en 1965 construit une statistique <span class="math inline">\(W\)</span> basée approximativement sur la distance entre les points et la droite du tracé quantile-quantile. (<a href="http://www.numdam.org/article/RSA_1972__20_2_5_0.pdf" class="uri">http://www.numdam.org/article/RSA_1972__20_2_5_0.pdf</a>)</p>
+<p>Le test le plus couramment utilisé est le test de Shapiro et Wilk. Ce test développé en 1965 construit une statistique <span class="math inline">\(W\)</span> basée approximativement sur la distance entre les points et la droite du tracé quantile-quantile. (<a href="http://www.numdam.org/article/RSA_1972__20_2_5_0.pdf" class="uri">http://www.numdam.org/article/RSA_1972__20_2_5_0.pdf</a>)</p>
 <pre class="r"><code>shapiro.test(donnees$x)</code></pre>
 <pre><code>## 
 ##  Shapiro-Wilk normality test

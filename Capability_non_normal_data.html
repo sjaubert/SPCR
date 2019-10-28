@@ -369,7 +369,7 @@ summary {
 </div>
 
 
-<p>Le développement des indices de capabilité suppose que les valeurs des données sont issues d’une distribution normale. Il est possible de calculer des indices avec des données provenant de distributions non normales mais leur interprétation sera différente (la correspondance entre un <span class="math inline">\(C_{pk}\)</span> et la proportion d’éléments non conformes ne pourra plus se faire).</p>
+<p>Le développement des indices de capabilité suppose que les valeurs des données soient issues d’une distribution normale. Il est possible de calculer des indices avec des données provenant de distributions non normales mais leur interprétation sera différente (la correspondance entre un <span class="math inline">\(C_{pk}\)</span> et la proportion d’éléments non conformes ne pourra plus se faire).</p>
 <p>Pour illustrer notre propos, commençons par charger nos données :</p>
 <pre class="r"><code>donnees&lt;-read.csv2(&quot;https://sjaubert.github.io/SPCR/device.csv&quot;,header = T)</code></pre>
 <pre class="r"><code>donnees$x&lt;-as.numeric(as.character(donnees$x))#pour corriger un petit problème de format...</code></pre>

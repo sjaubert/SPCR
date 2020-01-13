@@ -1,0 +1,182 @@
+---
+title: "ANOVA à un facteur"
+author: "S. Jaubert"
+date: "`r format(Sys.time(), ' %d %B %Y')`"
+output:
+  pdf_document: default
+  html_document: default
+---
+**Contexte **: on considère $k=5$ opérateurs effectuant chacun $n=20$ mesures.
+
+__Dans ce qui va suivre, il faut avoir à l'esprit que nos distributions sont normales et homoscédastiques (même variance)__
+
+On va chercher à savoir si la part de dispersion imputable au facteur "Opérateur" est significativement supérieure à la variabilité résiduelle (ou variance de répétabilité notée $\sigma_{r}^{2}$)
+
+**1ère Etape** Mesurer les dispersions
+
+On note :
+
+-$X_{ij}$ la $j^{\grave{e}me}$ mesure ($j=1...n$) de l'opérateur $i$ ($i=1...k$)
+
+-$\bar{X}=\frac{1}{N}\Sigma_{i}\Sigma_{j}X_{ij} \;\; (avec \; N=nk)$ la moyenne totale
+
+-$\bar{X_{i}}=\frac{1}{n}\Sigma_{j}X_{ij}$ la moyenne du facteur $i$
+
+
+Avant de rentrer dans les détails, donnons le principe général :
+
+La dispersion totale notée **SCT** (somme des carrés totaux) se décompose en deux parties :
+
+- Celle imputable aux facteurs (ici les opérateurs) que l'on notera **SCF** dite aussi **somme des carrés inter-classe**.
+
+- Celle imputable aux résidus **SCR**, **somme des carrés intra-classes**.
+
+
+$\begin{matrix}\sum_{i,j}(X_{ij}-\bar{X})^{2} &=&\sum_{i,j}(X_{ij}-\bar{X_{i}})^{2} &+& \sum_{i,j}  (\bar{X_{i}}-\bar{X})^{2} \\ SCT &=& SCR &+& SCF \\dispersion \;totale&=&somme\;des\; carr\acute{e}s\; intra-classes&+&somme\; des\; carr\acute{e}s \; inter-classes\end{matrix}$
+
+
+**2ème Etape** Calcul des  variances factorielles et résiduelles
+
+-Variance résiduelle : $\sigma_{r}^{2}=\frac{SCR}{N-k}$
+
+-Variance Factorielle : $CMF=\frac{SCF}{k-1}$
+
+
+
+**3ème Etape** Test statistique
+
+On va déterminer si la Variance Factorielle est significativement supérieure à la Variance résiduelle
+
+On pose : $F_{k-1,N-k}=\frac{\frac{SCF}{k-1}}{\frac{SCR}{N-k}}$ (nous reconnaissons la statistique de test de Fisher). Si F est supérieure à la valeur seuil théorique selon la distribution de Fisher, avec un risque de 5%, alors le test sera significatif, donc la variabilité factorielle  est significativement supérieure à la variabilité résiduelle et on conclut que les facteurs sont différents.
+
+Prenons un exemple et Chargeons les données :
+```{r}
+
+donnees<-read.csv("https://sjaubert.github.io/SPCR/ANOVA_TP_R.csv",sep = ";",dec = ",",header = T)
+donnees<-transform(donnees,Operateurs=as.factor(Operateurs))
+
+Mesure=donnees$Mesure
+Operateurs=donnees$Operateurs
+```
+
+En premier lieu, il est toujours utile de représenter les données pour se faire une première idée.
+
+```{r warning=FALSE}
+library(ggplot2)
+ggplot(donnees, aes(y=Mesure, x=Operateurs,colour=Operateurs ,fill=Operateurs))+
+geom_boxplot(alpha=0.5, outlier.alpha=0)+
+geom_jitter(width=0.25)+
+theme_classic()
+```
+A commenter...
+
+
+Recherche d'une éventuelle variabilité excessive :
+```{r}
+library("outliers")
+cochran.test(Mesure~Operateurs)
+```
+
+Au regard de la p-value nous pouvons considérer qu'il n'y a pas de variance aberrante
+
+
+Recherche d'une éventuelle moyenne aberrante :
+```{r}
+(Moyennes<-tapply(Mesure,Operateurs,mean))
+
+```
+
+```{r}
+grubbs.test(Moyennes)
+```
+Au regard de la p-value nous pouvons considérer qu'il n'y a pas de moyenne aberrante
+
+On peut donc conserver toutes les données
+
+Mettons ces résultats en parallèle avec une ANOVA :
+```{r}
+
+res<-aov(Mesure ~ Operateurs)
+res
+summary(res)
+```
+
+La p-value nous indique qu'il n'y a pas de différence significative entre les opérateurs
+
+
+
+(retrouvez les calculs précédents "à la main")
+
+
+
+```{r}
+par(mfrow=c(2,2)) # permet de séparer la fenêtre graphique en 4 parties (2 lignes, et 2 colonnes)
+plot(res)
+```
+
+- Le premier graphe nous montre que la valeur des résidus ne semble pas dépendre de l'opérateur
+
+- Le deuxième graphe (quantile-quantile) nous montre que les résidus suivent bien une loi normale
+
+- Le troisième graphe nous montre que les variances des différents groupes sont globalement identiques
+
+- Dans le quatrième graphe nous ne voyons aucune preuve de valeurs aberrantes.
+
+
+
+$\pagebreak$
+
+## Pour approfondir, quelques compléments théoriques
+
+Nous gardons les même notations que précédemment.
+
+**Cherchons un estimateur de la variance de répétabilité**
+
+$\begin{matrix} X_{ij} &=& \mu  & +& \alpha_{i} &+&\epsilon_{ij} \\  &  &  & &\uparrow && \uparrow \\  &  &  & &\textit{Effet de} \; l'op\acute{e}rateur \; i && R\acute{e}sidu \; de \;l'op\acute{e}rateur \; i \;sur \; la\; j\grave{e}me\; mesure\end{matrix}$
+
+où $\epsilon_{ij}\hookrightarrow \mathcal{N}(0;\sigma_{r})$ avec $\sigma_{r} \;l'\acute{e}cart\;type\;de\;r\acute{e}p\acute{e}tabilit\acute{e}$ et $\alpha_{i}\hookrightarrow \mathcal{N}(0;\sigma_{o})$ avec $\sigma_{o} \;l'\acute{e}cart\;type\;du facteur \;op\acute{e}rateur$
+
+On obtient :
+
+$V(X_{ij})=\sigma_{o}^{2}+\sigma_{r}^{2}=\sigma_{R}^{2}$
+
+$SCR=\sum_{i=1}^{k}\sum_{j=1}^{n}\epsilon_{ij}^{2}$ soit :
+
+$\frac{SCR}{\sigma_{r}^{2}} =\sum_{i=1}^{k}\sum_{j=1}^{n}(\frac{\epsilon_{ij}}{\sigma_{r}})^{2}$ mais on sait que 
+
+$\sum_{j=1}^{n}(\frac{\epsilon_{ij}}{\sigma_{r}})^{2}$ suit la loi du $\chi ^{2}$ à $n-1$ ddl alors $\frac{SCR}{\sigma_{r}^{2}}\hookrightarrow \chi ^{2}(k(n-1))$ d'où 
+
+$\mathbb{E}(\frac{SCR}{\sigma_{r}^{2}})=nk-k=N-k\Leftrightarrow \mathbb{E}(\frac{SCR}{N-k})=\sigma_{r}^{2}$
+
+$\frac{SCR}{N-k}$ est un estimateur sans biais de $\sigma_{r}^{2}$
+
+**Cherchons à présent un estimateur de la variance de reproductibilité**
+
+On a vu que :
+
+$SCF=\sum_{i,j}  (\bar{X_{i}}-\bar{X})^{2}=n\sum_{i=1}^{k}  (\bar{X_{i}}-\bar{X})^{2}$ et $\bar{X_{i}}=\frac{1}{n}\Sigma_{j}X_{ij}=\frac{1}{n}\Sigma_{j}(\mu+\alpha_{i}+\epsilon_{ij})$
+
+$\bar{X_{i}}=\mu+\alpha_{i}+\frac{1}{n}\Sigma_{j}\epsilon_{ij}$
+
+$V(\bar{X_{i}})=V(\alpha_{i})+\frac{1}{n^{2}}\Sigma_{j}V(\epsilon_{ij})$
+
+$V(\bar{X_{i}})=\sigma_{o}^{2}+\frac{1}{n}\sigma_{r}^{2}$ d'où
+
+$\frac{SCF}{V(\bar{X_{i}})}=n\sum_{i=1}^{k}  \left (\frac{\bar{X_{i}}-\bar{X}}{\sqrt{V(\bar{X_{i}})}} \right )^{2}$
+
+$\mathbb{E}(\frac{SCF}{V(\bar{X_{i}})})=n(k-1)\Leftrightarrow\mathbb{E}(SCF)=n(k-1)V(\bar{X_{i}})$
+
+Soit :
+$\mathbb{E}(\frac{SCF}{k-1})=nV(\bar{X_{i}})=n(\sigma_{o}^{2}+\frac{1}{n}\sigma_{r}^{2})=n\sigma_{o}^{2}+\sigma_{r}^{2}$
+
+Si on pose $CMF=\frac{SCF}{k-1}$ et  $CMR=\frac{SCR}{N-k}$ on a :
+
+$\mathbb{E}(\frac{CMF-CMR}{n})=\sigma_{o}^{2}$ et comme $\sigma_{R}^{2}=\sigma_{o}^{2}+\sigma_{r}^{2}$
+
+$\mathbb{E}(\frac{CMF-CMR}{n})+CMR=\sigma_{R}^{2}$
+
+Enfin on posera :
+
+   \[ \sigma_{R\&R}^{2}=\sigma_{R}^{2}+\sigma_{r}^{2} \]
+
+

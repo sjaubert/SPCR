@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
@@ -331,6 +330,7 @@ summary {
   border: none;
   display: inline-block;
   border-radius: 4px;
+  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -364,12 +364,12 @@ summary {
 
 <h1 class="title toc-ignore">Analyse de capabilité avec des données non normales</h1>
 <h4 class="author">S. Jaubert</h4>
-<h4 class="date">26 octobre 2019</h4>
+<h4 class="date">13 Octobre 2019</h4>
 
 </div>
 
 
-<p>Le développement des indices de capabilité suppose que les valeurs des données soient issues d’une distribution normale. Il est possible de calculer des indices avec des données provenant de distributions non normales mais leur interprétation sera différente (la correspondance entre un <span class="math inline">\(C_{pk}\)</span> et la proportion d’éléments non conformes ne pourra plus se faire).</p>
+<p>Le développement des indices de capabilité suppose que les valeurs des données sont issues d’une distribution normale. Il est possible de calculer des indices avec des données provenant de distributions non normales mais leur interprétation sera différente (la correspondance entre un <span class="math inline">\(C_{pk}\)</span> et la proportion d’éléments non conformes ne pourra plus se faire).</p>
 <p>Pour illustrer notre propos, commençons par charger nos données :</p>
 <pre class="r"><code>donnees&lt;-read.csv2(&quot;https://sjaubert.github.io/SPCR/device.csv&quot;,header = T)</code></pre>
 <pre class="r"><code>donnees$x&lt;-as.numeric(as.character(donnees$x))#pour corriger un petit problème de format...</code></pre>
@@ -503,6 +503,7 @@ new_q&lt;-qcc(new_diameter,type = &quot;xbar&quot;,center = New_center)</code></
 <p><span class="math inline">\(\\\)</span></p>
 <p><strong>Références :</strong></p>
 <ul>
+<li><p>«Analyse de Capabilité (cas normal)&quot; » <a href="https://sjaubert.github.io/SPCR/capability.html" class="uri">https://sjaubert.github.io/SPCR/capability.html</a></p></li>
 <li><p>« tests de normalité » de Ricco Rakotomalala de l’université Lyon 2 <a href="http://eric.univ-lyon2.fr/~ricco/cours/cours/Test_Normalite.pdf" class="uri">http://eric.univ-lyon2.fr/~ricco/cours/cours/Test_Normalite.pdf</a></p></li>
 <li><p>S. S. Shapiro and M. B. Wilk. An analysis of variance test for normality (complete samples). Biometrika, (52) :591–611, 1965</p></li>
 <li><p>A. Signorell, L. Chhay, and R.J. Hyndman. DescTools : Tools for Descriptive Statistics, 2016. R package version 0.99.18.</p></li>

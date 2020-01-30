@@ -3,14 +3,14 @@ title: "ANOVA à un facteur"
 author: "S. Jaubert"
 date: "`r format(Sys.time(), ' %d %B %Y')`"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
-**Contexte **: on considère $k=5$ opérateurs effectuant chacun $n=20$ mesures.
-
-__Dans ce qui va suivre, il faut avoir à l'esprit que nos distributions sont normales et homoscédastiques (même variance)__
+**Contexte **: J'ai $k=5$ étudiants (opérateurs) qui ont effectué chacun $n=20$ mesures.
 
 On va chercher à savoir si la part de dispersion imputable au facteur "Opérateur" est significativement supérieure à la variabilité résiduelle (ou variance de répétabilité notée $\sigma_{r}^{2}$)
+
+__Dans ce qui va suivre, il faut avoir à l'esprit que nos distributions sont normales et homoscédastiques (même variance)__
 
 **1ère Etape** Mesurer les dispersions
 
@@ -70,8 +70,11 @@ theme_classic()
 ```
 A commenter...
 
+Avant d'effectuer une ANOVA nous allons effectuer deux tests, Cochran puis Grubbs afin de voir s'il n'y a pas de valeurs abbérantes (voir ici http://www.demarcheiso17025.com/fiche017.html )
 
-Recherche d'une éventuelle variabilité excessive :
+Commançons par vérifier à l'aide du test de Cochran si les variances sont homogènes ou si la variance la plus élevée est significativement différente des autres 
+
+
 ```{r}
 library("outliers")
 cochran.test(Mesure~Operateurs)
@@ -79,8 +82,7 @@ cochran.test(Mesure~Operateurs)
 
 Au regard de la p-value nous pouvons considérer qu'il n'y a pas de variance aberrante
 
-
-Recherche d'une éventuelle moyenne aberrante :
+Utilisons à présent le test de Grubbs pour rechercher une éventuelle moyenne aberrante :
 ```{r}
 (Moyennes<-tapply(Mesure,Operateurs,mean))
 
@@ -91,7 +93,7 @@ grubbs.test(Moyennes)
 ```
 Au regard de la p-value nous pouvons considérer qu'il n'y a pas de moyenne aberrante
 
-On peut donc conserver toutes les données
+On peut donc conserver toutes les données.
 
 Mettons ces résultats en parallèle avec une ANOVA :
 ```{r}
@@ -105,7 +107,7 @@ La p-value nous indique qu'il n'y a pas de différence significative entre les o
 
 
 
-(retrouvez les calculs précédents "à la main")
+(retrouvez les calculs précédents "à la main" ;-)
 
 
 
@@ -124,7 +126,7 @@ plot(res)
 
 
 
-$\pagebreak$
+
 
 ## Pour approfondir, quelques compléments théoriques
 
@@ -169,14 +171,21 @@ $\mathbb{E}(\frac{SCF}{V(\bar{X_{i}})})=n(k-1)\Leftrightarrow\mathbb{E}(SCF)=n(k
 Soit :
 $\mathbb{E}(\frac{SCF}{k-1})=nV(\bar{X_{i}})=n(\sigma_{o}^{2}+\frac{1}{n}\sigma_{r}^{2})=n\sigma_{o}^{2}+\sigma_{r}^{2}$
 
-Si on pose $CMF=\frac{SCF}{k-1}$ et  $CMR=\frac{SCR}{N-k}$ on a :
+Si on pose $CMF=\frac{SCF}{k-1}$ et  $CMR=\frac{SCR}{N-k}$ 
+
+Et ainsi on calcule la statistique de Fisher  $F_{k-1,N-k}=\frac{\frac{SCF}{k-1}}{\frac{SCR}{N-k}}$
+
+
+*Remarques :*
+
+on a :
 
 $\mathbb{E}(\frac{CMF-CMR}{n})=\sigma_{o}^{2}$ et comme $\sigma_{R}^{2}=\sigma_{o}^{2}+\sigma_{r}^{2}$
 
 $\mathbb{E}(\frac{CMF-CMR}{n})+CMR=\sigma_{R}^{2}$
 
-Enfin on posera :
+On calcule ainsi le $\sigma_{R\&R}$
 
-   \[ \sigma_{R\&R}^{2}=\sigma_{R}^{2}+\sigma_{r}^{2} \]
+   \[ \sigma_{R\&R}^{2}=\sigma_{R}^{2}+\sigma_{r}^{2} \] (ça sera le sujet d'une autre étude...)
 
 

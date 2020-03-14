@@ -364,7 +364,7 @@ summary {
 
 <h1 class="title toc-ignore">Bachelor regression Linéaire</h1>
 <h4 class="author">S. Jaubert</h4>
-<h4 class="date">13 mars , 2020</h4>
+<h4 class="date">14 mars , 2020</h4>
 
 </div>
 
@@ -381,7 +381,7 @@ plot(x = X1,y = Y)</code></pre>
 <p>L’idée est de minimiser (méthode des moindres carrés) la quantité :</p>
 <p><span class="math inline">\(\epsilon_{i}^{2}=(Y_{i}-(aX1_{i}+b))^{2}\)</span> avec <span class="math inline">\(Y=(Y_{1},Y_{2},...,Y_{n})\)</span> et <span class="math inline">\(X1=(X1_{1},X1_{2},...,X1_{n})\)</span></p>
 <p>Où Y et X1 sont les vecteurs de nos données observées</p>
-<p>Le plus simple est de construire un système matriciel (!)</p>
+<p>Le plus simple est de construire un système matriciel :</p>
 <pre class="r"><code>(X&lt;-matrix(cbind(rep(1,length(X1)),X1),ncol=2) )</code></pre>
 <pre><code>##       [,1] [,2]
 ##  [1,]    1   10
@@ -420,13 +420,13 @@ plot(x = X1,y = Y)</code></pre>
 <p>puis la somme des carrés des résidus :</p>
 <pre class="r"><code> (Scres&lt;-sum((Y-Y_hat)^{2}))</code></pre>
 <pre><code>## [1] 0.001021818</code></pre>
-<p>Nous verrons plus loin que l’estimateur sans biais de <span class="math inline">\(\sigma^{2}\)</span> est donné par <span class="math inline">\(CMres=\frac{Scres}{n-p}\)</span> (ici n=10 et p=2, n-p est le nombre de ddl associé à Scres)</p>
+<p>Nous verrons plus loin que <strong>l’estimateur sans biais de <span class="math inline">\(\sigma^{2}\)</span> est donné par <span class="math inline">\(CMres=\frac{Scres}{n-p}\)</span></strong> (ici n=10 et p=2, n-p est le nombre de ddl associé à Scres)</p>
 <pre class="r"><code>n&lt;-10 #nombre de lignes de la matrice X
 p&lt;-2  #   &quot;   &quot; colonnes &quot;  &quot;    &quot;    X</code></pre>
 <p>Soit :</p>
 <pre class="r"><code>(CMres&lt;-Scres/(n-p))</code></pre>
 <pre><code>## [1] 0.0001277273</code></pre>
-<p>La somme des carrés expliqués par la régression :</p>
+<p><strong>La somme des carrés expliqués par la régression :</strong></p>
 <pre class="r"><code> (Screg&lt;-sum((Y_hat-mean(Y))^{2}))</code></pre>
 <pre><code>## [1] 0.002138182</code></pre>
 <pre class="r"><code>CMreg&lt;-Screg/(p-1)</code></pre>
@@ -437,7 +437,7 @@ p&lt;-2  #   &quot;   &quot; colonnes &quot;  &quot;    &quot;    X</code></pre>
 <pre><code>## [1] 5.317655</code></pre>
 <pre class="r"><code>pf(Fobs,df1 = p-1,df2 = n-p,lower.tail = F)</code></pre>
 <pre><code>## [1] 0.003478466</code></pre>
-<p>Fobs est bien supérieur au Fth, on rejette donc l’hypothèse nulle <span class="math inline">\(H_{0} : \beta_{1}=0\)</span></p>
+<p><span class="math inline">\(F_{obs}\)</span> est bien supérieur au <span class="math inline">\(F_{th}\)</span>, on rejette donc l’hypothèse nulle <span class="math inline">\(H_{0} : \beta_{1}=0\)</span></p>
 <p>Pour rappel (voir cours sur l’ANOVA) :</p>
 <p><span class="math inline">\(\begin{matrix}\sum_{i}(Y_{i}-\bar{Y})^{2} &amp;=&amp;\sum_{i}(Y_{i}-\hat{Y_{i}})^{2} &amp;+&amp; \sum_{i} (\hat{Y_{i}}-\bar{Y})^{2} \\ SCT &amp;=&amp; SCres &amp;+&amp; SCreg \\ \end{matrix}\)</span></p>
 <p>La capacité du modèle à expliquer les variations de Y est donné par le fameux <span class="math inline">\(R^{2}=\frac{Screg}{Screg+Scres}\)</span> <strong>(c’est le pourcentage de Y qui est expliqué par la régression)</strong></p>
@@ -496,7 +496,7 @@ p&lt;-2  #   &quot;   &quot; colonnes &quot;  &quot;    &quot;    X</code></pre>
 ## Residual standard error: 0.0113 on 8 degrees of freedom
 ## Multiple R-squared:  0.6766, Adjusted R-squared:  0.6362 
 ## F-statistic: 16.74 on 1 and 8 DF,  p-value: 0.003478</code></pre>
-<p><strong>Ligne <em>(Intercept)</em> :</strong> nous avons le premier coefficient de notre modèle :8.00000 puis son écart-type 0.0077205 et enfin la t value pour le test de Student de nullité des coefficients, donnée par 8/0.0077205 = 1036.203. Ici la probabilité que le hasard puisque expliquer cette valeur est très faible 2e-16, on rejette donc l’hypothèse de nullité de ce coefficient</p>
+<p><strong>Ligne <em>(Intercept)</em> :</strong> nous avons le premier coefficient de notre modèle :8.00000 puis son écart-type 0.0077205 et enfin la t value pour le test de Student de nullité des coefficients, donnée par 8/0.0077205 = 1036.203. Ici la probabilité que le hasard puisse expliquer cette valeur est très faible 2e-16, on rejette donc l’hypothèse de nullité de ce coefficient</p>
 <p><strong>Ligne <em>X1</em> :</strong> Nous avons le coefficient directeur de notre modèle : 0.0005091, son écart-type et la t-value, comme précédemment on rejettera donc l’hypothèse de nullité de ce coefficient</p>
 <p><strong>Les codes</strong> ‘***’ ‘**’ ‘*’ nous donne le risque <span class="math inline">\(\alpha\)</span> de 1ère espèce de rejeter l’hypothèse de nullité des coefficients.</p>
 <p><strong>Residual standard error</strong> : est l’écart-type résiduel <span class="math inline">\(\sigma_{X}=\sqrt{CMres}\)</span></p>

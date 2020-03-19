@@ -1,0 +1,363 @@
+---
+title: "Bachelor regression Linéaire"
+author: "S. Jaubert"
+date: "17/03/2020"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+# Rappel sur le modèle linéaire simple
+ **la régression linéaire simple est une méthode statistique classique, qui est employée pour évaluer la significativité du lien linéaire entre deux variables numériques continues.** 
+ 
+__Exemple :__ Une machine produit automatiquement des pièces cylindriques. Réglée initialement pour un diamètre de 8 mm, elle se dérègle en cours d’utilisation. Afin de contrôler la fabrication et de procéder aux réglages éventuellement nécessaires, on mesure le diamètre de la dernière pièce dans chaque série de dix pièces produites. Les résultats sont les suivants :
+
+![](tableau_exemple.png)
+``
+```{r}
+X1<-seq(10,100,10)
+Y<-c(8.03,8,8.01,8.01,8.02,8.03,8.03,8.04,8.05,8.06)
+plot(x = X1,y = Y)
+```
+Nous cherchons un modèle linéaire $Y_{i}=aX1_{i}+b+\epsilon_{i}$ où chaque $\epsilon_{i}$ est un terme résiduel aléatoire suivant la loi normale $N(0,\sigma^{2})$ (on dit que les $\epsilon_{i}$ sont des variables iid) a et b sont des paramètres inconnus.
+
+
+
+L'idée est de minimiser (méthode des moindres carrés) la quantité :
+
+ $\epsilon_{i}^{2}=(Y_{i}-(aX1_{i}+b))^{2}$ avec $Y=(Y_{1},Y_{2},...,Y_{n})$ et 
+ $X1=(X1_{1},X1_{2},...,X1_{n})$
+ 
+ Où Y et X1 sont les vecteurs de nos données observées
+ 
+
+Le plus simple est de construire un système matriciel :
+```{r}
+(X<-matrix(cbind(rep(1,length(X1)),X1),ncol=2) )
+(Y<-matrix(Y,ncol=1))
+```
+
+On peut alors écrire : 
+
+$Y=X\beta+epsilon$ où $\beta$ est la matrice (2,1) : 
+ $\begin{pmatrix}b\\a\end{pmatrix}$
+On a :
+
+$\epsilon=Y-X\beta$ et on démontre que l'estimateur de $\beta$ est :
+
+$\beta = (X'X)^{-1}X'Y$ ($X'$ représente la transposée de $X$)
+
+Soit en faisant les calculs avec __R__ :
+
+```{r}
+(beta<-solve(t(X)%*%X)%*%t(X)%*%Y)
+```
+
+ Nous pouvons calculer à présent le vecteur $\hat{Y}$ prédit par notre modèle :
+ 
+```{r}
+Y_hat<-X%*%beta
+```
+
+
+puis la somme des carrés des résidus :
+```{r}
+ (Scres<-sum((Y-Y_hat)^{2}))
+```
+
+
+
+Nous verrons plus loin que __l'estimateur sans biais de $\sigma^{2}$ est donné par $CMres=\frac{Scres}{n-p}$__ (ici n=10 et p=2, n-p est le nombre de ddl associé à Scres)
+
+```{r}
+n<-10 #nombre de lignes de la matrice X
+p<-2  #   "   " colonnes "  "    "    X
+
+```
+
+Soit :
+```{r}
+(CMres<-Scres/(n-p))
+```
+
+
+__La somme des carrés expliqués par la régression :__
+
+```{r}
+ (Screg<-sum((Y_hat-mean(Y))^{2}))
+```
+
+```{r}
+CMreg<-Screg/(p-1)
+```
+
+Retrouvons avec __R__ les valeurs critiques permettant la prise de décision (Test de Fisher) :
+
+```{r}
+(Fobs<-CMreg/CMres)
+
+(Fth<-qf(p = 1-0.05,df1 = p-1,df2 = n-p))
+
+pf(Fobs,df1 = p-1,df2 = n-p,lower.tail = F)
+```
+
+$F_{obs}$ est bien supérieur au $F_{th}$, on rejette donc l'hypothèse nulle $H_{0} : \beta_{1}=0$
+
+Pour rappel (voir cours sur l'ANOVA) :
+
+$\begin{matrix}\sum_{i}(Y_{i}-\bar{Y})^{2} &=&\sum_{i}(Y_{i}-\hat{Y_{i}})^{2} &+& \sum_{i}  (\hat{Y_{i}}-\bar{Y})^{2} \\ SCT &=& SCres &+& SCreg \\ \end{matrix}$
+
+
+
+La capacité du modèle à expliquer les variations de Y est donné par le fameux $R^{2}=\frac{Screg}{Screg+Scres}$ __(c'est le pourcentage de Y qui est expliqué par la régression)__
+
+Soit ici :
+
+```{r}
+(R2<-Screg/(Screg+Scres))
+```
+
+
+Sous __R__ il est très facile d'obtenir tous ces résultats très simplement avec l'instruction _lm_ :
+
+```{r}
+(model<-lm(Y~X1))
+
+```
+
+
+Les coefficients de notre modèle sont donnés avec :
+```{r}
+coefficients(model)
+```
+
+le vecteur $\hat{Y}$ prédit par notre modèle sera donné par :
+```{r}
+fitted.values(model)
+```
+
+et la SCres est obtenue très simplement par :
+```{r}
+sum(residuals(model)^2)
+```
+
+Que l'on retrouve aussi par une ANOVA classique :
+```{r}
+anova(model)
+```
+
+__Donnons un peu plus d'explications sur les résultats fournis par le__ _summary(model)_ :
+
+```{r}
+summary(model)
+```
+
+__Ligne _(Intercept)_ :__ nous avons le premier coefficient de notre modèle :8.00000 puis son écart-type 0.0077205 et enfin la t value pour le test de Student de nullité des coefficients, donnée par 8/0.0077205 = 1036.203. Ici la probabilité que le hasard puisse expliquer cette valeur est très faible 2e-16, on rejette donc l'hypothèse de nullité de ce coefficient
+
+__Ligne _X1_ :__ Nous avons le coefficient directeur de notre modèle : 0.0005091, son écart-type et la t-value, comme précédemment on rejettera donc l'hypothèse de nullité de ce coefficient
+
+__Les codes__ '*** ' '** ' '* ' nous donne le risque $\alpha$ de 1ère espèce de rejeter l'hypothèse de nullité des coefficients.
+
+__Residual standard error__ : est l'écart-type résiduel $\sigma_{X}=\sqrt{CMres}$
+```{r}
+CMres<-Scres/(n-p)
+sqrt(CMres)
+```
+
+__Multiple R-squared__ : est le fameux $R^{2}=\frac{Screg}{Screg+Scres}$ que nous avions déjà calculé plus haut par :
+```{r}
+
+(R2<-Screg/(Screg+Scres))
+```
+
+__F-statistic__ : Nous donne la F-value du test de Fisher de significativité de notre modèle. Que nous avions obtenu aussi par une ANOVA ou par :
+```{r}
+(Fobs<-CMreg/CMres)
+```
+
+
+
+Traçons à présent la droite prédite par le modèle :
+```{r}
+plot(x = X1,y = Y,type="p")
+abline(model)
+
+```
+
+
+
+
+# Cas du modèle multiple linéaire
+
+__Un exemple :__
+En fonction des paramètres de coupe : V (vitesse de coupe m/min), f (avance mm/rev), D (profondeur de coupe mm) nous obtenons une rugosité Ra (µm) et des vibrations radiales Ve (mm/s)
+
+
+Pouvons nous modéliser par une régression linéaire la réponse Ra ou Ve en fonction de V, f et D ?
+
+Commençons par entrer les données
+```{r}
+setwd("D:/OneDrive - CFAI Centre/Bachelor/Regression-Analysis-with-R-master") #à adapter 
+donnee<-read.csv2("rugo_vib.csv")
+donnee
+```
+
+
+
+Construisons les matrices de notre modèle linéaire
+
+```{r}
+attach(donnee)
+(X<-matrix(cbind(rep(1,27),D,V,f),ncol = 4))
+(Y<-matrix(Ra,ncol=1))
+```
+
+Nous cherchons donc à estimer le vecteur $a$ tel que :
+\[Y=aX+\epsilon\] ($X$ matrice à n=27 lignes et p+1=4 colonnes)
+\[y_{i}=a_{0}+a_{1}x_{i,1}+a_{2}x_{i,2}+...+a_{p}x_{i,p}+\epsilon_{i}\]
+
+les hypothèses sont :
+
+* Les X sont observés sans erreur
+
+* $E(\epsilon)=0$ en moyenne le modèle est bien spécifié
+
+* $\sigma_{\epsilon}^{2}=E(\epsilon^{2})-E(\epsilon)^{2}=E(\epsilon^{2})$ la variance de l'erreur est constante
+
+* $\epsilon \hookrightarrow N(0,\sigma_{\epsilon})$
+
+On rappelle, comme pour le cas simple, que l'idée est de minimiser $\left \| \epsilon \right \|^{2}=\epsilon'\epsilon=(Y-aX)'(Y-aX)$ (méthode des moindres carrés)
+
+et on trouve de façon classique un estimateur de $a$ par :
+\[\hat{a}=(X'X)^{-1}X'Y\]
+
+```{r}
+(a<-solve(t(X)%*%X)%*%t(X)%*%Y)
+```
+
+# Biais de $\hat{a}$
+
+\[\hat{a}=(X'X)^{-1}X'Y\]
+\[\hat{a}=(X'X)^{-1}X'(Xa+\epsilon)\]
+\[\hat{a}=a+(X'X)^{-1}X'\epsilon\]
+
+Or comme X est non aléatoire
+
+\[E(\hat{a})=a \] donc $\hat{a}$ est sans biais
+
+# Matrice de variance covariance de $\hat{a}$
+
+$\hat{a}-a=(X'X)^{-1}X'\epsilon$ alors 
+
+$\Omega_{\hat{a}}= E((\hat{a}-a)(\hat{a}-a)')=(X'X)^{-1}X'E(\epsilon\epsilon')X(X'X)^{-1}$
+
+et comme $E(\epsilon_{i}\epsilon_{j})=0 \,\ i\neq j$
+
+On a :
+$\Omega_{\hat{a}}=\sigma_{\epsilon}^{2}(X'X)^{-1}$
+
+Faisons les calculs :
+
+$Y-aX=\epsilon$
+
+```{r}
+Y_hat<-X%*%a
+(SCres<-sum((Y-Y_hat)^2))
+```
+
+$\sigma_{\epsilon}^{2}=Scres/(27-4)=Cmres$ 
+
+```{r}
+(Cmres<-SCres/24)
+```
+
+et on obtient la matrice de covariance :
+
+```{r}
+(Omega<-round(Cmres*(solve(t(X)%*%X)),3))
+```
+
+Les écart-types des estimateurs de $\hat{a}$ sont donnés par les racines carrées des éléments diagonaux :
+
+```{r}
+(sqrt(diag(Omega)))
+```
+
+Calculons pour terminer, le pourcentage de variation de la rugosité expliquée par D, V et f  :
+
+Pour cela nous avons besoin du $SCreg=\sum_{i}  (\hat{Y_{i}}-\bar{Y})^{2}$
+
+```{r}
+(SCreg<-sum((Y_hat-mean(Y))^2))
+```
+
+$R^{2}=\frac{SCreg}{SCreg+SCres}$
+
+```{r}
+SCreg/(SCreg+SCres)
+```
+
+
+# Calcul direct avec __R__
+```{r}
+modele<-lm(Ra~D+V+f)
+```
+
+```{r}
+summary(modele)
+```
+
+Terminons par une ANOVA 
+
+```{r}
+anova(modele)
+```
+
+Nous pouvons remarquer que la variable V a très peu d'influence pour notre modèle (qu'en pense les spécialistes ?!)
+
+Refaire la même étude pour cette fois rechercher un modèle de régression de Ve en fonction de V, f et D
+
+
+# TP 
+L’entreprise CITRON fabrique un matériau en matière plastique qui est utilisé dans la fabrication de jouets. Le département de contrôle qualité de l’entreprise a effectué une étude qui a pour but d’établir dans quelle mesure la résistance à la rupture (en kg/cm2) de cette matière plastique pouvait être affectée
+par l’épaisseur du matériau ainsi que la densité de ce matériau. Douze essais ont été effectués et les résultats sont présentés dans le tableau ci-dessous.
+
+![](citron.png)
+
+```{r}
+Y<-c(37.8,22.5,17.1,10.8,7.2,42.3,30.2,19.4,14.8,9.5,32.4,21.6)
+X1<-c(4,4,3,2,1,6,4,4,1,1,3,4)
+X2<-c(4.0,3.6,3.1,3.2,3.0,3.8,3.8,2.9,3.8,2.8,3.4,2.8)
+```
+
+effectuer les analyses suivantes avec __R__ et retrouver les résultats dans les tableaux.
+
+1. ![](YX1.png)
+
+2. ![](YX2.png)
+
+3. ![](YX1X2.png)
+
+4. Quel pourcentage de variation dans la résistance à la rupture est expliqué Pour chacune de ces régressions ? 
+
+5. Entre l'épaisseur du matériau et la densité qu'est-ce qui a le plus d'influence sur la résistance à la rupture ?
+
+# Corrigé (sans explication ! ce qui n'a aucun intérêt... A vous d'interpréter les résultats !!)
+```{r}
+model<-lm(formula = Y~X1)
+summary(model)
+anova(model)
+```
+
+```{r}
+model<-lm(formula = Y~X2)
+summary(model)
+anova(model)
+```
+
+```{r}
+model<-lm(formula = Y~X1+X2)
+summary(model)
+anova(model)
+```
+

@@ -1,7 +1,7 @@
 ---
 title: "Bachelor regression Linéaire"
 author: "S. Jaubert"
-date: "17/03/2020"
+date: "`r format(Sys.time(), ' %d %B %Y')`"
 output:
   html_document: default
   pdf_document: default
@@ -19,13 +19,16 @@ X1<-seq(10,100,10)
 Y<-c(8.03,8,8.01,8.01,8.02,8.03,8.03,8.04,8.05,8.06)
 plot(x = X1,y = Y)
 ```
-Nous cherchons un modèle linéaire $Y_{i}=aX1_{i}+b+\epsilon_{i}$ où chaque $\epsilon_{i}$ est un terme résiduel aléatoire suivant la loi normale $N(0,\sigma^{2})$ (on dit que les $\epsilon_{i}$ sont des variables iid) a et b sont des paramètres inconnus.
+
+Le modèle linéaire est visiblement le plus approprié :
+
+$Y_{i}=aX1_{i}+b+\epsilon_{i}$ où chaque $\epsilon_{i}$ est un terme résiduel aléatoire suivant la loi normale $N(0,\sigma^{2})$ (on dit que les $\epsilon_{i}$ sont des variables iid) a et b sont des paramètres inconnus.
 
 
 
-L'idée est de minimiser (méthode des moindres carrés) la quantité :
+L'idée est de minimiser (méthode des moindres carrés) la somme des $\epsilon_{i}^{2}$ :
 
- $\epsilon_{i}^{2}=(Y_{i}-(aX1_{i}+b))^{2}$ avec $Y=(Y_{1},Y_{2},...,Y_{n})$ et 
+ \[ \sum_{i=1}^{n} \epsilon_{i}^{2}=\sum_{i=1}^{n}(Y_{i}-(aX1_{i}+b))^{2}\] avec $Y=(Y_{1},Y_{2},...,Y_{n})$ et 
  $X1=(X1_{1},X1_{2},...,X1_{n})$
  
  Où Y et X1 sont les vecteurs de nos données observées
@@ -39,15 +42,15 @@ Le plus simple est de construire un système matriciel :
 
 On peut alors écrire : 
 
-$Y=X\beta+epsilon$ où $\beta$ est la matrice (2,1) : 
+$Y=X\beta+\epsilon$ où $\beta$ est la matrice (2,1) : 
  $\begin{pmatrix}b\\a\end{pmatrix}$
 On a :
 
-$\epsilon=Y-X\beta$ et on démontre que l'estimateur de $\beta$ est :
+$\epsilon=Y-X\beta$ et [on démontre](https://fr.wikipedia.org/wiki/R%C3%A9gression_lin%C3%A9aire_multiple#La_m%C3%A9thode_des_moindres_carr%C3%A9s_ordinaires) que l'estimateur de $\beta$ est :
 
-$\beta = (X'X)^{-1}X'Y$ ($X'$ représente la transposée de $X$)
+$\hat{\beta} = (X'X)^{-1}X'Y$ ($X'$ représente la transposée de $X$)
 
-Soit en faisant les calculs avec __R__ :
+Effectuons les calculs avec __R__ :
 
 ```{r}
 (beta<-solve(t(X)%*%X)%*%t(X)%*%Y)
@@ -195,11 +198,12 @@ En fonction des paramètres de coupe : V (vitesse de coupe m/min), f (avance mm/
 
 Pouvons nous modéliser par une régression linéaire la réponse Ra ou Ve en fonction de V, f et D ?
 
-Commençons par entrer les données
+Commençons par entrer les données (téléchargeables ici : <https://sjaubert.github.io/SPCR/rugo_vib.csv>)
+
 ```{r}
 setwd("D:/OneDrive - CFAI Centre/Bachelor/Regression-Analysis-with-R-master") #à adapter 
-donnee<-read.csv2("rugo_vib.csv")
-donnee
+donnees<-read.csv2("rugo_vib.csv")
+donnees
 ```
 
 
@@ -207,7 +211,7 @@ donnee
 Construisons les matrices de notre modèle linéaire
 
 ```{r}
-attach(donnee)
+attach(donnees)
 (X<-matrix(cbind(rep(1,27),D,V,f),ncol = 4))
 (Y<-matrix(Ra,ncol=1))
 ```

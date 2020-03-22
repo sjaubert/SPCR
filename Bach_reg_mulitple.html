@@ -439,7 +439,7 @@ p&lt;-2  #   &quot;   &quot; colonnes &quot;  &quot;    &quot;    X</code></pre>
 <pre><code>## [1] 5.317655</code></pre>
 <pre class="r"><code>pf(Fobs,df1 = p-1,df2 = n-p,lower.tail = F)</code></pre>
 <pre><code>## [1] 0.003478466</code></pre>
-<p><span class="math inline">\(F_{obs}\)</span> est bien supérieur au <span class="math inline">\(F_{th}\)</span>, on rejette donc l’hypothèse nulle <span class="math inline">\(H_{0} : \beta_{1}=0\)</span></p>
+<p><span class="math inline">\(F_{obs}\)</span> est bien supérieur au <span class="math inline">\(F_{th}\)</span>, on rejette donc l’hypothèse nulle (au risque de 5%) <span class="math inline">\(H_{0} : \beta_{1}=0\)</span></p>
 <p>Pour rappel (voir cours sur l’ANOVA) :</p>
 <p><span class="math inline">\(\begin{matrix}\sum_{i}(Y_{i}-\bar{Y})^{2} &amp;=&amp;\sum_{i}(Y_{i}-\hat{Y_{i}})^{2} &amp;+&amp; \sum_{i} (\hat{Y_{i}}-\bar{Y})^{2} \\ SCT &amp;=&amp; SCres &amp;+&amp; SCreg \\ \end{matrix}\)</span></p>
 <p>La capacité du modèle à expliquer les variations de Y est donné par le fameux <span class="math inline">\(R^{2}=\frac{Screg}{Screg+Scres}\)</span> <strong>(c’est le pourcentage de Y qui est expliqué par la régression)</strong></p>

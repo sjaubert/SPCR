@@ -1,0 +1,170 @@
+---
+title: "Test de Student"
+author: "s.jaubert"
+date: "`r format(Sys.time(), ' %d %B %Y')`"
+output:
+  html_document: default
+  css: style.css
+  pdf_document: default
+  word_document: default
+---
+## Test de Student
+
+
+Le [test de Student](https://fr.wikipedia.org/wiki/William_Gosset) permet de comparer deux moyennes d'échantillons afin de voir si ceux-ci sont vraisemblablement issues de la même population (hypothèse nulle $H_{0}$) ou, au contraire, significativement différentes.
+
+<center>
+
+![william Sealy Gosset en 1908](william_Sealy_Gosset.jpg)
+
+</center>
+
+Plus simplement : ce test donne la probabilité qu'une différence observée soit due au hasard.
+
+Cette probabilité s'appelle la p-value.
+
+### Quelques rappels théoriques
+
+On peut lire ( https://fr.wikipedia.org/wiki/Loi_de_Student )
+
+Soit $Z$ une variable aléatoire de loi normale centrée et réduite et soit $U$ une variable indépendante de $Z$ et distribuée suivant la loi du $χ2$ à $k$ degrés de liberté. Par définition, la variable :
+
+\[T=\frac {Z}{\sqrt {\frac{U}{k}}}\] suit une loi de Student à $k$ degrés de liberté.
+
+A présent soit $\bar{X}$ la variable aléatoire moyenne d'un échantillon de taille $n$ issu d'une population de moyenne $\mu$ et d'écart-type $\sigma$
+
+Nous savons que :
+
+\[\bar{X}\hookrightarrow \mathcal{N}(\mu;\frac{\sigma}{\sqrt{n}})\]
+
+avec $\mu$ et $\sigma$ inconnus
+
+Or nous savons qu'un estimateur sans biais de $\sigma²$ est :
+\[S_{n-1}^{2}=\frac{n}{n-1}S_{n}^{2}\] 
+
+où \[S_{n}^{2}=\frac{1}{n}\sum_{i=1}^{n}(X_{1}-\bar{X})^{2}\] 
+et donc \[U=\frac{nS_{n}^{2}}{\sigma²}=\frac{(n-1)S_{n-1}^{2}}{\sigma²}\] suit une loi du $\chi^{2}$ à $n-1$ ddl
+
+De plus on peut écrire : $\frac{U}{n-1}=\frac{S_{n-1}^{2}}{\sigma²}$
+
+Par conséquent nous pouvons écrire :
+
+\[\frac{\bar{X}-\mu}{\frac{\sigma}{\sqrt{n}}} =\frac{\bar{X}-\mu}{\frac{S_{n-1}}{\sqrt{n}}}\]
+\[=\frac{\bar{X}-\mu}{\frac{S_{n-1}}{\sqrt{n}}}\]
+\[  =\frac{(\bar{X}-\mu) \;\sigma}{\frac{\sigma}{\sqrt{n}} S_{n-1}} =\frac{Z\sigma}{S_{n-1}}\]
+\[=\frac{Z}{\frac{S_{n-1}}{\sigma}}=\frac{Z}{\sqrt{\frac{U}{n-1}}}\]
+
+Par conséquent $\frac{\bar{X}-\mu}{\frac{\sigma}{\sqrt{n}}}$ suit bien la loi de Student à $(n-1)$ à $n-1$ ddl
+
+
+
+
+## **Analyser les résultats d'un test de Student :**
+
+p-value < 0.05 - différence significative avec une probabilité de 95%
+
+p-value < 0.01 - différence significative avec une probabilité de 99%
+
+p-value < 0.001 - différence significative avec une probabilité de 99,9%
+
+
+```{r}
+# Comparaison de x et y
+x = c(1,3,2,3,2,5,3,4,2,4,4) 
+y = c(3,2,8,8,3,2,3,5,6,7,5)
+resultat<-t.test(x,y)
+```
+
+```{r}
+#Récupérer la p-value : probabilité que les deux échantillons soient d'une même population
+
+resultat$p.value
+
+#Afficher le nombre de degré de liberté (pour calcul du test manuellement), 
+#de l'intervalle de confiance ? 95% par défaut,
+#le résultat t du test :
+
+resultat$parameter
+resultat$conf.int
+resultat$statistic
+```
+
+*Exemple*
+```{r}
+taille_pop <- c(rnorm(19000,175,10),rnorm(21000,168,6))
+ech_h <- c(taille_pop[13:112])
+ech_f <- c(taille_pop[22013:22112])
+sx_pop = c(rep("M",19000), rep("F",21000))
+ordre = 1:length(taille_pop)
+ordre = sample(ordre) 
+taille_pop = taille_pop[ordre]
+sx_pop = sx_pop[ordre]
+
+ech_t1 <- c(taille_pop[13:112])
+ech_t2 <- c(taille_pop[1013:1112])
+# La population de Périgueux a été recensée et la taille des individus notée.
+# On compare deux échantillons d'individus : ech_t1 et ech_t2
+# On compare aussi deux échantillons d'hommes et de femmes : ech_h et ech_f
+```
+
+1- Faire un test de student afin de déterminer si les échantillons ech_t1 et ech_t2 appartiennent probablement à des populations différentes.
+```{r}
+resultat = t.test(ech_t1, ech_t2, var.equal=TRUE)
+resultat$p.value
+# Les individus viennent de la même population : celle de Périgueux
+
+```
+
+2- Faire un test de student afin de déterminer si les échantillons ech_h et ech_f appartiennent probablement à des populations différentes
+```{r}
+resultat = t.test(ech_h, ech_f, var.equal=TRUE)
+resultat$p.value
+# Il y a une différence significative entre les hommes et les femmes de Périgueux
+
+```
+
+3- Tracer un histogramme de la taille des habitants de Périgueux (taille_pop)
+
+```{r}
+# MOYENNE MOBILE PAR ITERATION
+meanbp = function(vector) {
+    #Methode cf. Mosteller et Tukey, 1977 : permet de pondérer les valeurs en fonctions de la distance qui les sépare de la médiane
+    if (length(vector) >2) {
+        EIQ = abs(quantile(vector,probs=0.75)-quantile(vector,probs=0.25))
+         Z = (vector - median(vector))/(3*EIQ)
+        for (i in c(1:length(vector))) {
+           if (abs(Z[i])>1) {Z[i]=1}
+        }
+        w = (1-Z^2)^2
+        moyenne = sum(vector*w)/sum(w)
+        #Methode complément A.M. : permet de pondérer les valeurs en fonctions de la distance qui les sépare de la moyenne calculée précédement (1000 cycles maximum)
+        for (j in c(1:1000)) {
+            moyenne_old = moyenne
+                d = abs(vector-moyenne)
+                EIQ = (quantile(d,probs=0.75))+(quantile(d,probs=0.25))
+                  Z = (vector - moyenne)/(3*EIQ)
+                for (i in c(1:length(vector))) {
+                   if (abs(Z[i])>1) {Z[i]=1}
+                }
+                w = (1-Z^2)^2
+                moyenne = sum(vector*w)/sum(w)
+            variation = sd(vector)/(moyenne_old-moyenne)
+            if (moyenne ==moyenne_old) { break } # si moyenne ne bouge plus
+            if (variation > 1000) { break} # si le signal sur bruit est élevé
+        }
+    }
+    else {moyenne = mean(vector)}
+    return(moyenne)
+}
+```
+
+
+```{r}
+hist(taille_pop,col="yellow",breaks=40)
+abline(v=mean(taille_pop),col="red")
+abline(v=median(taille_pop),col="blue")
+# Aller copier-coller la fonction meanbp
+abline(v=meanbp(taille_pop),col="green")
+```
+
+

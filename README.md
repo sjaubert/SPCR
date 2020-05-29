@@ -11,7 +11,13 @@ Markdown is a lightweight and easy-to-use syntax for styling your writing. It in
 ```markdown
 Syntax highlighted code block
 
-# Header 1
+# Pages de Tests :
+
+[Test de Student](https://sjaubert.github.io/SPCR/t_test_student.html)
+
+[Test du Chi²](https://sjaubert.github.io/SPCR/Test_du_Khi2.html)
+
+
 ## Header 2
 ### Header 3
 

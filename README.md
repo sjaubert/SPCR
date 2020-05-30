@@ -4,7 +4,7 @@
 
  
  
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+
 
 ```
 For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
@@ -15,6 +15,6 @@ Your Pages site will use the layout and styles from the Jekyll theme you have se
 
 ### Pages de Tests
 
-[Test de Student](https://sjaubert.github.io/SPCR/t_test_student.html)
+[Test de Student](https://sjaubert.github.io/SPCR/t_test_student.html){:target="_blank"}
 
-[Test du Chi²](https://sjaubert.github.io/SPCR/Test_du_Khi2.html)
+[Test du Chi²](https://sjaubert.github.io/SPCR/Test_du_Khi2.html){:target="_blank"}

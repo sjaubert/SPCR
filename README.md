@@ -4,7 +4,7 @@
 
 ### Pages de Tests
 
-[Test de Student](https://sjaubert.github.io/SPCR/t_test_student.html?target=_blank)
+[Test de Student](https://sjaubert.github.io/SPCR/test_student.html?target=_blank)
 
 
 <a href="https://sjaubert.github.io/SPCR/Test_du_Khi2.html" target="_blank">Test du Khi²</a>

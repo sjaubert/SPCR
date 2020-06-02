@@ -1,0 +1,188 @@
+---
+title: "Le Chi 2"
+author: "s.jaubert"
+date: "`r format(Sys.time(), ' %d %B %Y')`"
+output:
+  html_document: null
+  pdf_document: default
+---
+
+Le $\chi^{2}$ (synonymes X², Chi2, Khi2, Chi², Khi²) permet de comparer des répartitions d'effectifs. 
+    On distingue :
+    
+le $\chi^{2}$ de conformité qui permet de comparer un effectif (ou une fréquence) à une valeur théorique attendue.
+
+les $\chi^{2}$ d'homogénéité et d'indépendance qui permettent de voir si un effectif peut être dû au seul hasard.
+
+### $\chi^{2}$ de conformité
+**Définition du $\chi^{2}$ de conformité**
+    
+  Le $\chi^{2}$ de conformité permet de savoir s'il y a correspondance entre la théorie et  une répartition observée.  Le test du $\chi^{2}$ permet donc de voir si un échantillon est  conforme à la théorie ou s'il en diffère significativement.
+    
+L'hypothèse nulle ($H_{0}$) est : La distribution observée est conforme à la distribution théorique choisie. Le résultat du Chi² de conformité permet de rejeter ou non $H_{0}$ au risque $\alpha$.
+
+**Résultats**
+
+ La p-value c'est la probabilité pour un modèle statistique donné **sous l'hypothèse nulle** d'obtenir la même valeur ou une valeur encore plus extrême que celle **observée**.
+
+La p-value donne la probabilité de non-validation de $H_{0}$
+plus la p-value est petite, plus la théorie et l'observation diffèrent.
+
+![](chi2zone_rejet_1.png)
+
+X-square, cette valeur classique renvoyée par un test de Khi2 permet de retrouver manuellement la p-value en s'aidant d'un tableau disponible dans tout bon livre de statistiques (ou outil électronique).
+            
+Exemple de $\chi²$ de conformité
+
+On lance 60 fois un dé cubique, d'un point de vue théorique nous devrions obtenir en moyenne 10 "Six" or nous en avons 19 le dé est-il bien équilibré ?
+            
+```{r}
+# Descendance observée
+observation <- c(19,41)
+# probabilités théoriques : d'un point de vue théorique, on devrait avoir 3/4 et 1/4 soit 75 et 25%
+proba <- c(1/6,5/6) 
+# Réalisation du test de khi-deux
+test<-chisq.test(observation,p=proba)
+test
+```
+
+Ainsi, la p-value ici nous permet d'en déduire que les résultats observés ne sont pas conformes à la théorie au risque $\alpha$
+
+Voici en détail ce que donne le résultat du test :
+```{r}
+test$statistic #: la statistique du Chi2.
+test$parameter #: le nombre de degrés de libertés.
+test$p.value #: la p-value.
+test$observed #: la matrice observée de départ.
+test$expected #: la matrice attendue sous l'hypothèse nulle d'absence de biais.
+```
+
+
+
+### $\chi^{2}$ d'indépendance
+
+**Définition du $\chi^{2}$ d'indépendance**
+
+  Le $\chi^{2}$ d'indépendance permet de savoir si il y a indépendance entre 2 critères susceptibles de créer une différence de répartition.
+
+L'hypothèse nulle ($H_{0}$) est : le fait de connaître  l'appartenance d'un individu à une population (selon un critère) ne donne aucun indice sur la caractéristique qui le défini selon l'autre critère.
+
+Par exemple : est-ce que le fait de connaître la couleur des yeux de quelqu'un me permet de supposer sur son sexe ?
+
+Rèponse : non.
+
+Par exemple : est-ce que le fait de connaître la taille de quelqu'un permet de supposer sur son sexe ? Réponse : oui, plus un individu est petit, plus il y a des chances que ce soit une femme.
+
+Résultats
+La p-value donne la probabilité de validation de $H_{0}$
+
+Plus la p-value est petite, plus il y a un lien entre les critères (et donc pas d'indépendance).
+
+
+```{r}
+# Créations des vecteurs correspondant à 2 catégories et pour chaque catégories 4 tranches salariales :
+hommes = c(50,70,110,60)
+femmes = c(80,75,100,30)
+# Création d'une matrice des effectifs comparative :
+tableau = matrix(c(hommes, femmes),2,4,byrow=T) # (2 : nombre de lignes et 4 nombres de colonnes (tranches salariales))
+tableau
+# Réalisation du test khi-deux - les résultats sont sauvegardés dans "khi_test"
+test = chisq.test(tableau)
+test # affiche le résultat du test
+```
+
+
+Ainsi, la p-value ici est de 0.0005 : il y a donc un lien statistique entre le sexe et la tranche salariale car la p-value est très petite.
+
+De même nous avons :
+```{r}
+test$statistic #: la statistique du Chi2.
+test$parameter #: le nombre de degrés de libertés.
+test$p.value #: la p-value.
+test$observed #: la matrice observée de départ.
+test$expected #: la matrice attendue sous l'hypothèse nulle d'absence de biais.
+```
+
+
+
+### $\chi^{2}$ d'homogénéité
+
+  Le $\chi^{2}$ d'homogénéité est un $\chi^{2}$ d'indépendance. Il est seulement réalisé dans un but différent. 
+
+  Le $\chi^{2}$ d'homogénéité permet de vérifier que les répartitions de différents effectifs sont équivalentes.
+
+Ce test repose ainsi sur 2 hypothèses :
+
+- $H_{0}$ : il n'y a pas de différence significative dans la répartition des groupes étudiés
+
+- $H_{1}$ : il y a une différence - cette hypothèse est a affiner en fonction du cas étudié (cf. exemple ci-dessous)
+
+```{r}
+# Créations des vecteurs correspondant aux 2 catégories :
+pedago1 = c(51, 29)
+pedago2 = c(38, 12)
+pedago3 = c(86, 34)
+# Création d'une matrice comparative :
+tableau = matrix(c(pedago1,pedago2,pedago3),3,2,byrow=T)
+colnames(tableau)<-c("Reçus","recalés")
+tableau
+# (3 : nombre de lignes et 2 nombres de colonnes)
+
+# autre méthode 
+tableau = rbind(pedago1,pedago2,pedago3)
+colnames(tableau)<-c("Reçus","recalés")
+tableau
+# Réalisation du test khi-deux - les résultats sont sauvegardés dans "khi_test"
+test = chisq.test(tableau)
+test # affiche le r?sultat du test
+```
+La p-value n'est pas suffisament petite on ne peut rejeter $H_{0}$
+
+```{r}
+test$statistic #: la statistique du Chi2.
+test$parameter #: le nombre de degrés de libertés.
+test$p.value #: la p-value.
+test$observed #: la matrice observée de départ.
+test$expected #: la matrice attendue sous l'hypothèse nulle d'absence de biais.
+```
+
+
+**un exemple avec un tableau de contingence **
+```{r}
+###########################################################################################
+#Tableau de Contingence
+
+tableau<-matrix(c(1768,807,189,47,946,1387,746,53,115,438,288,16),ncol = 4,byrow = T)
+tableau
+rownames(tableau)<-c("bleu","gris ou vert","marron")
+colnames(tableau)<-c("blond","chatain","noir","roux")
+tableau
+ni.<-margin.table(tableau,1)
+ni.
+n.j<-margin.table(tableau,2)
+n.j
+sum(ni.)
+sum(n.j)
+n..<-sum(ni.)
+n..
+addmargins(tableau)
+
+(freqabs<-round(tableau/n..*100,2))
+
+test<-chisq.test(tableau)
+test$statistic #: la statistique du Chi2.
+test$parameter #: le nombre de degrés de libertés.
+test$p.value #: la p-value.
+addmargins(test$observed) #: la matrice observée de départ.
+addmargins(test$expected) #: la matrice attendue sous l'hypothèse nulle d'absence de biais.
+```
+
+```{r}
+par(mfrow=c(1,3))
+mosaicplot(test$expected, main="Situation d'indépendance", col="orange3")
+mosaicplot(tableau, main="Situation Observée")
+mosaicplot(tableau, shade=TRUE, main="Etude de l'écart")
+
+
+```
+

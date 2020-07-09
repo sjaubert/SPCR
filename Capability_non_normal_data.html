@@ -373,7 +373,7 @@ summary {
 <p>Pour illustrer notre propos, commençons par charger nos données :</p>
 <pre class="r"><code>donnees&lt;-read.csv2(&quot;https://sjaubert.github.io/SPCR/device.csv&quot;,header = T)</code></pre>
 <pre class="r"><code>donnees$x&lt;-as.numeric(as.character(donnees$x))#pour corriger un petit problème de format...</code></pre>
-<p>Ces données nous renvoie le diamètre de 100 aiguilles pour des buses de pistolet de peinture, le diamètre a pour spécification <span class="math inline">\(2.0 ± 0.05\)</span> mm. Ces relevés ont été effectués par des prélèvements à intervalles réguliers de 20 échantillons de taille 5.</p>
+<p>Ces données nous renvoient le diamètre de 100 aiguilles pour des buses de pistolet de peinture, le diamètre a pour spécification <span class="math inline">\(2.0 ± 0.05\)</span> mm. Ces relevés ont été effectués par des prélèvements à intervalles réguliers de 20 échantillons de taille 5.</p>
 <p>Sans se préoccuper d’une quelconque normalité regardons nos cartes de controles :</p>
 <pre class="r"><code>library(qcc)</code></pre>
 <pre class="r"><code>diameter&lt;-qcc.groups(donnees$x,rep(1:20,5))

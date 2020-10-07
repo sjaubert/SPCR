@@ -1,7 +1,10 @@
 ## Quelques textes autour du SPC
 ### [Petit développement sur les estimateurs](https://sjaubert.github.io/SPCR/Estimation.pdf?target=_blank)
 
-### [TP Bachelor Capability ](https://sjaubert.github.io/SPCR/TP_Bachelor_Capability.html?target=_blank)
+### Etude capabilité
+[Capability cas normal ](https://sjaubert.github.io/SPCR/capability.html?target=_blank)
+[Capability cas non normal ](https://sjaubert.github.io/SPCR/Capability_non_normal_data.html?target=_blank)
+[TP Bachelor Capability ](https://sjaubert.github.io/SPCR/TP_Bachelor_Capability.html?target=_blank)
 
 ### Quelques Tests :
 

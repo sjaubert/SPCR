@@ -19,6 +19,9 @@
 
 <a href="https://sjaubert.github.io/SPCR/Bach_reg_mulitple.html" target="_blank">Bachelor Régression linéaire</a>
 
+<a href="https://sjaubert.github.io/regression/Logistic_Regression.html" target="_blank">Régression logistique</a>
+
+
 ### Jekyll Themes
 
 Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/sjaubert/SPCR/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.

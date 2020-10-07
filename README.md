@@ -1,4 +1,4 @@
-
+### [Petit développement sur les estimateurs](https://sjaubert.github.io/SPCR/Estimation.pdf?target=_blank)
 
 
 
@@ -8,6 +8,8 @@
 
 
 <a href="https://sjaubert.github.io/SPCR/Test_du_Khi2.html" target="_blank">Test du Khi²</a>
+
+
 
 ### Jekyll Themes
 

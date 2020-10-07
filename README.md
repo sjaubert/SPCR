@@ -17,7 +17,7 @@
 
 ### Sur la régression
 
-<a href="https://sjaubert.github.io/SPCR/Bach_reg_mulitple.html" target="_blank">Bachelor Régression multiple</a>
+<a href="https://sjaubert.github.io/SPCR/Bach_reg_mulitple.html" target="_blank">Bachelor Régression linéaire</a>
 
 ### Jekyll Themes
 

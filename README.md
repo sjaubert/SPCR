@@ -3,7 +3,9 @@
 
 ### Etude capabilité
 [Capability cas normal ](https://sjaubert.github.io/SPCR/capability.html?target=_blank)
+
 [Capability cas non normal ](https://sjaubert.github.io/SPCR/Capability_non_normal_data.html?target=_blank)
+
 [TP Bachelor Capability ](https://sjaubert.github.io/SPCR/TP_Bachelor_Capability.html?target=_blank)
 
 ### Quelques Tests :

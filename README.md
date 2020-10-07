@@ -15,7 +15,7 @@
 
 <a href="https://sjaubert.github.io/SPCR/Test_du_Khi2.html" target="_blank">Test du Khi²</a>
 
-###Sur la régression
+### Sur la régression
 
 <a href="https://sjaubert.github.io/SPCR/Bach_reg_mulitple.html" target="_blank">Bachelor Régression multiple</a>
 

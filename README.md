@@ -22,7 +22,7 @@
 <a href="https://sjaubert.github.io/regression/Logistic_Regression.html" target="_blank">Régression logistique</a>
 
 ### Plan d'échantillonnage
-<a href="https://sjaubert.github.io/regression/sample_plan.html" target="_blank">Sample Plan</a>
+<a href="https://sjaubert.github.io/SPCR/sample_plan.html" target="_blank">Sample Plan</a>
 ### Jekyll Themes
 
 Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/sjaubert/SPCR/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.

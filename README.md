@@ -1,6 +1,8 @@
 ## Quelques textes autour du SPC
 ### [Petit développement sur les estimateurs](https://sjaubert.github.io/SPCR/Estimation.pdf?target=_blank)
 
+### ANOVA
+[Capability cas normal ](https://sjaubert.github.io/SPCR/ANOVA.html?target=_blank)
 ### Etude capabilité
 [Capability cas normal ](https://sjaubert.github.io/SPCR/capability.html?target=_blank)
 

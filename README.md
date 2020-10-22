@@ -29,3 +29,6 @@
 #### Jekyll Themes
 
 Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/sjaubert/SPCR/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+
+
+<a href="https://chesneau.users.lmno.cnrs.fr/chequiers.txt" target="_blank">jeu de données</a>

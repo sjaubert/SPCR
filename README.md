@@ -11,6 +11,7 @@
 [TP Bachelor Capability ](https://sjaubert.github.io/SPCR/TP_Bachelor_Capability.html?target=_blank)
 
 ### Quelques Tests :
+<a href="https://github.com/sjaubert/SPCR/blob/master/Bachelor-Test-Statistique-avec-R.html" target="_blank">Bachelor quelques tests statistique</a>
 
 [Test de Student](https://sjaubert.github.io/SPCR/test_student.html?target=_blank)
 

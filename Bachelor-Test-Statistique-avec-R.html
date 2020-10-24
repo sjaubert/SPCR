@@ -437,7 +437,7 @@ summary {
 <h1>Z-test</h1>
 <p>On considère un échantillon de taille <span class="math inline">\(n\)</span>, <span class="math inline">\(X_{1}, X_{2},..., X_{n}\)</span> avec <span class="math inline">\(X_{i} \hookrightarrow \mathcal{N}(\mu;\sigma)\)</span> et un risque <span class="math inline">\(\alpha\)</span></p>
 <ul>
-<li>si l’on teste <span class="math inline">\(H_{0} : \mu=m_{0}\)</span></li>
+<li>si l’on teste <span class="math inline">\(H_{0} : \mu=m_{0}\)</span> (Test bilatéral)</li>
 </ul>
 <p>La statistique de test sous l’hypothèse nulle est :</p>
 <p><span class="math display">\[z=\sqrt{n} \frac{\bar{X_{n}}-m_{0}}{\sigma}\]</span> qui suit une loi normale <span class="math inline">\(\mathcal{N}(0;1)\)</span></p>
@@ -476,7 +476,7 @@ n&lt;-length(x)</code></pre>
 <p>La probabilité d’observer ( sous <span class="math inline">\(H_{0}\)</span>) une valeur aussi lointaine est (d’un seul côté) :</p>
 <pre class="r"><code>pnorm(mo,7.3,0.38/sqrt(n))</code></pre>
 <pre><code>## [1] 0.01254566</code></pre>
-<p>Soit une p-value de (on multiplie car le test est bilatéral) :</p>
+<p>Soit une p-value de (on multiplie par 2 car le test est bilatéral) :</p>
 <pre class="r"><code>2*pnorm(mo,7.3,0.38/sqrt(n))</code></pre>
 <pre><code>## [1] 0.02509132</code></pre>
 <p>Retrouvons ces résultats directement avec R :</p>

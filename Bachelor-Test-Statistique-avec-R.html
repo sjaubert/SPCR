@@ -425,7 +425,7 @@ summary {
 
 <h1 class="title toc-ignore">Bachelor - Tests Statistique</h1>
 <h4 class="author">S. Jaubert</h4>
-<h4 class="date">24 octobre 2020</h4>
+<h4 class="date">27 octobre 2020</h4>
 
 </div>
 
@@ -533,9 +533,58 @@ n&lt;-length(x)</code></pre>
 </div>
 <div id="exemple-3-page-15" class="section level4">
 <h4><strong>Exemple 3 page 15</strong></h4>
+<p>Nous observons comme moyenne :</p>
+<pre class="r"><code>x&lt;-c(232,277,235,245,250,268,256,245)
+(mean(x)-&gt;mo)</code></pre>
+<pre><code>## [1] 251</code></pre>
+<p>L’hypothèse nulle <span class="math inline">\(H_{0} : mu = 276\)</span></p>
+<p>La statistique de test est <span class="math inline">\(t_{0} :\)</span></p>
+<pre class="r"><code>(to&lt;-(mo-276)*sqrt(8)/sd(x))</code></pre>
+<pre><code>## [1] -4.564355</code></pre>
+<p>Pour obtenir la p-value :</p>
+<pre class="r"><code>pt(to,df = 7)*2</code></pre>
+<pre><code>## [1] 0.00259146</code></pre>
+<p>Avec la fonction t-test nous retrouverons ces valeurs :</p>
+<pre class="r"><code>t.test(x = x,mu = 276)</code></pre>
+<pre><code>## 
+##  One Sample t-test
+## 
+## data:  x
+## t = -4.5644, df = 7, p-value = 0.002591
+## alternative hypothesis: true mean is not equal to 276
+## 95 percent confidence interval:
+##  238.0484 263.9516
+## sample estimates:
+## mean of x 
+##       251</code></pre>
+<p>Observer une telle valeur mo sous <span class="math inline">\(H_{0}\)</span> est donc très peu probable, nous rejetterons cette hypothèse.</p>
 </div>
 <div id="exemple-4-page-16" class="section level4">
 <h4><strong>Exemple 4 page 16</strong></h4>
+<p>Soit <span class="math inline">\(p\)</span> la proportion inconnue de haricots fins.</p>
+<p>On pose <span class="math inline">\(H_{0} : p=0.25\)</span> contre <span class="math inline">\(H_{1} : p \neq 0.25\)</span></p>
+<p>On a pour fréquence observée <span class="math inline">\(fo=118/400=0.295\)</span></p>
+<p>La p-value est de :</p>
+<pre class="r"><code>pnorm(0.295,0.25,sd = sqrt(0.25*0.75/400),lower.tail = F)*2</code></pre>
+<pre><code>## [1] 0.03766692</code></pre>
+<p>Si on utilise le test 1-prop-Z-Test de R, on retrouve la même chose :</p>
+<pre class="r"><code>prop.test(118,400,0.25,correct = F)</code></pre>
+<pre><code>## 
+##  1-sample proportions test without continuity correction
+## 
+## data:  118 out of 400, null probability 0.25
+## X-squared = 4.32, df = 1, p-value = 0.03767
+## alternative hypothesis: true p is not equal to 0.25
+## 95 percent confidence interval:
+##  0.252429 0.341471
+## sample estimates:
+##     p 
+## 0.295</code></pre>
+<p>Le <span class="math inline">\(X^{2}\)</span> se retrouve par :</p>
+<pre class="r"><code>(0.295-0.25)/sqrt(0.25*0.75/400)-&gt;X
+X^2</code></pre>
+<pre><code>## [1] 4.32</code></pre>
+<p>Comme p-value <span class="math inline">\(&lt; 0.05\)</span>, on peut affirmer, au risque 5%, que le producteur a tort.</p>
 </div>
 </div>
 <div id="tests-dhomogénéité" class="section level1">

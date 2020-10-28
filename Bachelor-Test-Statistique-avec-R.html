@@ -425,7 +425,7 @@ summary {
 
 <h1 class="title toc-ignore">Bachelor - Tests Statistique</h1>
 <h4 class="author">S. Jaubert</h4>
-<h4 class="date">27 octobre 2020</h4>
+<h4 class="date">28 octobre 2020</h4>
 
 </div>
 
@@ -610,10 +610,68 @@ mean_test2(X1,X2,sigma = c(1.3,0.9))</code></pre>
 <pre><code>##          mean df           Z   p_value
 ## 1 -0.01833333 19 -0.03602397 0.9712632</code></pre>
 </div>
+<div id="exemple-2-page-21" class="section level4">
+<h4><strong>Exemple 2 page 21</strong></h4>
+<p>On considère deux lots de tasses et on souhaite comparer la solidité de ceux-ci. Pour chacun des deux lots, on dispose d’un échantillon de 10 tasses et on mesure la résistance de chacune d’entre eux. Les résultats sont :</p>
+<ul>
+<li>pour le premier échantillon :</li>
+</ul>
+<pre class="r"><code>X1&lt;-c(31.70,31.98,32.24,32.35,31.18,32.19,32.63,31.19,31.54,31.89)</code></pre>
+<ul>
+<li>pour le deuxième échantillon :</li>
+</ul>
+<pre class="r"><code>X2&lt;-c(31.61,31.10,31.20,31.11,32.66,31.15,31.71,31.22,31.16,31.21)</code></pre>
+<p>Peut-on affirmer que ces deux échantillons ne proviennent pas de la même production ?</p>
+</div>
 </div>
 <div id="tests-dindépendance" class="section level1">
 <h1>Tests d’indépendance</h1>
 <p>Voir cours page 31 ou ici : <a href="https://sjaubert.github.io/SPCR/Test_du_Khi2.html">https://sjaubert.github.io/SPCR/Test_du_Khi2.html</a></p>
+<div id="exemple-page-33" class="section level4">
+<h4><strong>Exemple page 33</strong></h4>
+<pre class="r"><code>A&lt;-matrix(c(50,47,56,5,14,8),nrow = 2,byrow = T)
+rownames(A)&lt;-c(&quot;Brillants&quot;,&quot;Médiocres&quot;)
+colnames(A)&lt;-c(&quot;A&quot;,&quot;B&quot;,&quot;C&quot;)
+addmargins(A)</code></pre>
+<pre><code>##            A  B  C Sum
+## Brillants 50 47 56 153
+## Médiocres  5 14  8  27
+## Sum       55 61 64 180</code></pre>
+<p>Détails du alcul de la matrice théorique :</p>
+<pre class="r"><code>V_th&lt;-c()
+for (i in 1:2){
+  for (j in 1:3){
+    V_th&lt;-c(V_th,sum(A[i,])*sum(A[,j])/sum(A))
+  }
+  
+}
+(A_th&lt;-matrix(V_th,nrow = 2,byrow = T))</code></pre>
+<pre><code>##       [,1]  [,2] [,3]
+## [1,] 46.75 51.85 54.4
+## [2,]  8.25  9.15  9.6</code></pre>
+<p>Que l’on retrouve avec :</p>
+<pre class="r"><code>chisq.test(A)$expected</code></pre>
+<pre><code>##               A     B    C
+## Brillants 46.75 51.85 54.4
+## Médiocres  8.25  9.15  9.6</code></pre>
+<p>La statistique du <span class="math inline">\(\chi^{2}\)</span> se calcule :</p>
+<pre class="r"><code>(chi2_obs &lt;-(50-46.75)^2/46.75+(47-51.85)^2/51.85+(56-54.4)^2/54.4+(5-8.25)^2/8.25+(14-9.15)^2/9.15+(8-9.6)^2/9.6)</code></pre>
+<pre><code>## [1] 4.844394</code></pre>
+<p>Que l’on retrouve facilement avec :</p>
+<pre class="r"><code>chisq.test(A)$statistic</code></pre>
+<pre><code>## X-squared 
+##  4.844394</code></pre>
+<p>Et la p-value (probabilité d’observer une valeur aussi extrême) se détermine par :</p>
+<pre class="r"><code>pchisq(q = 4.844394 ,df = 2,lower.tail = F)</code></pre>
+<pre><code>## [1] 0.08872647</code></pre>
+<p>Enfin nous pouvons avoir tous ces résultats directement par :</p>
+<pre class="r"><code>chisq.test(A)</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test
+## 
+## data:  A
+## X-squared = 4.8444, df = 2, p-value = 0.08873</code></pre>
+</div>
 <div id="exercice-10-page-42" class="section level4">
 <h4><strong>Exercice 10 page 42</strong></h4>
 <pre class="r"><code>chequiers&lt;-read.table(file = &quot;https://sjaubert.github.io/SPCR/chequiers.txt&quot;,header = T)

@@ -425,7 +425,7 @@ summary {
 
 <h1 class="title toc-ignore">Bachelor - Tests Statistique</h1>
 <h4 class="author">S. Jaubert</h4>
-<h4 class="date">28 octobre 2020</h4>
+<h4 class="date">29 octobre 2020</h4>
 
 </div>
 
@@ -637,7 +637,7 @@ addmargins(A)</code></pre>
 ## Brillants 50 47 56 153
 ## Médiocres  5 14  8  27
 ## Sum       55 61 64 180</code></pre>
-<p>Détails du alcul de la matrice théorique :</p>
+<p>Détails du calcul de la matrice théorique :</p>
 <pre class="r"><code>V_th&lt;-c()
 for (i in 1:2){
   for (j in 1:3){
@@ -671,6 +671,48 @@ for (i in 1:2){
 ## 
 ## data:  A
 ## X-squared = 4.8444, df = 2, p-value = 0.08873</code></pre>
+</div>
+</div>
+<div id="tests-dindépendance-cas-avec-des-caractères-quantitatifs" class="section level1">
+<h1>Tests d’indépendance cas avec des caractères quantitatifs</h1>
+<p>Soient X et Y deux caractères quantitatifs.</p>
+<p>On souhaite affirmer à partir des données observées que X et Y ne sont pas indépendants.</p>
+<p>On considère alors l’hypothèse :</p>
+<ul>
+<li><span class="math inline">\(H_{0}\)</span> : “X et Y sont indépendants”</li>
+</ul>
+<p>On fait l’hypothèse que si dépendance il y a, alors elle est linéaire, donc : <span class="math inline">\(H_{0}\)</span> : &quot;X et Y sont indépendants <span class="math inline">\(&lt;=&gt; \rho =0\)</span></p>
+<p>On démontre que sous <span class="math inline">\(H_{0}\)</span>, la statistique : <span class="math display">\[ T=\frac{r}{\sqrt{\frac{1-r^{2}}{n-2}}}\]</span> suit une loi de Student à <span class="math inline">\((n-2)\)</span> degrés de liberté.</p>
+<p>La p-value associée au test de nullité du coefficient de corrélation est :</p>
+<p><span class="math display">\[ \mathbb{P}\left ( \left | T \right | \geq \left | t_{obs} \right |\right )\]</span></p>
+<div id="exemple-page-36" class="section level4">
+<h4><strong>Exemple page 36</strong></h4>
+<p>Sur 14 familles composées d’un père et d’un fils, on examine le QI du père et le QI du fils. Les résultats sont :</p>
+<pre class="r"><code>Qp&lt;-c(121,142,108,111,97,139,131,90,115,107,124,103,115,151)
+Qf&lt;-c(102,138,126,133,95,146,115,100,142,105,130,120,109,123)</code></pre>
+<p>Peut-on affirmer qu’il y a une liaison significative entre le QI du père et le QI du fils ?</p>
+<p><span class="math inline">\(t_{obs}=\frac{r}{\sqrt{\frac{1-r^{2}}{n-2}}}\)</span></p>
+<pre class="r"><code>n&lt;-length(Qp)
+r&lt;-cor(Qp,Qf)
+(t_obs&lt;-r/sqrt((1-r^2)/(n-2)))</code></pre>
+<pre><code>## [1] 2.290343</code></pre>
+<p>Soit une p-value :</p>
+<pre class="r"><code>(p_value&lt;-2*pt(t_obs,df = n-2,lower.tail = F))</code></pre>
+<pre><code>## [1] 0.04090612</code></pre>
+<p>Résultats que l’on a directement avec :</p>
+<pre class="r"><code>cor.test(Qp,Qf)</code></pre>
+<pre><code>## 
+##  Pearson&#39;s product-moment correlation
+## 
+## data:  Qp and Qf
+## t = 2.2903, df = 12, p-value = 0.04091
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  0.02960175 0.83713281
+## sample estimates:
+##       cor 
+## 0.5515191</code></pre>
+<p>On peut donc affirmer qu’il y a une liaison significative entre le QI du père et celui du fils.</p>
 </div>
 <div id="exercice-10-page-42" class="section level4">
 <h4><strong>Exercice 10 page 42</strong></h4>

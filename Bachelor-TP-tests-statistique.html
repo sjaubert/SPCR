@@ -1698,9 +1698,11 @@ summary {
 </div>
 
 
-<div id="tp-1-corrigé-test-z-sur-une-moyenne" class="section level2">
-<h2><strong>TP 1 Corrigé Test Z sur une moyenne</strong></h2>
-<p>Le niveau annuel des précipitations dans la Beauce suit une loi Normale de moyenne <span class="math inline">\(\mu\)</span> = 700 mm et d’écart type <span class="math inline">\(\sigma=100\)</span></p>
+<p>Pour ces différents TP on pourra se référer aux exemples traités sur cette <a href="https://sjaubert.github.io/SPCR/Bachelor-Test-Statistique-avec-R.html">page</a></p>
+<div id="tp-1-test-z-sur-une-moyenne" class="section level2">
+<h2><strong>TP 1 Test Z sur une moyenne</strong></h2>
+<p>Ce premier TP est corrigé, afin de comprendre quelles questions il est important de se poser.</p>
+<p>Le niveau annuel des précipitations dans la Beauce suit une loi Normale de moyenne <span class="math inline">\(\mu=700 \; mm\)</span> et d’écart type <span class="math inline">\(\sigma=100 \; mm\)</span></p>
 <p>Des industriels prétendent pouvoir augmenter le niveau moyen des pluies de manière significative sans changer l’écart type grâce à un procédé d’insémination de nuages à l’iodure d’argent.</p>
 <p>Au cours d’une période de test de 9 ans, le niveau moyen des pluies pour chacune des 9 années a été le suivant (mm) :</p>
 <pre class="r"><code>Yobs &lt;- c(610, 714, 880, 612, 601, 634, 703, 888, 750)</code></pre>
@@ -1742,6 +1744,24 @@ z.test(Yobs,mu = 700,stdev = 100,alternative = &quot;greater&quot;)</code></pre>
 <pre class="r"><code>1-pnorm(754.8285,mean = 710,sd = 100/sqrt(length(Yobs)))</code></pre>
 <pre><code>## [1] 0.08933603</code></pre>
 <p>Soit moins de 1 chance sur 10…</p>
+<p>En fait nous aurions pu très bien faire un test t (<span class="math inline">\(\sigma\)</span> inconnu) et faire la même conclusion.</p>
+<pre class="r"><code>t.test(x =Yobs,alternative = &quot;g&quot;,mu = 700 )</code></pre>
+<pre><code>## 
+##  One Sample t-test
+## 
+## data:  Yobs
+## t = 0.27497, df = 8, p-value = 0.3952
+## alternative hypothesis: true mean is greater than 700
+## 95 percent confidence interval:
+##  641.0911      Inf
+## sample estimates:
+## mean of x 
+##  710.2222</code></pre>
+<p>La statistique et la p-value (toujours comprendre d’où viennent les résultats !) sont obtenues par :</p>
+<pre class="r"><code>q&lt;-(mean(Yobs)-700)*sqrt(length(Yobs))/sd(Yobs) #la statistique du t.test
+p_value&lt;-pt(q = q,lower.tail = F,df = length(Yobs)-1)
+print(c(q,p_value))</code></pre>
+<pre><code>## [1] 0.2749661 0.3951550</code></pre>
 <p>Si on refait la même chose en supposant que la taille de l’échantillon est de 1000 avec la même moyenne observée 710.</p>
 <p>On aura une p-value de :</p>
 <pre class="r"><code>1-pnorm(710, mean=700, sd=100/sqrt(1000))</code></pre>

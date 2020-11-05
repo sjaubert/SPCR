@@ -9,6 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="S. Jaubert" />
 
 
 <title>Bachelor - Correction TP Tests statistique</title>
@@ -1694,6 +1695,8 @@ summary {
 
 
 <h1 class="title toc-ignore">Bachelor - Correction TP Tests statistique</h1>
+<h4 class="author">S. Jaubert</h4>
+<h4 class="date">05 novembre 2020</h4>
 
 </div>
 
@@ -1909,7 +1912,7 @@ for (i in 1:3){
 <pre class="r"><code>X_squared&lt;-sum((c(54,14,6,51,45,14,8,31,33,34,12,33)-V_th)^2/V_th)
 X_squared</code></pre>
 <pre><code>## [1] 22.56412</code></pre>
-<p>Calcul de p-value, probabilité d’observer la valeur du chi² sous</p>
+<p>Calcul de la p-value, probabilité d’observer la valeur du chi² sous <span class="math inline">\(H_{0}\)</span> :</p>
 <pre class="r"><code>1-pchisq(q = X_squared,df = 6)</code></pre>
 <pre><code>## [1] 0.0009564136</code></pre>
 <p>Il est bien évident que nous rejetons <span class="math inline">\(H_{0}\)</span> au risque de 5%, appartenir à un site aura une influence sur la cause de l’arrêt de travail.</p>

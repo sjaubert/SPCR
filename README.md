@@ -19,6 +19,8 @@
 
 <a href="https://sjaubert.github.io/SPCR/Test_du_Khi2.html" target="_blank">Test du Khi²</a>
 
+<a href="https://sjaubert.github.io/SPCR/Bachelor-TP-tests-statistique-Corrig%C3%A9.html" target="_blank">Un TP sur les tests avec correction</a>
+
 ### Sur la régression
 
 <a href="https://sjaubert.github.io/SPCR/Bach_reg_mulitple.html" target="_blank">Bachelor Régression linéaire</a>

@@ -10,6 +10,9 @@
 
 [TP Bachelor Capability ](https://sjaubert.github.io/SPCR/TP_Bachelor_Capability.html?target=_blank)
 
+<a href="https://sjaubert.github.io/SPCR/spc/TP_cartes_Shewhart.html" target="_blank">Correction sur les cartes de Shewhart</a>
+
+
 ### Quelques Tests :
 
 <a href="https://sjaubert.github.io/SPCR/Bachelor-Test-Statistique-avec-R.html" target="_blank">Bachelor quelques tests statistique</a>

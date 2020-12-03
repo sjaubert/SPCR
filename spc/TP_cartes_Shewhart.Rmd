@@ -1,9 +1,10 @@
 ---
-title: 'BACHELOR SPC : Corrigé TP Cartes Controles'
+title: 'BACHELOR SPC : Corrigé TP Cartes de Shewhart'
 author: "S. Jaubert"
-date: "18/11/2019"
+date: "`r format(Sys.time(), ' %d %B %Y')`"
 output:
   pdf_document: default
+  word_document: default
   html_document: default
 ---
 
@@ -11,7 +12,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-**SPC1**
+## **SPC1**
 Le nombre d'unités non conformes X à un poste d'inspection pour des lots de 150 unités
 est présenté dans le tableau selon l'ordre temporel de la production (lignes)
 
@@ -56,7 +57,7 @@ Bien entendu les cartes p et np sont équivalentes car n = 150 est constant.
 Elles donnent la même information.
 
 
-**SPC2**
+## **SPC2**
 
 La pression d'un réservoir d'eau servant au refroidissement d'un procédé est surveillée
 d'une manière continue. La pression X est enregistrée sur du papier graphique enroulé sur un cylindre circulaire. Périodiquement, le papier graphique circulaire est changé et les données sont placées en fichier. Personne ne savait quoi faire avec ces données. Un ingénieur qui venait de suivre un cours sur le contrôle statistique des procédés décida
@@ -78,7 +79,7 @@ structurons nos données sous la forme de 24 prélèvements (du 1/12 au 13/01) d
 
 ```{r}
 mydata<-qcc.groups(data = donnees_SPC2$pression,sample = donnees_SPC2$groupe)
-mydata
+mydata[1:5,]
 ```
 
 (a) Tracez 2 graphiques : celui de la moyenne quotidienne Xbar et celui de l’étendue R.
@@ -128,4 +129,148 @@ q_R<-qcc(data = mydata,type = "R",limits = q_R_12jours$limits)
 
 Un point hors contrôle alors qu'en prenant les limites calculées sur les 24 points il y en avait aucun.
 
-Il va de soi que dans le premier cas les limites sont moins restrictives que dans le second cas où une dérive se dait nettement sentir.
+Il va de soi que dans le premier cas les limites sont moins restrictives que dans le second cas où une dérive se fait nettement sentir.
+
+
+## **SPC3**
+
+Un produit liquide est fabriqué en lot (« batch »). Puisque chaque lot est logiquement homogène, chaque lot est caractérisé par une seule valeur de test. Les 15 dernières
+observations (jours) sont dans (l'ordre :
+35, 39, 38, 42, 37, 37, 39, 37, 37, 40, 39, 39, 38, 42, 36
+
+(a) Tracez une carte XmR. Interpréter la carte
+
+```{r}
+data<-c(35, 39, 38, 42, 37, 37, 39, 37, 37, 40, 39, 39, 38, 42, 36)
+```
+
+Ici nous utiliserons le type "xbar.one" car une seule valeur par observation
+
+```{r}
+q3<-qcc(data = data,type = "xbar.one")
+```
+
+Les 15 valeurs sont parfaitement entre les limites de contrôle, le processus est stable.
+
+(b) Les 2 prochaines observations (jour 16 et jour 17) sont 34 et 44.
+
+Est-ce que ces valeurs sont en contrôle si on les compare aux 15 premières?
+
+Il suffit de les ajouter à la suite du premier vecteur
+
+```{r}
+data<-c(data,34,44)
+q3<-qcc(data = data,type = "xbar.one")
+```
+
+Nous restons à l'intérieur des limites de contrôle pour la moyenne, cela étant nous observons une variation plus grande, bien que nous ayons pour chaque lot une seule valeur nous allons caractériser cette variation en comparant deux valeurs successives.
+
+construisons un vecteur indexant nos 17 relevés en 8 groupes (7 groupes de 2 et un groupe de 3)
+```{r}
+index<-rep(1:8,each=2)
+index<-c(index,8)
+```
+
+
+```{r}
+mydata<-qcc.groups(data = data,sample = index)
+mydata
+```
+
+```{r}
+q3_R<-qcc(data = mydata,type = "R")
+```
+Il faut effectivement s'inquieter de l'écart qui tend à s'accroitre dans les derniers relevés
+
+## **SPC4**
+
+Les données représentent 99 mesures de silice dans une fonderie durant 33 jours consécutifs sont téléchargeables à cette adresse https://sjaubert.github.io/SPCR/spc/SPC-4-silice.csv
+
+```{r}
+donnees<-read.csv("https://sjaubert.github.io/SPCR/spc/SPC-4-silice.csv",header = T,sep = ";")
+
+str(donnees) #vérifions nos données
+```
+
+Restructurons dans une matrice ces données grace à la fonction qcc.groups
+
+```{r}
+library(qcc) 
+mydata<-qcc.groups(data = donnees$X,sample = donnees$jour)
+mydata[1:5,]
+```
+
+(a) Tracez une carte Xbar et R. Interpréter.
+```{r}
+q4_Xbar<-qcc(data = mydata,type = "xbar")
+q4_R<-qcc(data = mydata,type = "R")
+```
+
+La carte Xbar nous révèle que le procédé est totalement hors contrôle, la variabilité mérite aussi notre attention nous avons à partir de la 12ème observation 10 points du même côté de la ligne centrale les causes communes à elles seules ne peuvent l'expliquer...
+
+(b) Quelle source de variation est représentée par la carte R?
+
+Variation intra-groupe
+
+(c) Quelle source de variation est représentée par la carte Xbar?
+Variation inter-groupe
+
+
+
+
+(e) Quelles seraient les limites naturelles de variation de la moyenne journalière ?
+
+
+## **SPC5**
+
+En 1931, W.A.Shewhart publiait la première monographie portant sur le contrôle statistique de la qualité. Cette monographie jeta les bases scientifiques du contrôle
+statistique de la qualité. Les données de cet exercice proviennent de cet ouvrage intitulé "Economic Control of Quality of Manufactured Product" (table 2, page 20)
+
+Téléchargeons ces données :
+
+```{r}
+setwd("D:/OneDrive - CFAI Centre/Bachelor/Capability/spc")
+data_spc5<-read.csv(file = "SPC-5-ohm.csv",header = F,sep = ";")
+
+str(data_spc5) #vérifions nos données
+```
+
+(a) La moyenne des étendues R est 666.08 Quelles sont les limites de contrôle pour l’étendue R
+
+(b) Est-ce que certaines étendues excèdent la limite de contrôle supérieure?
+(c) La grande moyenne (moyenne des moyennes) est 4503.25. Calculer les limites de contrôle pour les moyennes Xbar.
+(d) Comparer ces limites de la carte Xbar et de la carte R avec celles que l’on obtiendrait en avec le logiciel Statistica.
+
+Toutes ces questions vont être résolues directement.
+
+```{r}
+library(qcc) 
+mydata<-qcc.groups(data = data_spc5$V2,sample = data_spc5$V1)
+mydata[1:5,]
+```
+
+```{r}
+q5_Xbar<-qcc(data = mydata,type = "xbar")
+q5_R<-qcc(data = mydata,type = "R")
+```
+
+Nous retrouvons effectivement la moyenne $\bar{R}$ et la moyenne $\bar{\bar{X}}$
+
+D'après la carte X, nous constatons que le process n'est absolument pas sous contrôle.
+
+La 4ème étendue et la 15ème sont hors contrôle.
+
+
+
+
+
+## **SPC6** 
+
+(données non fournies)
+
+
+## **SPC7**
+
+une surface de 300 cm² est inspectée et on compte le nombre d'imperfection qui excèdent une aire de 0.001 cm². Les 20 premières observations sont :
+
+0 0 2 3 2 1 0 1 1 2 1 4 3 2 0 1 4 2 0 1

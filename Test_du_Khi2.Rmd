@@ -6,6 +6,7 @@ output:
   html_document: null
   pdf_document: default
 ---
+**Source l'excellent site : https://sites.google.com/site/rgraphiques**
 
 Le $\chi^{2}$ (synonymes X², Chi2, Khi2, Chi², Khi²) permet de comparer des répartitions d'effectifs. 
     On distingue :

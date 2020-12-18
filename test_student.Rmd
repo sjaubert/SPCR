@@ -1,15 +1,20 @@
 ---
 title: "Test de Student"
-author: "s.jaubert"
-date: "`r format(Sys.time(), ' %d %B %Y')`"
+author: "S. Jaubert"
+date: "07/10/2020"
 output:
   html_document: default
-  css: style.css
-  pdf_document: default
   word_document: default
+  pdf_document: default
 ---
-## Test de Student
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+**Source l'excellent site : https://sites.google.com/site/rgraphiques**
+
+
+## Test de Student
 
 Le [test de Student](https://fr.wikipedia.org/wiki/William_Gosset) permet de comparer deux moyennes d'échantillons afin de voir si ceux-ci sont vraisemblablement issues de la même population (hypothèse nulle $H_{0}$) ou, au contraire, significativement différentes.
 
@@ -25,48 +30,39 @@ Cette probabilité s'appelle la p-value.
 
 ### Quelques rappels théoriques
 
-On peut lire ( https://fr.wikipedia.org/wiki/Loi_de_Student )
+On peut lire ( <https://fr.wikipedia.org/wiki/Loi_de_Student> )
 
 Soit $Z$ une variable aléatoire de loi normale centrée et réduite et soit $U$ une variable indépendante de $Z$ et distribuée suivant la loi du $χ2$ à $k$ degrés de liberté. Par définition, la variable :
 
-\[T=\frac {Z}{\sqrt {\frac{U}{k}}}\] suit une loi de Student à $k$ degrés de liberté.
+$$T=\frac {Z}{\sqrt {\frac{U}{k}}}$$ suit une loi de Student à $k$ degrés de liberté.
 
 A présent soit $\bar{X}$ la variable aléatoire moyenne d'un échantillon de taille $n$ issu d'une population de moyenne $\mu$ et d'écart-type $\sigma$
 
 Nous savons que :
 
-\[\bar{X}\hookrightarrow \mathcal{N}(\mu;\frac{\sigma}{\sqrt{n}})\]
+$$\bar{X}\hookrightarrow \mathcal{N}(\mu;\frac{\sigma}{\sqrt{n}})$$
 
 avec $\mu$ et $\sigma$ inconnus
 
-Or nous savons qu'un estimateur sans biais de $\sigma²$ est :
-\[S_{n-1}^{2}=\frac{n}{n-1}S_{n}^{2}\] 
+Or nous savons qu'un estimateur sans biais de $\sigma²$ est : $$S_{n-1}^{2}=\frac{n}{n-1}S_{n}^{2}$$
 
-où \[S_{n}^{2}=\frac{1}{n}\sum_{i=1}^{n}(X_{1}-\bar{X})^{2}\] 
-et donc \[U=\frac{nS_{n}^{2}}{\sigma²}=\frac{(n-1)S_{n-1}^{2}}{\sigma²}\] suit une loi du $\chi^{2}$ à $n-1$ ddl
+où $$S_{n}^{2}=\frac{1}{n}\sum_{i=1}^{n}(X_{1}-\bar{X})^{2}$$ et donc $$U=\frac{nS_{n}^{2}}{\sigma²}=\frac{(n-1)S_{n-1}^{2}}{\sigma²}$$ suit une loi du $\chi^{2}$ à $n-1$ ddl
 
 De plus on peut écrire : $\frac{U}{n-1}=\frac{S_{n-1}^{2}}{\sigma²}$
 
 Par conséquent nous pouvons écrire :
 
-\[\frac{\bar{X}-\mu}{\frac{\sigma}{\sqrt{n}}} =\frac{\bar{X}-\mu}{\frac{S_{n-1}}{\sqrt{n}}}\]
-\[=\frac{\bar{X}-\mu}{\frac{S_{n-1}}{\sqrt{n}}}\]
-\[  =\frac{(\bar{X}-\mu) \;\sigma}{\frac{\sigma}{\sqrt{n}} S_{n-1}} =\frac{Z\sigma}{S_{n-1}}\]
-\[=\frac{Z}{\frac{S_{n-1}}{\sigma}}=\frac{Z}{\sqrt{\frac{U}{n-1}}}\]
+$$\frac{\bar{X}-\mu}{\frac{\sigma}{\sqrt{n}}} =\frac{\bar{X}-\mu}{\frac{S_{n-1}}{\sqrt{n}}}$$ $$=\frac{\bar{X}-\mu}{\frac{S_{n-1}}{\sqrt{n}}}$$ $$  =\frac{(\bar{X}-\mu) \;\sigma}{\frac{\sigma}{\sqrt{n}} S_{n-1}} =\frac{Z\sigma}{S_{n-1}}$$ $$=\frac{Z}{\frac{S_{n-1}}{\sigma}}=\frac{Z}{\sqrt{\frac{U}{n-1}}}$$
 
-Par conséquent $\frac{\bar{X}-\mu}{\frac{\sigma}{\sqrt{n}}}$ suit bien la loi de Student à $(n-1)$ à $n-1$ ddl
-
-
-
+Par conséquent $\frac{\bar{X}-\mu}{\frac{\sigma}{\sqrt{n}}}$ suit bien la loi de Student à $(n-1)$ ddl
 
 ## **Analyser les résultats d'un test de Student :**
 
-p-value < 0.05 - différence significative avec une probabilité de 95%
+p-value \< 0.05 - différence significative avec une probabilité de 95%
 
-p-value < 0.01 - différence significative avec une probabilité de 99%
+p-value \< 0.01 - différence significative avec une probabilité de 99%
 
-p-value < 0.001 - différence significative avec une probabilité de 99,9%
-
+p-value \< 0.001 - différence significative avec une probabilité de 99,9%
 
 ```{r}
 # Comparaison de x et y
@@ -90,6 +86,7 @@ resultat$statistic
 ```
 
 *Exemple*
+
 ```{r}
 taille_pop <- c(rnorm(19000,175,10),rnorm(21000,168,6))
 ech_h <- c(taille_pop[13:112])
@@ -107,7 +104,8 @@ ech_t2 <- c(taille_pop[1013:1112])
 # On compare aussi deux échantillons d'hommes et de femmes : ech_h et ech_f
 ```
 
-1- Faire un test de student afin de déterminer si les échantillons ech_t1 et ech_t2 appartiennent probablement à des populations différentes.
+1- Faire un test de student afin de déterminer si les échantillons ech\_t1 et ech\_t2 appartiennent probablement à des populations différentes.
+
 ```{r}
 resultat = t.test(ech_t1, ech_t2, var.equal=TRUE)
 resultat$p.value
@@ -115,7 +113,8 @@ resultat$p.value
 
 ```
 
-2- Faire un test de student afin de déterminer si les échantillons ech_h et ech_f appartiennent probablement à des populations différentes
+2- Faire un test de student afin de déterminer si les échantillons ech\_h et ech\_f appartiennent probablement à des populations différentes
+
 ```{r}
 resultat = t.test(ech_h, ech_f, var.equal=TRUE)
 resultat$p.value
@@ -123,7 +122,7 @@ resultat$p.value
 
 ```
 
-3- Tracer un histogramme de la taille des habitants de Périgueux (taille_pop)
+3- Tracer un histogramme de la taille des habitants de Périgueux (taille\_pop)
 
 ```{r}
 # MOYENNE MOBILE PAR ITERATION
@@ -158,7 +157,6 @@ meanbp = function(vector) {
 }
 ```
 
-
 ```{r}
 hist(taille_pop,col="yellow",breaks=40)
 abline(v=mean(taille_pop),col="red")
@@ -166,5 +164,3 @@ abline(v=median(taille_pop),col="blue")
 # Aller copier-coller la fonction meanbp
 abline(v=meanbp(taille_pop),col="green")
 ```
-
-

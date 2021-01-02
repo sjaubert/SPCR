@@ -1,7 +1,7 @@
 ## Quelques textes autour du SPC
 ### [Petit développement sur les estimateurs](https://sjaubert.github.io/SPCR/Estimation.pdf?target=_blank)
 
-data set : http://archive.ics.uci.edu/ml/datasets.php?format=&task=reg&att=&area=comp&numAtt=&numIns=&type=&sort=nameUp&view=table
+<b><a href="http://archive.ics.uci.edu/ml/datasets.php?format=&task=reg&att=&area=comp&numAtt=&numIns=&type=&sort=nameUp&view=table" target="_blank">data set</a> </b>
 
 ### ANOVA
 [Test F pour une ANOVA](https://sjaubert.github.io/SPCR/ANOVA.html?target=_blank)

@@ -3,6 +3,9 @@
 
 <b><a href="http://archive.ics.uci.edu/ml/datasets.php?format=&task=reg&att=&area=comp&numAtt=&numIns=&type=&sort=nameUp&view=table" target="_blank">data set : Machine Learning Repository</a> </b>
 
+### Reliability
+<a href="https://sjaubert.github.io/Reliability/BACH_Weibull.html" target="_blank">Weibull en bref</a>
+
 ### ANOVA
 [Test F pour une ANOVA](https://sjaubert.github.io/SPCR/ANOVA.html?target=_blank)
 ### Etude capabilité

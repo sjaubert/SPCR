@@ -23,7 +23,7 @@
 
 ### Quelques Tests :
 
-<a href="https://sjaubert.github.io/SPCR/Bachelor-Test-Statistique-avec-R.html" target="_blank">Bachelor quelques tests statistique</a>
+<a href="https://sjaubert.github.io/SPCR/Bachelor-Test-Statistique-avec-R.html" target="_blank">Bachelor quelques tests statistiques</a>
 
 [Test de Student](https://sjaubert.github.io/SPCR/test_student.html?target=_blank)
 

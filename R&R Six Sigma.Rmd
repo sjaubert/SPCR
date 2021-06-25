@@ -1,0 +1,288 @@
+---
+title: "R & R Six Sigma"
+author: "S. Jaubert"
+date: "`r format(Sys.time(), ' %d %B %Y')`"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+# ANOVA à deux facteurs
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Mesure du voltage de batteries
+
+Nous avons $a=2$ appareils de mesure $i=1,2$ (voltmètre facteur A "the appraisers") et $b=3$ types de batteries $j=1,2,3$ (facteur B ou "parts" en anglais).  
+
+Le voltage des batteries est mesuré avec chaque voltmètre $R=3$ fois, soit $a\times b\times R=18$ mesures.
+
+Voici nos données :
+
+```{r}
+voltmeter<-rep(1:2,each=9)
+battery<-rep(rep(1:3,each=3),2)
+run<-rep(1:3,6)
+voltage<-c(1.4727,1.4206,1.4754,1.5083,1.5739,
+           1.4341,1.5517,1.5483,1.4614,1.3337,
+           1.6078,1.4767,1.4066,1.5951,1.8419,
+           1.7087,1.8259,1.5444)
+batteries<-data.frame(voltmeter,battery,run,voltage)
+batteries
+```
+
+En toute rigueur nous devrions vérifier :
+
+* les échantillons sont issus d’une population normale 
+
+* les variances conditionnelles (variances dans chaque sous-population) sont identiques : homoscédasticité
+
+* les sous-échantillons sont indépendants
+
+Néanmoins en pratique l'ANOVA est assez robuste.
+
+
+```{r warning=FALSE, include=FALSE}
+library(dplyr)
+library(magrittr)
+ batteries <- batteries %>% mutate(voltmeter=as.factor(voltmeter)) %>% mutate(battery=as.factor(battery))  %>% mutate(run=as.factor(run))
+batteries
+```
+
+
+```{r eval=FALSE, include=FALSE}
+library(ggplot2)
+ggplot(batteries, aes(x =battery, y = voltage)) + 
+  ggdist::stat_halfeye(
+    adjust = .5, 
+    width = .6, 
+    .width = 0, 
+    justification = -.3, 
+    point_colour = NA) + 
+  geom_boxplot(
+    width = .25, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter(
+      seed = 1, width = .1
+    )
+  ) + 
+  coord_cartesian(xlim = c(1.2, NA), clip = "off")
+```
+
+```{r eval=FALSE, include=FALSE}
+library(DT)
+str(batteries)
+datatable(batteries, class = 'cell-border stripe')
+```
+
+Soit $x_{ijr}$ l'observation numéro $r$ dans l'échantillon $E_{ij}$ où $(i,j)\in \left \{ 1,2 \right \} \times \left \{ 1,2,3 \right \} $.
+
+![](tableau.jpg)
+
+On a :
+
+$\overline{x}_{ij}=\frac{1}{3}\sum_{r=1}^{3}x_{ijr}$
+
+Que nous pouvons obtenir par :
+
+```{r}
+with(batteries, tapply(voltage, list(voltmeter, battery), mean))->mat_Xbar_ij
+rownames(mat_Xbar_ij)<-c("vol1","vol2")
+colnames(mat_Xbar_ij)<-c("bat1","bat2","bat3")
+mat_Xbar_ij
+```
+
+Les moyennes marginales sont :
+
+$\overline{x}_{i.}=\frac{1}{3}\sum_{j=1}^{3} \overline{x}_{ij}$
+
+$\overline{x}_{.j}=\frac{1}{2}\sum_{i=1}^{2} \overline{x}_{ij}$
+
+Que nous obtenons avec les commandes :
+
+```{r}
+(xbar_i.<-apply(mat_Xbar_ij,1,mean))
+```
+
+```{r}
+(xbar_.j<-apply(mat_Xbar_ij,2,mean))
+```
+et la moyenne générale $\overline {\overline{X}} :$
+```{r}
+(xbarbar<-mean(batteries$voltage))
+```
+
+#### Hypothèses
+
+$H_{0} : \mu_{i.}=\mu ,\; \forall \; i$
+
+$H_{0} : \mu_{.j}=\mu , \; \forall \; j$
+
+$H_{0} : \mu_{ij}=\mu ,\; \forall \; i,j$
+
+Décomposition de la moyenne :
+
+$x_{ijr}-\overline {\overline{X}}=(\overline{x}_{i.}-\overline {\overline{X}})+(\overline{x}_{.j}-\overline {\overline{X}})+(\overline{x}_{ij}-\overline{x}_{i.}-\overline{x}_{.j}+\overline {\overline{X}})+(x_{ijr}-\overline{x}_{ij})$
+
+D'où :
+
+$SCT=SCE_{A}+SCE_{B}+SCE_{AB}+SCR$
+
+Calculons ces termes :
+
+```{r}
+(SCT<-sum((batteries$voltage-xbarbar)^2))
+```
+
+```{r}
+(SCE_A<-sum((xbar_i.-xbarbar)^2)*9)
+```
+
+```{r}
+(SCE_B<-sum((xbar_.j-xbarbar)^2)*6)
+```
+
+```{r}
+temp<-NULL
+for (i in 1:2) {
+    for (j in 1:3){ 
+      temp<-c(temp,(mat_Xbar_ij[i,j]-xbar_i.[i]-xbar_.j[j]+xbarbar)^2)
+                  }
+                }
+(SCE_AB<-sum(temp)*3)
+```
+
+```{r}
+temp<-NULL
+for (i in 1:2) {
+    for (j in 1:3){ 
+      for (k in 1:3){
+      temp<-c(temp,(batteries[batteries$voltmeter==i & batteries$battery==j & batteries$run==k,]$voltage-mat_Xbar_ij[i,j])^2)
+      
+          }
+      }
+}
+
+(SCR<-sum(temp))
+
+```
+
+
+![](tab_varia.jpg)
+
+
+Tout ceci est assez fastidieux, heureusement avec _R_ tous ces termes se retrouvent très facilement :
+
+### ANOVA avec R
+
+```{r}
+result<-anova(lm(voltage~battery+voltmeter+battery*voltmeter,
+                 data = batteries))
+result
+```
+
+Décomposition de la variabilité :
+
+![](total_variability.png)
+
+
+
+La répétabilité, $\sigma^{2}_{repeatability}$ est obtenue directement comme le "Residuals Mean Sq" :
+
+```{r}
+result$`Mean Sq`[4]
+```
+
+La variabilité due au voltmètre $\sigma^{2}_{Appraisers}=\frac{MSB-MSAB}{3\times3}$ est :
+
+```{r}
+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(3*3)
+```
+
+La variabilité due à l'interaction Batterie-Voltmètre, $\sigma^{2}_{Interaction}=\frac{MSAB-MSE}{3}$ est :
+
+```{r}
+(result$`Mean Sq`[3]-result$`Mean Sq`[4])/3
+```
+
+Cette valeur n'a pas à être négative, aussi nous prendrons zéro.
+
+La reproductibilité, $\sigma^{2}_{reproducibility}=\sigma^{2}_{Appraisers}+\sigma^{2}_{Interaction}$ est alors : 0.003911723
+
+Le gage R&R, mesure la variabilité provoquée par le système de mesure, que nous comparerons ensuite à la variabilité totale.
+
+$\sigma^{2}_{R\&R}=\sigma^{2}_{repeatability}+\sigma^{2}_{reproducibility}$, prend la valeur :
+
+```{r}
+result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(3*3)
+```
+
+La variation due au processus, $\sigma^{2}_{Part \; to \;Part}=\frac{MSA-MSAB}{2\times3}$ :
+
+```{r}
+(result$`Mean Sq`[1]-result$`Mean Sq`[3])/(2*3)
+```
+
+Enfin, la variabilité totale $\sigma^{2}_{Totale}=\sigma^{2}_{R\&R}+\sigma^{2}_{Part \; to \;Part}$ :
+
+```{r}
+result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(3*3)+(result$`Mean Sq`[1]-result$`Mean Sq`[3])/(2*3)
+```
+
+Pour qu'un système de mesure soit précis, la contribution de la variabilité du Gage R&R ne doit pas dépasser 10% de la variabilité totale.
+
+$\%Gage \;R\&R=\frac{\sigma_{R\&R}}{\sigma_{Totale}}<10\%$
+
+Une valeur comprise entre 10 et 30% peut être acceptable.
+
+Une valeur supérieure à 30% représente un mauvais système de mesure.
+
+Dans notre exemple, nous avons :
+
+```{r}
+sqrt(result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(3*3))/sqrt(result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(3*3)+(result$`Mean Sq`[1]-result$`Mean Sq`[3])/(2*3))
+```
+
+Ce qui signifie que la plus grande partie de la variation du processus est due à la variabilité du système de mesure.
+
+### Utilisation du Package SixSigma de R
+
+```{r echo=TRUE, message=TRUE, warning=FALSE}
+library(SixSigma)
+gage_rr<-ss.rr(var = voltage,part = battery,appr = voltmeter,data = batteries,main = "Six Sigma Gage R&R Measure",sub = "Batteries Projet MSA")
+```
+
+```{r}
+gage_rr
+```
+
+
+## 7 opérateurs
+
+```{r}
+setwd("D:/OneDrive - CFAI Centre/Bachelor/R&R")
+dd<-read.csv("https://sjaubert.github.io/SPCR/Bachelor_RR.csv",header = T,dec = ".",sep = ";")
+```
+
+Représentation visuelle des données par opérateurs :
+
+```{r}
+library(ggplot2)
+ggplot(dd, aes(y=mesure, x=operateur,colour=operateur ,fill=operateur))+
+geom_boxplot(alpha=0.5, outlier.alpha=0)+
+geom_jitter(width=0.2)+
+theme_classic()+geom_violin()
+```
+
+```{r}
+library(SixSigma)
+gage_rr<-ss.rr(var = mesure,part = part,appr = operateur,data = dd,main = "Six Sigma Gage R&R Measure",sub = "diamètre de niveau à bulle")
+```
+

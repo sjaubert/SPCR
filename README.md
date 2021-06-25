@@ -8,6 +8,8 @@
 
 ### ANOVA
 [Test F pour une ANOVA](https://sjaubert.github.io/SPCR/ANOVA.html?target=_blank)
+
+[Etude R&R](https://sjaubert.github.io/SPCR/R-R-Six-Sigma.html?target=_blank)
 ### Etude capabilité
 [Capability cas normal ](https://sjaubert.github.io/SPCR/capability.html?target=_blank)
 

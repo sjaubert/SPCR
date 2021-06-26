@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Mesure du voltage de batteries
 
-Nous avons $a=2$ appareils de mesure $i=1,2$ (voltmètre facteur A "the appraisers") et $b=3$ types de batteries $j=1,2,3$ (facteur B ou "parts" en anglais).  
+Nous avons $a=2$ appareils de mesure $i=1,2$ (voltmètre facteur A "the appraisers") et $b=3$ types de batteries $j=1,2,3$ (facteur B ou "parts" en anglais).
 
 Le voltage des batteries est mesuré avec chaque voltmètre $R=3$ fois, soit $a\times b\times R=18$ mesures.
 
@@ -36,14 +36,13 @@ batteries
 
 En toute rigueur nous devrions vérifier :
 
-* les échantillons sont issus d’une population normale 
+-   les échantillons sont issus d'une population normale
 
-* les variances conditionnelles (variances dans chaque sous-population) sont identiques : homoscédasticité
+-   les variances conditionnelles (variances dans chaque sous-population) sont identiques : homoscédasticité
 
-* les sous-échantillons sont indépendants
+-   les sous-échantillons sont indépendants
 
 Néanmoins en pratique l'ANOVA est assez robuste.
-
 
 ```{r warning=FALSE, include=FALSE}
 library(dplyr)
@@ -51,7 +50,6 @@ library(magrittr)
  batteries <- batteries %>% mutate(voltmeter=as.factor(voltmeter)) %>% mutate(battery=as.factor(battery))  %>% mutate(run=as.factor(run))
 batteries
 ```
-
 
 ```{r eval=FALSE, include=FALSE}
 library(ggplot2)
@@ -82,7 +80,7 @@ str(batteries)
 datatable(batteries, class = 'cell-border stripe')
 ```
 
-Soit $x_{ijr}$ l'observation numéro $r$ dans l'échantillon $E_{ij}$ où $(i,j)\in \left \{ 1,2 \right \} \times \left \{ 1,2,3 \right \} $.
+Soit $x_{ijr}$ l'observation numéro $r$ dans l'échantillon $E_{ij}$ où  $(i,j)\in \left \{ 1,2 \right \} \times \left \{ 1,2,3 \right \}$.
 
 ![](tableau.jpg)
 
@@ -114,7 +112,9 @@ Que nous obtenons avec les commandes :
 ```{r}
 (xbar_.j<-apply(mat_Xbar_ij,2,mean))
 ```
+
 et la moyenne générale $\overline {\overline{X}} :$
+
 ```{r}
 (xbarbar<-mean(batteries$voltage))
 ```
@@ -174,11 +174,9 @@ for (i in 1:2) {
 
 ```
 
-
 ![](tab_varia.jpg)
 
-
-Tout ceci est assez fastidieux, heureusement avec _R_ tous ces termes se retrouvent très facilement :
+Tout ceci est assez fastidieux, heureusement avec *R* tous ces termes se retrouvent très facilement :
 
 ### ANOVA avec R
 
@@ -191,8 +189,6 @@ result
 Décomposition de la variabilité :
 
 ![](total_variability.png)
-
-
 
 La répétabilité, $\sigma^{2}_{repeatability}$ est obtenue directement comme le "Residuals Mean Sq" :
 
@@ -263,7 +259,6 @@ gage_rr<-ss.rr(var = voltage,part = battery,appr = voltmeter,data = batteries,ma
 gage_rr
 ```
 
-
 ## 7 opérateurs
 
 ```{r}
@@ -285,4 +280,3 @@ theme_classic()+geom_violin()
 library(SixSigma)
 gage_rr<-ss.rr(var = mesure,part = part,appr = operateur,data = dd,main = "Six Sigma Gage R&R Measure",sub = "diamètre de niveau à bulle")
 ```
-

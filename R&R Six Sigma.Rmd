@@ -3,8 +3,8 @@ title: "R & R Six Sigma"
 author: "S. Jaubert"
 date: "`r format(Sys.time(), ' %d %B %Y')`"
 output:
-  html_document: default
   word_document: default
+  html_document: default
   pdf_document: default
 ---
 
@@ -20,6 +20,12 @@ Nous avons $a=2$ appareils de mesure $i=1,2$ (voltmètre facteur A "the appraise
 
 Le voltage des batteries est mesuré avec chaque voltmètre $R=3$ fois, soit $a\times b\times R=18$ mesures.
 
+```{r}
+a<-2
+b<-3
+R<-3
+```
+
 Voici nos données :
 
 ```{r}
@@ -34,11 +40,11 @@ batteries<-data.frame(voltmeter,battery,run,voltage)
 batteries
 ```
 
-En toute rigueur nous devrions vérifier :
+En toute rigueur nous devrions vérifier que :
 
 -   les échantillons sont issus d'une population normale
 
--   les variances conditionnelles (variances dans chaque sous-population) sont identiques : homoscédasticité
+-   les variances conditionnelles (variances dans chaque sous-population) sont identiques : **homoscédasticité**
 
 -   les sous-échantillons sont indépendants
 
@@ -71,7 +77,8 @@ ggplot(batteries, aes(x =battery, y = voltage)) +
       seed = 1, width = .1
     )
   ) + 
-  coord_cartesian(xlim = c(1.2, NA), clip = "off")
+  coord_cartesian(xlim = c(1.2, NA), clip = "off")->gr
+gr
 ```
 
 ```{r eval=FALSE, include=FALSE}
@@ -80,7 +87,7 @@ str(batteries)
 datatable(batteries, class = 'cell-border stripe')
 ```
 
-Soit $x_{ijr}$ l'observation numéro $r$ dans l'échantillon $E_{ij}$ où  $(i,j)\in \left \{ 1,2 \right \} \times \left \{ 1,2,3 \right \}$.
+Soit $x_{ijr}$ l'observation numéro $r$ dans l'échantillon $E_{ij}$ où $(i,j)\in \left \{ 1,2 \right \} \times \left \{ 1,2,3 \right \}$
 
 ![](tableau.jpg)
 
@@ -133,7 +140,10 @@ $x_{ijr}-\overline {\overline{X}}=(\overline{x}_{i.}-\overline {\overline{X}})+(
 
 D'où :
 
-$SCT=SCE_{A}+SCE_{B}+SCE_{AB}+SCR$
+
+$$
+\begin{matrix}SCT & = &SCE_{A}  & + & SCE_{B} & + & SCE_{AB} & + &SCR \\  \sum_{i=1}^{a}\sum_{j=1}^{b}\sum_{r=1}^{R}\left ( x_{ijr}-\overline {\overline{X}} \right )^{2}& = & \sum_{i=1}^{a}(\overline{x}_{i.}-\overline {\overline{X}})^{2}\times b\times R & + & \sum_{j=1}^{b}(\overline{x}_{.j}-\overline {\overline{X}})^{2}\times a\times R & + & SCE_{AB} & + & \sum_{i=1}^{a}\sum_{j=1}^{b}\sum_{r=1}^{R}(x_{ijr}-\overline{x}_{ij})^{2}\end{matrix}
+$$
 
 Calculons ces termes :
 
@@ -142,11 +152,11 @@ Calculons ces termes :
 ```
 
 ```{r}
-(SCE_A<-sum((xbar_i.-xbarbar)^2)*9)
+(SCE_A<-sum((xbar_i.-xbarbar)^2)*b*R)
 ```
 
 ```{r}
-(SCE_B<-sum((xbar_.j-xbarbar)^2)*6)
+(SCE_B<-sum((xbar_.j-xbarbar)^2)*a*R)
 ```
 
 ```{r}
@@ -174,7 +184,14 @@ for (i in 1:2) {
 
 ```
 
+Le tableau ci-dessous résume ces résultats, pour les moyennes des carrés il suffit de diviser les Sommes des Carrés par leurs degrés de liberté :
+
 ![](tab_varia.jpg)
+
+
+(nous pouvons utiliser des acronymes anglais ou français ainsi SSE et SCR sont identiques ainsi que MSE et MCR)
+
+
 
 Tout ceci est assez fastidieux, heureusement avec *R* tous ces termes se retrouvent très facilement :
 
@@ -190,25 +207,25 @@ Décomposition de la variabilité :
 
 ![](total_variability.png)
 
-La répétabilité, $\sigma^{2}_{repeatability}$ est obtenue directement comme le "Residuals Mean Sq" :
+La répétabilité, $\sigma^{2}_{repeatability}=\frac{SCR}{ab(R-1)}$ est obtenue directement comme le "Residuals Mean Sq" de la 4ème ligne:
 
 ```{r}
 result$`Mean Sq`[4]
 ```
 
-La variabilité due au voltmètre $\sigma^{2}_{Appraisers}=\frac{MSB-MSAB}{3\times3}$ est :
+La variabilité due au voltmètre (ou Appraiser) $\sigma^{2}_{Appraisers}=\frac{MSA-MSAB}{b\times R}$ est :
 
 ```{r}
-(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(3*3)
+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(b*R)
 ```
 
-La variabilité due à l'interaction Batterie-Voltmètre, $\sigma^{2}_{Interaction}=\frac{MSAB-MSE}{3}$ est :
+La variabilité due à l'interaction Batterie-Voltmètre, $\sigma^{2}_{Interaction}=\frac{MSAB-MSE}{R}=\frac{MSAB-\sigma^{2}_{repeatability}}{R}$ est :
 
 ```{r}
-(result$`Mean Sq`[3]-result$`Mean Sq`[4])/3
+(result$`Mean Sq`[3]-result$`Mean Sq`[4])/R
 ```
 
-Cette valeur n'a pas à être négative, aussi nous prendrons zéro.
+(cette valeur étant négative nous prendrons zéro)
 
 La reproductibilité, $\sigma^{2}_{reproducibility}=\sigma^{2}_{Appraisers}+\sigma^{2}_{Interaction}$ est alors : 0.003911723
 
@@ -217,10 +234,10 @@ Le gage R&R, mesure la variabilité provoquée par le système de mesure, que no
 $\sigma^{2}_{R\&R}=\sigma^{2}_{repeatability}+\sigma^{2}_{reproducibility}$, prend la valeur :
 
 ```{r}
-result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(3*3)
+result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(b*R)
 ```
 
-La variation due au processus, $\sigma^{2}_{Part \; to \;Part}=\frac{MSA-MSAB}{2\times3}$ :
+La variation due au processus, $\sigma^{2}_{Part \; to \;Part}=\frac{MSB-MSAB}{a\times R}$ :
 
 ```{r}
 (result$`Mean Sq`[1]-result$`Mean Sq`[3])/(2*3)

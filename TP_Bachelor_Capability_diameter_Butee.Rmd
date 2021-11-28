@@ -1,0 +1,168 @@
+---
+title: "TP Bachelor Etude de la normalité et de la Capabilité du diamètre d'une butée"
+author: "S. Jaubert"
+date: "`r format(Sys.time(), ' %d %B %Y')`"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Traitement des données
+
+Télécharger les données :
+```{r}
+donnees<-read.csv2("https://sjaubert.github.io/SPCR/diameter.csv",header = T)
+```
+
+Examinons si tout c'est bien passé (le format des données récupérées cause souvent des surprises !) :
+
+```{r}
+is.numeric(donnees$diameter)
+```
+
+Par souci de simplicité, appelons diameter_butee notre vecteur de données :
+
+```{r}
+diameter_butee<-donnees$diameter
+ 
+```
+
+Petit aperçu de ces 30 premiers relevés (6X5)
+
+```{r}
+hist(diameter_butee,breaks = 30)
+```
+
+Entrons manuellement les 4 échantillons suivants :
+
+```{r}
+dd<-c(11.91,11.95,11.9,11.94,11.93,11.95,11.92,11.95,11.93,11.94,11.95,11.93,11.95,11.95,11.95,11.98,11.94,11.97,11.95,11.95)
+```
+
+Puis on concatène les données :
+```{r}
+diameter<-c(diameter_butee,dd)
+```
+
+## Notre première carte de contrôle
+
+Chargeons la librairie qcc
+```{r message=FALSE, warning=FALSE}
+library(qcc) #chargement de la librairie QCC  
+
+```
+
+Regroupons nos données en 10 échantillons de 5 valeurs :
+```{r}
+mydata<-qcc.groups(diameter,rep(1:10,each=5))
+mydata
+```
+
+Pour des infos supplémentaires sur le package QCC : <https://cran.r-project.org/web/packages/qcc/vignettes/qcc_a_quick_tour.html>
+
+
+ Faisons notre première carte de contrôle celle des Xbar :
+ 
+```{r}
+q1<-qcc(data = mydata,type = "xbar")
+
+```
+ 
+On constate 6 points hors contrôle au début et à la fin... le processus en dérive constante il faut en trouver la cause sans doute spéciale.
+
+## Calculs des principaux résultats obtenus
+
+Calcul de la moyenne de chaque échantillon puis la moyenne des moyennes :
+```{r}
+(x_bar<-apply(mydata,1,mean))
+(x_barbar<-mean(x_bar))
+```
+
+Calcul de la moyenne des étendues :
+```{r}
+x_min<-apply(mydata,1,min)
+x_max<-apply(mydata,1,max)
+
+```
+
+La moyenne des étendues est :
+```{r}
+(R_bar<-mean(x_max-x_min))
+```
+
+Afin d'estimer l'écart-type en fonction de la moyenne des étendues, on utilisera la fonction d2
+
+$\hat{\sigma}=\frac{\bar{R}}{d2}$
+
+```{r}
+
+d2=function(n){2*integrate(function(x){n*x*dnorm(x)*pnorm(x)^(n-1)},-Inf,Inf)$val}
+```
+[Voir ici pour les explications : https://sjaubert.github.io/SPCR/Estimation.pdf](https://sjaubert.github.io/SPCR/Estimation.pdf?target=_blank)
+
+Les calculs nous permettent de retrouver les LCL et UCL obtenus précédemment :
+```{r}
+(LCL<-x_barbar-3*R_bar/(sqrt(5)*d2(5)))
+(UCL<-x_barbar+3*R_bar/(sqrt(5)*d2(5)))
+```
+
+## Etude en deux phases
+
+Nous pouvons considérer que dans un premier temps le calibrage se fasse sur les 6 premiers échantillons, puis nous intégrons dans un deuxième temps les 4 autres échantillons
+
+```{r}
+q2<-qcc(data = mydata[1:6,],type = "xbar",newdata = mydata[7:10,])
+```
+
+Nous recentrons nos données, nous voyons ainsi que nous aurions pu être alerté beaucoup plus tôt, dès le 7ème échantillon, de cette dérive vers le haut.
+
+## La carte R
+
+```{r}
+q2<-qcc(data = mydata,type="R")
+```
+
+La dispersion semble assez bien maitrisée, pas de différences significatives si on traite en deux phases :
+
+```{r}
+q2<-qcc(data = mydata[1:6,],type="R",newdata = mydata[7:10,])
+```
+
+
+## Etude de normalité
+
+Vérifions si les données sont distribuées normalement
+```{r}
+qqnorm(diameter);qqline(diameter,col="red",lwd=2)
+
+```
+
+Un test pour appuyer cette évaluation visuelle est toujours préférable :
+
+```{r}
+shapiro.test(diameter)
+```
+
+Avec un p-value > 10% il est raisonnable d'accepter l'hypothèse de normalité ou tout du moins nous ne la rejettons pas...
+
+## Etude la capabilité
+
+```{r}
+process.capability(q1,spec.limits = c(11.85,12),breaks = 10)
+```
+
+Avec un $C_{p}=1.32$ le processus est acceptable le $C_{pk}=1.04$ est par contre trop limite, un décentrage se fait sentir.
+
+Pour l'écart-type :
+```{r}
+(sigma<-R_bar/d2(5))
+```
+
+Pour une carte S (peu d'intérêt ici car par nature très semblable à une carte R):
+```{r}
+q2<-qcc(data = mydata,type="S")
+```
+

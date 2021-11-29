@@ -3,9 +3,10 @@ title: 'BACHELOR SPC : Corrigé TP Cartes de Shewhart'
 author: "S. Jaubert"
 date: "`r format(Sys.time(), ' %d %B %Y')`"
 output:
-  pdf_document: default
-  word_document: default
   html_document: default
+  code_folding: "hide"
+  word_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -44,7 +45,7 @@ Retrouvons par le calcul les limites :
 (UCL<-Center+3*sqrt(Center*(1-Center)/150))
 ```
 ```{r}
-(UCL<-Center-3*sqrt(Center*(1-Center)/150))
+(LCL<-Center-3*sqrt(Center*(1-Center)/150))
 ```
 
 
@@ -70,11 +71,12 @@ donnees_SPC2<-read.csv("https://sjaubert.github.io/SPCR/spc/SPC-2-pression.csv",
 l'instruction __summary__ va nous donner des informations sur le fichier récupéré :
 ```{r}
 summary(donnees_SPC2)
+head(donnees_SPC2,10)
 ```
 
 Nous prendrons en compte que les 3 premières colonnes du data frame
 
-structurons nos données sous la forme de 24 prélèvements (du 1/12 au 13/01) de 5 mesures
+Structurons nos données sous la forme de 24 prélèvements (du 1/12 au 13/01) de 5 mesures
 
 
 ```{r}
@@ -97,34 +99,21 @@ q_R<-qcc(data = mydata,type = "R")
 
 La dispersion semble sous contrôle
 
-(b) L'ingénieur décide de prendre les données des 12 premiers jours pour calculer les limites de contrôle des cartes Xbar et R et placer toutes les données (24 jours) sur les cartes. Interpréter les cartes.
+(b) L'ingénieur décide de prendre les données des 12 premiers jours pour calculer les limites de contrôle des cartes Xbar et R, placer toutes les données (24 jours) sur les cartes. Interpréter les cartes.
 
-Prenons les données des 12 premiers jours
-```{r}
-mydata12<-qcc.groups(data = donnees_SPC2$pression[1:60],sample = donnees_SPC2$groupe[1:60])
-```
-
-Puis l'objet qcc correspondant :
+Il suffit ici d'indiquer le jeu de données sur lequel les calculs des limites seront effectués (données de calibration "data") , puis avec "newdata", le jeu de données que l'on introduit après :
 
 ```{r}
-q_Xbar_12jours<-qcc(data = mydata12,type = "xbar")
-q_R_12jours<-qcc(data = mydata12,type = "R")
+q_Xbar<-qcc(data = mydata[1:12,],type = "xbar",newdata =mydata[13:24,] )
 ```
 
 
-Représentons de nouveau la carte de toutes les données mais avec les limites calculées sur les 12 premiers jours :
-
-```{r}
-
-q_Xbar<-qcc(data = mydata,type = "xbar",limits = q_Xbar_12jours$limits)
-```
-
-Cette fois nous avons 7 points hors contrôle
+Cette fois nous avons 7 points hors contrôle.
 
 Faisons de même pour la carte R :
 
 ```{r}
-q_R<-qcc(data = mydata,type = "R",limits = q_R_12jours$limits)
+q_R<-qcc(data = mydata[1:12,],type = "R",newdata =mydata[13:24,] )
 ```
 
 Un point hors contrôle alors qu'en prenant les limites calculées sur les 24 points il y en avait aucun.
@@ -229,8 +218,7 @@ statistique de la qualité. Les données de cet exercice proviennent de cet ouvr
 Téléchargeons ces données :
 
 ```{r}
-setwd("D:/OneDrive - CFAI Centre/Bachelor/Capability/spc")
-data_spc5<-read.csv(file = "SPC-5-ohm.csv",header = F,sep = ";")
+data_spc5<-read.csv(file = "https://sjaubert.github.io/SPCR/spc/SPC-5-ohm.csv",header = F,sep = ";")
 
 str(data_spc5) #vérifions nos données
 ```

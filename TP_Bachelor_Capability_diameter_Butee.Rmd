@@ -5,6 +5,7 @@ date: "`r format(Sys.time(), ' %d %B %Y')`"
 output:
   html_document: default
   pdf_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -17,7 +18,7 @@ Télécharger les données :
 donnees<-read.csv2("https://sjaubert.github.io/SPCR/diameter.csv",header = T)
 ```
 
-Examinons si tout c'est bien passé (le format des données récupérées cause souvent des surprises !) :
+Examinons si tout s'est bien passé (le format des données récupérées cause souvent des surprises !) :
 
 ```{r}
 is.numeric(donnees$diameter)
@@ -34,6 +35,7 @@ Petit aperçu de ces 30 premiers relevés (6X5)
 
 ```{r}
 hist(diameter_butee,breaks = 30)
+
 ```
 
 Entrons manuellement les 4 échantillons suivants :

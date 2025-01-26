@@ -1,0 +1,422 @@
+---
+title: "Analyse en Composantes Principales et application avec R"
+author: "S. Jaubert"
+date: "`r format(Sys.time(), ' %d %B %Y')`"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+Elaborée par [Karl Pearson en 1901](https://zenodo.org/record/1430636#.XqgY7WgzaUk) l'analyse en composantes principales (ACP) nous permet de résumer et de visualiser les informations dans un ensemble de données contenant des individus (ou observations) décrits par de multiples **variables quantitatives**. [Harold Hotelling](https://en.wikipedia.org/wiki/Harold_Hotelling) dans les années 30 formalisa la description mathématiques de ces méthodes mais celles ci nécessitant des calculs très importants il fallu attendre l'avènement des ordinateurs pour réellement les mettre en pratique.
+
+<center>
+
+![Karl Pearson à son bureau 1910](pearson.jpg)
+
+</center>
+
+Chaque variable peut être considérée comme une dimension différente et au delà de 3 variables il est très difficile de visualiser un tel hyperespace.
+
+Voici par exemple un tableau (une matrice) de 27 individus décrits par 11 variables (données issues du Package **factoextra** version 1.0.7 de R) :
+
+```{r echo=FALSE}
+deca<-read.csv2(file ="https://sjaubert.github.io/ACP/deca.csv",header = T)
+#on renomme les variables
+names(deca)<-c("nom","100m","long.","poids","haut.","400m","110m","Disque","Perche","Jav.","1500m","Pts")
+X<-as.matrix(deca[,-1])
+rownames(X)<-deca[,1]
+X
+```
+
+Les lignes représentent les individus, les colonnes les variables.
+
+Les individus CLAY (2ème ligne) et BERNARD (19ème ligne) peuvent-être considérés comme deux vecteurs à 11 composantes :
+
+$CLAY=(11.04,7.58,14.83,2.07,49.81,14.69,  43.75,   5.02, 63.19, 291.70, 8217)^{T}$
+
+$BERNARD =(10.69,  7.48, 14.80,  2.12, 49.13, 14.17,  44.75,   4.40, 55.27, 276.31, 8225)^{T}$
+
+et les variables comme des vecteurs à 27 composantes, par exemple :
+
+$100m =(11.04, 10.76, 11.02, 11.34, 11.13, 10.83, 11.64, 11.37, 11.33, 11.33, 11.36, 10.85, 10.44,\\ 10.50,  10.89,10.62, 10.91, 10.97, 10.69, 10.98, 10.95, 10.90, 11.14, 11.02, 11.11, 10.80, 10.87)^{T}$
+
+et
+
+$Perche=(5.02, 4.92, 5.32, 4.72, 4.42, 4.42, 4.92, 4.82, 4.72, 4.62, 5.02, 5.00, 4.90, 4.60, 4.40,\\ 4.90, 4.70, 4.80,4.40, 5.10, 5.00, 5.00, 4.60, 4.92, 4.92, 5.40, 5.00)^{T}$
+
+Comparer ces deux athlètes CLAY et BERNARD, voir quelles sont leurs similarités, n'est pas toujours très facile en grande dimension, de même savoir si les performances obtenues sur 100m sont corrélées à celles obtenues à la perche n'a rien d'évident.
+
+L'ACP a pour objectif de synthétiser ces grandes quantités de données, de les résumer en considérant les ressemblances entre individus et en cherchant les liaisons éventuelles entre les variables.
+
+En d'autres termes, l'ACP réduit la dimensionnalité d'une donnée multivariée à deux (voire trois) composantes principales, appelées aussi axes factoriels qui peuvent être visualisées graphiquement par les axes d'un ellipsoïde, avec une perte minimale d'informations.
+
+<center>
+
+![Extrait de l'article de Pearson de 1901 : la recherche de la « droite du meilleur ajustement ».](200px-Karl_Pearson_line_of_best_fit_diagramm_from_philosophical_magazine_1901_2_559-572.jpg)
+
+</center>
+
+L'analyse en composantes principales sera donc utilisée pour extraire les informations importantes d'un tableau de données multivarié et exprimera ces informations sous la forme d'un ensemble de nouvelles variables appelées composantes principales (ou facteurs). Ces nouvelles variables seront exprimées comme une combinaison linéaire des originales.
+
+Notre nuage de données sera projeté selon des axes qui conserveront le maximum d'informations, notre nuage devra être le moins déformé possible après projection. Sur ces axes les écarts entre les données devront donc être le plus importants.
+
+*Exemple :* Si on considère cette image prise sous deux angles différents, la deuxième où les point sont les plus dispersés nous donnera évidemment le plus d'information.
+
+<center>
+
+![Source J.P FENELON "Qu'est ce que l'analyse des donnees ?"](dromadaire.jpg)
+
+</center>
+
+## Principe général de l'ACP
+
+L'information contenue dans un ensemble de données correspond à la variation totale qu'il contient. On va chercher à identifier les directions (ou composantes principales) le long desquelles la variation des données est maximale.
+
+*Afin que l'on puisse garder l'idée générale en tête et ne pas se perdre dans des développements techniques, voir en [Annexe](#Annexe) les justifications mathématiques.*
+
+$$  $$
+
+<center>
+
+![[Via Tony Armstrong](https://secure.flickr.com/photos/tonyarmstrong/5381370808/)](nuage.jpg)
+
+</center>
+
+Pour simplifier, on considérera que le repère du nuage est centré sur le centre de gravité, de plus pour éviter des problèmes d'échelles ou d'unités, nous réduirons nos variables en les divisant par leur écart-type.
+
+L'idée générale est de déterminer le plan dans lequel la projection du nuage de points conservera le plus possible sa forme originale. Ce plan s'appelle le plan factoriel, défini par deux axes $F_{1}$ et $F_{2}$ (dits axes factoriels).
+
+Pour trouver $F_{1}$, on cherche le vecteur (unitaire), qui passe par le centre de gravité du nuage, tel que la variance des points du nuage projetés orthogonalement sur ce vecteur soit maximale (ça revient à minimiser l'inertie du nuage qui tourne autour de $F_{1}$).
+
+Comme on a perdu de l'information (le nuage se résume le long d'une droite) on détermine un second axe $F_{2}$ qui passe par le centre de gravité du nuage, orthogonale à $F_{1}$ et qui apporte le plus d'inertie (par rapport au centre de gravité). On appelle également $F_{1}$ et $F_{2}$ les axes principaux d'inertie. Les points du nuage seront exprimés dans le nouveau repère $(F_{1},F_{2})$ (mais rien ne nous empêche de continuer sur le même principe est de chercher un 3ème axe $F_{3}$ qui passe par le centre de gravité perpendiculairement au plan ($F_{1},F_{2})$... )
+
+On démontre que $F_{1}$ n'est rien d'autre que le vecteur propre, de la matrice de corrélation associée à notre nuage de point dont la valeur propre $\lambda_{1}$ associée est maximale. Cette valeur propre représente l'inertie du nuage portée par l'axe $F_{1}$ ; $F_{2}$ est le deuxième vecteur propre de valeur propre $\lambda_{2} \leq \lambda_{1}$ (voir [Annexe](#Annexe)).
+
+La qualité globale de représentation de nos données sur les $k$ premières composantes principales $(F_{1}, F_{2},..,F_{k})$ (en générale k=2 ou 3) est mesurée comme le pourcentage de variance expliquée :
+
+$$\frac{\lambda_{1}+\lambda_{2}+...+\lambda_{k}}{Trace}$$
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(FactoMineR)
+library(factoextra)
+res_acp<-PCA(X = X[,1:10],scale.unit = T,ncp = 3)
+
+```
+
+Avec nos décathloniens nous avons pour valeurs propres :
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+res_acp$eig
+```
+
+la proportion de chaque valeur propre est donnée par la deuxième colonne, le pourcentage cumulé par la 3ème colonne.
+
+leur contribution peut aussi être représentée graphiquement :
+
+```{r echo=FALSE}
+fviz_screeplot(res_acp,ncp=10)
+```
+
+Nous voyons que plus de 70% de la variation est expliquée par les trois premières composantes.
+
+Dans cette nouvelle base $(F_{1},F_{2})$, l'individu $e_{i}$ s'écrira : $e_{i}=(f_{i,1},f_{i,2})_{(F_{1},F_{2})}$ (en général on désire une représentation plane des individus)
+
+Ici les coordonnées par exemple de CLAY et Karpov dans le plan factoriel sont :
+
+```{r echo=FALSE}
+ind <- get_pca_ind(res_acp)
+ind$coord[c(2,14),1:2]
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fviz_pca_ind(res_acp,geom = "text",col.ind = "cos2")+scale_color_gradient2(low = "blue",mid = "white",high = "red",midpoint = 0.5)
+```
+
+Nous pouvons obtenir la qualité de représentation des individus avec les deux premières composantes (les cos²) :
+
+```{r echo=FALSE}
+ind$cos2[c(2,14),1:2]
+```
+
+### Représentation des variables
+
+Deux variables particulières (par exemple le temps réalisé sur 100m et la distance du lancer du poids) seront très proches pour tous les individus si elles sont liées par leur coefficient de corrélation linéaire ; on le comprend bien dans le cas de la régression linéaire simple en dimension 2 ; si les points sont bien corrélés (donc sensiblement alignés) la structure de nos données devient unidimensionnelle, si une variable est connue l'autre aussi !
+
+C'est donc la liaison entre les variables qui nous intéresse. Nos variables $v_{j}$ (où $j=1,..,p$) sont décrites dans un espace à $n$ dimensions ($n$ individus) Comme nos données sont centrées réduites, chaque vecteur $v_{j}$ a pour norme 1 (c'est son écart-type). Ces vecteurs sont les rayons d'une hypersphère, le coefficient de corrélation entre les variables $v_{j}$ et $v_{j'}$ n'est autre que le cosinus de l'angle formé par ces deux vecteurs (voir [Annexe](#coeff_corr))
+
+<center>![](hypersphère.jpg)</center>
+
+Nous avons donc un critère qui permet de mesurer le degré de liaison entre les variables initiales. Ce critère va nous permettre de regrouper celles qui sont fortement liées.
+
+Nous procéderons de la même façon que pour le nuage des individus, hormis que la "distance" entre les variables sera ici mesurée par le carré du coefficient de corrélation linéaire.
+
+Le premier axe factoriel $\tilde{V}_{1}$ sera tel qu'il maximisera la somme des carrés des coefficients de corrélations linéaires :
+
+$$ \begin{matrix} \tilde{V}_{1} =  &Arg \; Max & \sum_{k=1}^{p}r(\tilde{V},v_{k})^{2} \\ &\tilde{V} \in\mathbb{R}^{n}&\end{matrix}$$
+
+Puis on continue en cherchant un axe $\tilde{V}_{2}$ orthogonal à $\tilde{V}_{1}$ qui maximise cette somme des carrés des coefficients de corrélations. Ces deux axes forment donc un plan dans lequel les variables initiales sont projetées.
+
+<center>![](hypersphère2.png)</center>
+
+La projection de l'hypersphère sur le plan factoriel donne :
+
+<center>
+
+![Cercle des corrélations](cerclecorr.png)
+
+</center>
+
+Si $v_{1}$ et $v_{2}$ sont bien représentées on a $cos(\tilde{\theta}) \simeq cos(\theta)$
+
+Le cercle des corrélations nous permet d'apprécier visuellement très facilement l'intensité des liaisons entre les variables et les axes factoriels, de plus les variables les mieux représentées seront celles proches du cercle (on conserve ainsi le maximum d'information).
+
+Avec nos décathloniens nous obtenons :
+
+```{r echo=FALSE}
+fviz_pca_var(res_acp)
+```
+
+Comme on pouvait s'y attendre les épreuves de sprint sont bien corrélées entre elles ainsi que le poids et le disque.
+
+**Cependant il faut se méfier et bien avoir à l'esprit que nous ne voyons que les projections des variables sur un plan, attention aux interprétations rapides ! Deux flèches proches l'une de l'autre ne veut pas dire qu'elles sont fortement corrélées...**
+
+Il est important de connaître les contributions des variables sur les axes factoriels :
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fviz_pca_contrib(res_acp,choice = "var",axes = 1)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fviz_pca_contrib(res_acp,choice = "var",axes = 2)
+```
+
+Ainsi que leurs corrélations avec les axes factoriels :
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+res_acp$var$coord[,1:2]
+```
+
+Ou de façon plus visuelle :
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fviz_pca_var(res_acp,col.var = "cos2")+scale_color_gradient2(low = "white",mid = "blue",high = "red",midpoint = 0.6)+theme_minimal()
+```
+
+On voit tout de suite que les variables 100m, haut, long sont très bien représentées dans le plan factoriel.
+
+Détails des cos² (carré des coordonnées):
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+res_acp$var$cos2[,1:2]
+```
+
+Nous pouvons superposer sur le même graphique les deux graphes précédents afin de pouvoir interpréter simultanément les informations mais **attention les coordonnées des individus et des variables ne sont pas comparables** !
+
+Il faut garder à l’esprit que **le graphe des variables est un cercle de corrélation**, les variables dont les vecteurs unitaires sont proches les uns des autres sont dites positivement corrélées, ce qui signifie que leur influence sur le positionnement des individus est similaire (là encore, ces proximités se reflètent dans les projections des variables sur le graphique des individus). Cependant, les variables éloignées les unes des autres seront définies comme étant corrélées négativement (ou anti-corrélées). Les variables qui ont un vecteur unité perpendiculaire ne sont pas corrélées
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fviz_pca_biplot(res_acp,geom="text")+theme_minimal()
+```
+
+-   **Un athlète qui est du même côté d’une variable aura une valeur élevée pour cette variable** ; (par exemple Nool à la perche a fait 5.40m est opposé à Zsivoczky qui a fait 4.70m, ces deux athlètes sont de plus assez bien représentés dans le plan factoriel)
+-   **Un athlète qui est à l'opposé d’une variable aura une faible valeur pour cette variable** (ne pas être étonné de trouver Zsivoczky à l'opposé de la variable 1500m ou Karpov et Clay qui sont à l'opposés de la variable 100m, ils sont très performants sur ces épreuves donc opposés à cette variable car leurs temps sont inférieurs aux autres athlètes ! )
+
+Pour conclure, que ce soit dans l’espace des individus ou l’espace des variables notre objectif a été le même, déterminer les axes factoriels de ces deux espaces, or on démontre que ce sont les mêmes !!
+
+En effet les résultats concernant les variables (les colonnes) se déduisent de ceux obtenus par les individus (les lignes) il suffit de remplacer les lignes et les colonnes pour s’en convaincre (en d’autres termes, on remplace la matrice initiale par sa transposée). On a ce qu’on appelle **une relation de dualité entre les deux nuages**, celui des individus et celui des variables.
+
+## Application avec **R**
+
+J'utiliserai principalement deux packages de R pour l'ACP :
+
+-   [FactomineR](https://cran.r-project.org/web/packages/FactoMineR/index.html) développé par F. HUSSON de l'université de Rennes
+-   [Factoextra](https://cran.r-project.org/web/packages/factoextra/index.html) développé par Alboukadel Kassambara
+
+```{r message=FALSE, warning=FALSE}
+library(FactoMineR)
+library(factoextra)
+```
+
+```{r include=FALSE}
+library(tibble)
+library(tidyr)
+library(dplyr)
+library(conflicted)
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
+
+```
+
+Nous allons étudier un jeu de données de 406 observations décrites par 9 variables.
+
+Chargeons les données (récupérables ici : <https://sjaubert.github.io/ACP/cars.csv> ):
+
+```{r message=FALSE, warning=FALSE}
+cars<-read.csv2(file ="cars.csv",sep = ";",dec = ".")
+
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+cars<-cars %>%
+    mutate(MPG =as.numeric(MPG)) %>% 
+    mutate(Cylinders =as.numeric(Cylinders)) %>%
+    mutate(Displacement =as.numeric(Displacement)) %>% 
+    mutate(Horsepower =as.numeric(Horsepower)) %>%
+    mutate(Weight=as.numeric(Weight)) %>%
+    mutate(Origin=as.factor(Origin)) %>%
+    mutate(Acceleration=as.numeric(Acceleration))
+```
+
+Avant toute chose il faut examiner les données :
+
+```{r}
+str(cars)
+head(cars)
+```
+
+ça mérite quelques explications :
+
+-   mpg: Consommation en Miles/(US) gallon
+-   cylinders : Nombre de cylindres
+-   displacement : La cylindrée
+-   Horsepower : la puissance
+-   Weight : l'unité est 1000 lbs
+-   Acceleration : Temps pour effectuer un 1/4 de mile
+-   Model : Année de sortie du véhicule
+-   Origin : Pays d'origine
+
+Pour simplifier renommons quelques variables :
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+cars <-cars %>% 
+  rename(
+    Nb_Cyl = Cylinders,
+    Cylindrée = Displacement,
+    Puissance = Horsepower)
+str(cars)
+```
+
+Lançons l'ACP sur les variables actives (les colonnes c(1,8,9) étant qualitatives)
+
+```{r}
+res_ACP<-PCA(cars,scale.unit = T,quali.sup = c(1,8,9),graph = F)
+
+```
+
+Les valeurs propres sont obtenues avec :
+
+```{r}
+res_ACP$eig
+```
+
+La proportion de variation expliquée par chaque valeur propre est donnée par la 2ème colonne, le pourcentage cumulé est donné par la 3ème colonne.
+
+Ici les 3 premières composantes expliquent 93% des variations
+
+Nous pouvons le visualiser par l'éboulis des valeurs propres :
+
+```{r}
+fviz_eig(res_ACP)
+```
+
+### visualisation des variables :
+
+```{r}
+fviz_pca_var(res_ACP,repel = TRUE,col.var = "cos2", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
+```
+
+Ce n'est pas une surprise, *Weight*, *Nb_cyl* et la *Cylindrée* sont très bien representées et corrélées sur l'axe 1 et la consommation, *MPG* qui est aussi bien représentée sur cet axe et anti-corrélée à ces variables.
+
+Leurs coordonnées dans le plan factoriel sont :
+
+```{r}
+res_ACP$var$coord[,1:2]
+```
+
+et les cos² :
+
+```{r}
+res_ACP$var$cos2[,1:2]
+```
+
+Graphiquement, leurs contributions sur les axes
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fviz_pca_contrib(res_ACP,choice = "var",axes = 1)
+```
+
+Et sur l'axe 2
+
+```{r}
+fviz_pca_contrib(res_ACP,choice = "var",axes = 2)
+```
+
+Il est possible d'extraire plus simplement les résultats des variables avec l'instruction :
+
+```{r}
+var<-get_pca_var(res_ACP)
+
+```
+
+puis on appelle simplement les variables associées à l'objet *var* :
+
+```{r}
+var$coord
+var$cor
+var$cos2
+var$contrib
+```
+
+Avec la librairie *corrplot* il est aussi possible de représenter graphiquement les cos² et les contributions des variables
+
+```{r message=FALSE, warning=FALSE}
+library("corrplot")
+corrplot(var$cos2, is.corr=FALSE,type = "lower")
+corrplot(var$contrib,is.corr = FALSE,type = "lower") 
+```
+
+### Représentons les individus :
+
+```{r}
+fviz_pca_ind(res_ACP,label="none",habillage = 9,addEllipses = T,ellipse.level=0.95,alpha.ind = 0.4,palette = c("#00AFBB", "#E7B800", "#FC4E07"),legend.title = "Groups")
+```
+
+Les individus "similaires" sont regroupés dans les ellipses sur le graphique. Comme pour les variables, on peut obtenir tous les résultats concernant les individus par :
+
+```{r}
+indiv<-get_pca_ind(res_ACP)
+```
+
+## Annexe <a id="Annexe"></a> {#annexe}
+
+Soit $X$ la matrice de nos données :
+
+$$ X=\begin{pmatrix}
+ x_{1,1}&x_{1,2}  &  \cdots &  & x_{1,p}\\ 
+ x_{2,1}&  &\vdots  &  &x_{2,p} \\ 
+ \vdots & \vdots  &x_{i,j}  &  &\vdots  \\ 
+ &  & \vdots &  & \\ 
+ x_{n,1}& x_{n,2} & \cdots  &  & x_{n,p}
+\end{pmatrix}, \text{Cette matrice donne en} \; x_{i,j}\; \text{ la valeur de la jème variable pour le ième individu}$$
+
+Déterminer les écarts entre les individus soulève un problème, celui des unités choisies. Il ne faut pas que la distance entre deux points dépende des unités. La solution sera de normaliser les données, on remplacera les $x_{i,j}$ par :
+
+$$x'_{i,j}=\frac{x_{i,j}-\bar{v}_{j}}{s_{j}\sqrt{n}}$$
+
+où $\bar{v}_{j}=\frac{1}{n}\sum_{i=1}^{n}x_{i,j}$ moyenne de la variable $j$ et $s_{j}$ est l'écart-type de la variable $j$
+
+Dans la suite on considérera que les données sont normalisées et on conservera la notation $x_{i,j}$ (dans ce cas la variance de chaque variable égale 1)
+
+Deux individus $e_{i}=(x_{i,1},\dots,x_{i,p})\;\text{et}\;e_{j}=(x_{j,1},\dots,x_{j,p})\;$ sont très proches (ou homogènes) si les $p$ coordonnées qui les décrivent sont très voisines.
+
+Le coefficient de corrélation <a id="coeff_corr"></a>
+
+## Références
+
+-   Analyse de données avec R (Data Analysis with R) F. Husson, S. Lê & J. (Presses Universitaire de Rennes)
+
+-   Probabilités, analyse des données et statistique G. SAPORTA (Technip)
+
+-   Statistiques avec R PA Cornillon, A. Guyader, F. Husson, N. Jegou, J. Josse, M. Kloareg, E. Matzner-Lober & L. Rouvière 2012 (3rd edition Presses Universitaires de Rennes)

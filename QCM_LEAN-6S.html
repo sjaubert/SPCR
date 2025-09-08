@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QCM : LEAN, Maintenance et Organisation Industrielle</title>
+    <style>
+        /* --- Styles Généraux --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- Conteneur Principal --- */
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #005a9e;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* --- Blocs de Questions --- */
+        .question-block {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .question-block:last-of-type {
+            border-bottom: none;
+        }
+
+        .question-text {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+
+        /* --- Options de Réponse --- */
+        .answer-options div {
+            margin-bottom: 10px;
+        }
+
+        .answer-options label {
+            display: block;
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .answer-options label:hover {
+            background-color: #e9ecef;
+            border-color: #007bff;
+        }
+
+        .answer-options input[type="radio"] {
+            display: none; /* Cache la puce radio par défaut */
+        }
+        
+        .answer-options input[type="radio"]:checked + label {
+            background-color: #cce5ff;
+            border-color: #007bff;
+            font-weight: 500;
+        }
+        
+
+        /* --- Bouton et Résultats --- */
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+            background-color: #28a745;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 30px;
+        }
+
+        .submit-btn:hover {
+            background-color: #218838;
+        }
+
+        #results {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 6px;
+            font-size: 1.4em;
+            font-weight: bold;
+            text-align: center;
+            display: none; /* Caché par défaut */
+        }
+
+        /* --- Styles pour la correction --- */
+        .correct {
+            background-color: #d4edda !important;
+            border-color: #28a745 !important;
+            color: #155724;
+        }
+
+        .incorrect {
+            background-color: #f8d7da !important;
+            border-color: #dc3545 !important;
+            color: #721c24;
+        }
+        
+        .correct::after {
+            content: ' ✔️ Bonne réponse';
+            font-weight: bold;
+            float: right;
+        }
+        
+        .incorrect::after {
+            content: ' ❌ Votre réponse';
+            font-weight: bold;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>QCM : LEAN, Maintenance et Organisation Industrielle</h1>
+        
+        <form id="quiz-form">
+            <div id="quiz-container">
+                </div>
+            
+            <button type="button" class="submit-btn" id="submit-btn">Valider mes réponses</button>
+        </form>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // --- Données du QCM ---
+        const quizData = [
+            {
+                question: "Selon la philosophie LEAN, quel est l'objectif principal de la réduction des gaspillages ?",
+                options: [
+                    "Augmenter la vitesse de production à tout prix.",
+                    "Supprimer des postes pour réduire les coûts.",
+                    "Créer plus de valeur pour le client avec moins de ressources.",
+                    "Mettre en place le plus d'outils LEAN possible."
+                ],
+                answer: "Créer plus de valeur pour le client avec moins de ressources."
+            },
+            {
+                question: "Qu'est-ce que le 'Takt Time' ?",
+                options: [
+                    "Le temps nécessaire pour qu'un opérateur réalise une tâche.",
+                    "La vitesse maximale de fonctionnement d'une machine.",
+                    "Le rythme auquel un produit doit être fabriqué pour répondre à la demande du client.",
+                    "Le temps total d'arrêt d'une ligne de production sur une journée."
+                ],
+                answer: "Le rythme auquel un produit doit être fabriqué pour répondre à la demande du client."
+            },
+            {
+                question: "La méthode des '5S' vise principalement à :",
+                options: [
+                    "Nettoyer l'atelier une fois par mois.",
+                    "Créer un environnement de travail organisé pour rendre les anomalies visibles.",
+                    "Rédiger des procédures de travail pour les opérateurs.",
+                    "Uniquement trier les outils inutiles."
+                ],
+                answer: "Créer un environnement de travail organisé pour rendre les anomalies visibles."
+            },
+            {
+                question: "Dans la démarche 6 Sigma, que représente l'acronyme DMAIC ?",
+                options: [
+                    "Dessiner, Manager, Agir, Impliquer, Contrôler.",
+                    "Définir, Mesurer, Analyser, Innover (Improve), Contrôler.",
+                    "Demander, Mesurer, Allouer, Intégrer, Communiquer.",
+                    "Définir, Mobiliser, Accélérer, Investiguer, Conclure."
+                ],
+                answer: "Définir, Mesurer, Analyser, Innover (Improve), Contrôler."
+            },
+            {
+                question: "Qu'est-ce qu'une 'marche Gemba' ?",
+                options: [
+                    "Une réunion de brainstorming en salle.",
+                    "Une inspection surprise pour évaluer les opérateurs.",
+                    "L'acte d'aller sur le terrain pour observer le processus et comprendre les problèmes réels.",
+                    "Un audit annuel des processus de l'entreprise."
+                ],
+                answer: "L'acte d'aller sur le terrain pour observer le processus et comprendre les problèmes réels."
+            },
+            {
+                question: "L'indicateur TRS (Taux de Rendement Synthétique) mesure l'efficacité d'un équipement en combinant trois facteurs. Lesquels ?",
+                options: [
+                    "Coût, Délai, Qualité.",
+                    "Disponibilité, Performance, Qualité.",
+                    "Motivation, Compétence, Sécurité.",
+                    "Pannes, Réglages, Micro-arrêts."
+                ],
+                answer: "Disponibilité, Performance, Qualité."
+            },
+            {
+                question: "La méthode SMED (Single Minute Exchange of Die) a pour objectif principal de :",
+                options: [
+                    "Réduire les défauts de production.",
+                    "Augmenter la taille des lots de production pour plus d'efficacité.",
+                    "Réduire drastiquement les temps de changement de série.",
+                    "Former les opérateurs à la maintenance de premier niveau."
+                ],
+                answer: "Réduire drastiquement les temps de changement de série."
+            },
+            {
+                question: "Quel outil est le plus approprié pour hiérarchiser les causes d'un problème et se concentrer sur les plus importantes ?",
+                options: [
+                    "Le diagramme de Gantt.",
+                    "Le diagramme de Pareto (loi 80/20).",
+                    "Le Brainstorming.",
+                    "Les 5 Pourquoi."
+                ],
+                answer: "Le diagramme de Pareto (loi 80/20)."
+            },
+            {
+                question: "Dans le contexte du démarrage d'une nouvelle production, pourquoi l'approche LEAN de Toyota vise-t-elle 'Zéro changement de définition' après la livraison des outillages ?",
+                options: [
+                    "Pour éviter de payer des suppléments aux fournisseurs.",
+                    "Pour accélérer la phase de conception initiale.",
+                    "Parce que les modifications de conception post-lancement sont lentes, coûteuses et risquées.",
+                    "Pour responsabiliser uniquement le bureau d'études."
+                ],
+                answer: "Parce que les modifications de conception post-lancement sont lentes, coûteuses et risquées."
+            },
+            {
+                question: "Qu'est-ce que le 'Kaizen' ?",
+                options: [
+                    "Une réorganisation majeure de l'entreprise.",
+                    "Un audit qualité réalisé par un consultant externe.",
+                    "La philosophie de l'amélioration continue par de petits pas.",
+                    "Un système de bonus pour les meilleures idées."
+                ],
+                answer: "La philosophie de l'amélioration continue par de petits pas."
+            },
+            {
+                question: "Quelle est la principale différence entre la maintenance préventive et la maintenance corrective ?",
+                options: [
+                    "La maintenance préventive est plus chère que la corrective.",
+                    "La maintenance préventive se fait machine à l'arrêt, la corrective machine en marche.",
+                    "La maintenance préventive est planifiée pour éviter les pannes, la corrective intervient après la panne.",
+                    "La maintenance préventive est réalisée par les opérateurs, la corrective par des spécialistes."
+                ],
+                answer: "La maintenance préventive est planifiée pour éviter les pannes, la corrective intervient après la panne."
+            },
+            {
+                question: "Le 'Poka-Yoke' est un dispositif qui vise à :",
+                options: [
+                    "Accélérer le rythme des machines.",
+                    "Compter automatiquement les pièces produites.",
+                    "Éviter les erreurs humaines involontaires (détrompeur).",
+                    "Alerter le manager en cas de problème."
+                ],
+                answer: "Éviter les erreurs humaines involontaires (détrompeur)."
+            },
+            {
+                question: "Selon la pensée LEAN, quelle est la posture attendue d'un manager ?",
+                options: [
+                    "Un contrôleur qui vérifie le travail et distribue les tâches.",
+                    "Un expert technique qui résout tous les problèmes lui-même.",
+                    "Un coach qui aide son équipe à voir les problèmes et à lever les obstacles.",
+                    "Un planificateur qui organise le travail à distance depuis son bureau."
+                ],
+                answer: "Un coach qui aide son équipe à voir les problèmes et à lever les obstacles."
+            },
+            {
+                question: "Qu'est-ce que le 'Jidoka', l'un des deux piliers du système de production Toyota ?",
+                options: [
+                    "L'automatisation complète de la ligne de production.",
+                    "La livraison des pièces juste-à-temps.",
+                    "L'arrêt immédiat de la production dès qu'un défaut est détecté.",
+                    "La polyvalence des opérateurs sur plusieurs postes."
+                ],
+                answer: "L'arrêt immédiat de la production dès qu'un défaut est détecté."
+            },
+            {
+                question: "Dans une organisation industrielle, qu'est-ce qu'un flux 'tiré' par opposition à un flux 'poussé' ?",
+                options: [
+                    "En flux poussé, on produit selon les prévisions ; en flux tiré, on produit en fonction de la demande réelle de l'étape suivante.",
+                    "Le flux poussé est plus rapide que le flux tiré.",
+                    "Le flux tiré est utilisé pour la production de masse, le flux poussé pour les petites séries.",
+                    "En flux tiré, les opérateurs tirent physiquement les pièces ; en flux poussé, ce sont des machines."
+                ],
+                answer: "En flux poussé, on produit selon les prévisions ; en flux tiré, on produit en fonction de la demande réelle de l'étape suivante."
+            },
+            {
+                question: "L'acronyme 'PDCA' (ou Roue de Deming) est un cycle d'amélioration. Que signifie l'étape 'Check' ?",
+                options: [
+                    "Planifier les actions à mener.",
+                    "Mettre en œuvre les actions planifiées.",
+                    "Vérifier si les résultats obtenus sont conformes aux objectifs.",
+                    "Standardiser les actions si elles sont efficaces."
+                ],
+                answer: "Vérifier si les résultats obtenus sont conformes aux objectifs."
+            },
+            {
+                question: "Quel est l'intérêt principal d'une culture de 'non-blâme' dans une démarche d'amélioration continue ?",
+                options: [
+                    "Éviter les conflits entre les employés.",
+                    "Permettre aux problèmes de remonter à la surface sans crainte de punition.",
+                    "Déresponsabiliser les opérateurs de leurs erreurs.",
+                    "Rendre le travail des managers plus facile."
+                ],
+                answer: "Permettre aux problèmes de remonter à la surface sans crainte de punition."
+            },
+            {
+                question: "Quel est le 'paradoxe' de la productivité selon la pensée LEAN ?",
+                options: [
+                    "Pour produire plus, il faut investir dans plus de machines.",
+                    "On augmente la productivité en faisant moins de choses, pas plus.",
+                    "La productivité est plus importante lorsque les volumes de vente sont faibles.",
+                    "Seuls les managers peuvent améliorer la productivité."
+                ],
+                answer: "On augmente la productivité en faisant moins de choses, pas plus."
+            },
+            {
+                question: "Pourquoi un 'standard' LEAN n'est-il pas considéré comme rigide et définitif ?",
+                options: [
+                    "Parce que personne ne le respecte jamais.",
+                    "Parce qu'il est défini par la direction et peut être changé à tout moment.",
+                    "Parce qu'il représente la meilleure façon connue AUJOURD'HUI de faire le travail, et est destiné à être amélioré.",
+                    "Parce qu'il est volontairement laissé vague pour laisser de la liberté aux opérateurs."
+                ],
+                answer: "Parce qu'il représente la meilleure façon connue AUJOURD'HUI de faire le travail, et est destiné à être amélioré."
+            },
+            {
+                question: "L'image de l'iceberg est souvent utilisée pour illustrer la pensée LEAN. Que représentent la partie émergée et la partie immergée ?",
+                options: [
+                    "Émergée : les problèmes ; Immergée : les solutions.",
+                    "Émergée : les outils (Kanban, 5S) ; Immergée : la culture, le mindset et la confiance.",
+                    "Émergée : les coûts ; Immergée : les profits.",
+                    "Émergée : les managers ; Immergée : les opérateurs."
+                ],
+                answer: "Émergée : les outils (Kanban, 5S) ; Immergée : la culture, le mindset et la confiance."
+            }
+        ];
+
+        // --- Logique du QCM ---
+        const quizContainer = document.getElementById('quiz-container');
+        const resultsContainer = document.getElementById('results');
+        const submitButton = document.getElementById('submit-btn');
+
+        // Fonction pour générer l'affichage du QCM
+        function buildQuiz() {
+            const output = [];
+            quizData.forEach((currentQuestion, questionNumber) => {
+                const options = [];
+                currentQuestion.options.forEach(option => {
+                    options.push(
+                        `<div>
+                            <input type="radio" name="question${questionNumber}" id="q${questionNumber}o${options.length}" value="${option}">
+                            <label for="q${questionNumber}o${options.length}">${option}</label>
+                        </div>`
+                    );
+                });
+
+                output.push(
+                    `<div class="question-block" id="question-block-${questionNumber}">
+                        <p class="question-text">${questionNumber + 1}. ${currentQuestion.question}</p>
+                        <div class="answer-options">${options.join('')}</div>
+                    </div>`
+                );
+            });
+            quizContainer.innerHTML = output.join('');
+        }
+
+        // Fonction pour afficher les résultats
+        function showResults() {
+            let score = 0;
+            quizData.forEach((currentQuestion, questionNumber) => {
+                const questionBlock = document.getElementById(`question-block-${questionNumber}`);
+                const selector = `input[name=question${questionNumber}]:checked`;
+                const userAnswer = (quizContainer.querySelector(selector) || {}).value;
+                const correctAnswer = currentQuestion.answer;
+                
+                // --- Ajout des classes pour la correction visuelle ---
+                const optionLabels = questionBlock.querySelectorAll('.answer-options label');
+
+                optionLabels.forEach(label => {
+                    if(label.innerText === correctAnswer) {
+                        label.classList.add('correct');
+                    }
+                    if(label.innerText === userAnswer && userAnswer !== correctAnswer) {
+                        label.classList.add('incorrect');
+                    }
+                });
+
+                if (userAnswer === correctAnswer) {
+                    score++;
+                }
+            });
+
+            resultsContainer.innerHTML = `Votre score : ${score} sur ${quizData.length}`;
+            resultsContainer.style.display = 'block';
+            
+            // Personnalisation du message de résultat
+            if (score === quizData.length) {
+                resultsContainer.style.backgroundColor = '#d4edda';
+                resultsContainer.style.color = '#155724';
+                resultsContainer.innerHTML += ' - Excellent travail ! 👏';
+            } else if (score >= quizData.length / 2) {
+                resultsContainer.style.backgroundColor = '#fff3cd';
+                resultsContainer.style.color = '#856404';
+                resultsContainer.innerHTML += ' - Bonnes connaissances ! Continuez comme ça.';
+            } else {
+                resultsContainer.style.backgroundColor = '#f8d7da';
+                resultsContainer.style.color = '#721c24';
+                resultsContainer.innerHTML += ' - Il y a encore des points à revoir. N\'hésitez pas à relire les cours !';
+            }
+
+            // Désactiver le bouton après validation
+            submitButton.style.display = 'none';
+        }
+
+        // Initialiser le QCM au chargement de la page
+        buildQuiz();
+
+        // Ajouter un écouteur d'événement sur le bouton de validation
+        submitButton.addEventListener('click', showResults);
+    </script>
+
+</body>
+</html>

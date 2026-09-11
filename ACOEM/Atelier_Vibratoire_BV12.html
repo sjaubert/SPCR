@@ -13,6 +13,7 @@
   --accent:#0b5fa5; --accent-soft:#e4eefa;
   --orange:#c2410c; --green:#157347; --amber:#b45309; --red:#b91c1c; --violet:#6d28d9;
   --radius:10px;
+  --uimm-blue:#085b79; --uimm-red:#e9302b;
   --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box}
@@ -20,9 +21,30 @@ body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-syste
 .wrap{max-width:1440px;margin:0 auto;padding-block:18px;padding-left:16px;padding-right:16px}
 
 /* ---------- en-tete ---------- */
-header.top{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px}
-header.top h1{margin:0 0 2px;font-size:21px;letter-spacing:-.01em}
+header.top{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden;
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+header.top::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;
+  background:linear-gradient(90deg,var(--uimm-blue) 0 62%,var(--uimm-red) 62% 100%)}
+header.top .brandmark{width:auto;height:74px;display:block;border-radius:3px;flex:0 0 auto}
+header.top .brandtxt{flex:1 1 340px;min-width:0}
+header.top .org{margin:0 0 3px;font:700 11.5px/1.3 system-ui,sans-serif;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--uimm-blue)}
+header.top h1{margin:0 0 3px;font-size:22px;letter-spacing:-.015em}
 header.top .sub{color:var(--muted);font-size:13.5px;margin:0}
+header.top .author{flex:0 0 auto;text-align:right;padding-left:18px;border-left:1px solid var(--line);
+  align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:2px}
+header.top .author .alabel{font:600 10.5px system-ui,sans-serif;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--faint)}
+header.top .author .aname{font:650 16px system-ui,sans-serif;color:var(--ink)}
+header.top .author .arole{font:12px system-ui,sans-serif;color:var(--muted);max-width:230px}
+@media (max-width:760px){
+  header.top{gap:12px}
+  header.top .brandmark{height:58px}
+  header.top .author{border-left:0;border-top:1px solid var(--line);padding:10px 0 0;
+    text-align:left;width:100%;align-items:flex-start}
+  header.top .author .arole{max-width:none}
+}
 
 /* ---------- barre cinematique ---------- */
 .kinbar{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px}
@@ -145,13 +167,22 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
 <div class="wrap">
 
 <header class="top">
-  <h1>Atelier vibratoire BV12</h1>
-  <p class="sub">Comprendre la serie de Fourier et les signatures spectrales des defauts, par la manipulation. Banc didactique ACOEM BV12, Bachelor maintenance avancee.</p>
+  <img class="brandmark" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKMAAACuCAMAAABtLE1sAAAAYFBMVEX5/f3T+/73z811utUanNUZmtUfls8SmtW4c3k6hasQaY0IX30IW3wIW3kIW20FXnwGW3npMyzrMCrpMC3pMCvoMCzrLyvtLCriNi/iLSjONDGUQEMJWnoKWXUEWXkIU3B9L56dAAAcf0lEQVR42u2ai5aiSJeFNcULCSjIRTAB3/8tZ+99TgCammn1mn+mZ03RlYoQRHxx7hH0Kvv3H6u/jH8Z/zL+Zfx/wDj+leP/PcZx/J955r9HjuN/gus/ouvxP9fN6vu8/Xgpl4cGdvbDE1Ob36X6fORHxqEfdOSLpnme+0V9o5dhON5uN5xn+NMJ+0a7Hgfb21M82Bhtbz36Hu2hnjfZsU5wxods9JxthxlU7VbW2p7ob8nNj/x0Gkfx9ul48ovHU49LaSrEOLklIvyMQdCj1+Q4fN5AgGfTNM8TXBpuYFQT9TR8osGtv+Geuu7T0+mU9zjB82k/3NBx/DlkYzpovqmmsGQcejweb3jENzBmJr1+PGW6uDmqZ3RwO35u1vENveKZGGfDDUQ3iDkZJMdTOo4YfYRMeiCuN2JkW0IOye2Uz4wZzxKKhPfQFp31OcHT0wMj9dzfNisem1uWS9x5NqLpbc2L6yGHWtDBDYSrFchGNLrFdjpSY6MmTinmCQTWJymluBbjLUvACMjjjUSAZMsUshmyPE3HBFfQAGP3KQYmY5//wIhB+9GMimMHxhtUN3Ik/opvkPCYk1Htb7QKXMjUt7SA2SVExLichZ6kJAezXlliL0PPIfjsiLaUzzAmuJ09YeyHJFsy0o5PsvmJccgTKjC0gRGdjJHq7tG1VCcBJLwwJL1NCOPexrwPbZNejGpqiLDQnIpW2898dMbs0WdoFd8ZT3h0MMbjMR+Pp0Ubk6r/AnJCwWbUUgZ/IqUk44yn1NoKsqcojdHcf0ymtrcxySxIPGFcylHXTpwsRnPGIQFGFtrw19A741qQuD3ITfsxT45JQHT9jaEt1e2QAfGWzG2T7JaFQPaNcbbHIxlpD4wgWWA89uhrmOcxUFI2rv1O4ZzSNWwzv02IYpxlTsgjZjKmFkhTOtCybSJLeMZIi5zHh6sxxiJsZfkxyJEPzbKGxiY5Bkcb8UjSw18hyGlYMaYzoySJAJECBtdTBtF40dbC/++MQGSLXxj7eVyTpLSW3FJGnQmR8eSOUTbJgJmclP4Sc5fAOATG7EfGfmbss8mvcTVPZ8aR/jsz0rtz2h3+kA5mRDLi0bu2Fsxhifh7aDtkQddZ/gYjdT3HRzCe0mTBmN8xEvKYMNNReYthjbG/byvIIVPGvG8LK6eVvsOYPjIeYaR3jPT65bi8eByOySPiN3sMUmfsHYaFop2xd8b8bcZ88mvF3SXjMTCuZ5u8LSUzx57TxLheSLK/fW9rzvIsFz5h7DO53ek4MzJjT23y48QYb2ZIJvEQSDaTr86Mh80EmYyfkxQ38YKxf5sRVQIyx0vGYcF4W0DOkrnFTxg3txmyX8TF+E6Oc75eVsFpln5jTME41T3H7E7XKXL5IhfOkEGK6+E2yzFfME6Q8Tydua1J8G1GOAmpppqCIeGpXzMjB8jNJJlkwQijmeczQW4miQ9LOWaB8WGtgKT3wKiCH/FhZhxfMVLDE6SNuj7ehheMnw9tKcV/wIiCP3tkpHHeMy50zYXDcuA1Fy9PGVXxHtd3MfE2ZdVfGMeZMUMpSEauDqaaAgkyfWDMFrrul9IBYn97xdhz5fLQNnmTMZvztS00bD046fo1I/Q3jgtISrFP+he6TpAsb8PUlir4/EeMqSpQlDahprB8/UrXCVd2x6MH4iP1ifrsuRxHLn9ut/WkaFZA/4gx7e2YGJl1XzOeEBiORw0sd8kYoJ8zJix1XOqcDqqzNFnGnh98Zpx6Oaq6Y/GfhjD7jHHh16i+UiQeQkIyCvdp8soeESBSOs5mTVvEWi1dWPZPjOOCceAKO0m1FRAuHlGXvmZE1ZAOR66cNoNKwB8YGdG5xaC2CZY6XEa+zehhfzhyrYl13/g53qaBkL1/iI9YD8Eec+pwIMUpfc1oC1vIjm2xnmT8eIeRyh4mO+Y2CXRwYn9rx8h/jo89fSanhSQUJMwkfcl4pNjRP9dHfOKPGDfTMg/94O8YxIh0PX7LM4vYI0YkcG4EYMEoxv4HRtqvdJXbrsV7jNyrCJUSIe0IYYze2A8/Mqbc6+ASBdaVpclrxj7XDlGGOJlg8fPJUJy8yTjOdfV6EzOHfk5JnytTcDwwDgtG+HXWIxVj2CRNqZfXjFxS0GkSlMlcps2rt18ZueLczFXBIqfGN2mwv6/Dl4yjdvQG6hEuDcbhjvG0ZMRAJ2ilhyAzLqe1Ionv1govGLmM7B9LknkbAgGDe00TI4a5Y+TPsOBMZd+LfA0znS2O+xBW/HEu3J7rF/Yoq1nskX7f7B2eQMqFesz9lNwWjOOSkRt2x+HeBxfxVil6tgsI3Rl7sSTL+gPRiGoYsuyZzzC6wE/iZeEE0+SGMoJEZjsiU20EQS01RFt4ZNzMd8O+C3cjbyZG7kAa47ioe1gWkLE3dXxjHGV1cOaJEs5zOx61EE7wtHZjedBAFTH8Fxnzx5cEfpfjZv2ibaI1ca8pcY+U1jm15eZQnmn/7SmjVIJ0ezvG2naO40+lDQot4VYO0gPvarMuYcTAghrHoNplPOUPjGzLDX5OfuBTttc/BkbVVpQjrOimeHxkNj/9wIhKnFkiUWdThORSnVuCKqkgZ0IdWeeQ1H7RxO4YR/s3qKcEcjrlnInyF2LcqMXfzHg62aY9G2svPdd+OXX+jRHKTBXg/H1HMoyfiN2eECDJlFvcTEEAThkvtX2YY6gbk9sjY86nmHjGozbJWZEm6Zj3/fzGQ4xsZG9e8lFrkkER7Ckj5MSXAnotkEsHGIB//My4D6eXOKzcUs2Cbbn/yY2+Mc3uGTNtUTE9Jhybyc8yIGtn7T0qjtIe0Uod8hHuzQIxe8rob34YGNL50klHGnYOFDLokGLU24FU+739EGSzeBFgbf19jFqqrQVq9JovxtV7JbYJUeb0ijHz+luxtZ8gAyMaaKwsH/IFY24m9Mgost5fR80N1VL9GtBgiJlNPsBwUfVd177M6qe3avaVh6UDrdnlms/dhgtP3wKmkgarjNBosDdy9lxqF0Jj3x95g3EwxHlY2yNK01MeGHPW2mkWrp9sf/87YtCiSS0gDs7jRuWjKqYHdwrPrb65zASZ5aHT3qllH6ZRe7FiPQaxWxh57HA+kbzzBXu6gHRR5tNCz96WPX033Pf386Ce3JrMxD2o6VKWBlMbXjEy4fFqv/DC0Lfj6I4P6W16STl//m44TydTk1C966CtzK1UaMcheAuLsT647D1iaqbo/YQ5pK6gXpNzG+Qm3WnqwcF7Mub3/83uEOzSXXFyePdsLKXl38FPpUp/g2ZDWBhJzdiy0MzCi8bQe1uXA9WTurmH8Cdx5twjfTxIQXeQwektMuvvwaWX5UG1pn6zdC22NIJuHAdtczDaGIm/zRjs9RUqdomBYZMzyK3f/I5xPp4xyi3yk0wlt/2TbGK0OTBlmhdxeF4Xo3k5eO8Y0/DekufGTMajXgFxhFw779pNSp8xfqsfT/S+LOM3D2ZkeqO9lzbfcHugDfYe42Q8aW9PUMLowwR9MmvLvb/cPdfCg+8d6l2228uT/+djfDhsfH0zEY/PjlNolC7aT7f4lS4a8x9zdPjzJt58HO8GeTbg6vPff6x2vx5RdP+9PFu0mr+i/T562U6Xo/t+o58BVvv7Y7vFxS0OnPLnjp/WdDrjbXzpF9upNdvatenHNlybO9fHNjyp2zu7tgtj778dj4wacXvfa0AzZj9mutDevtliP4Hfdbbf7pd3Ziif43Z/1/pHRj+L9hHP+bGLN1Lh3qUSGaP65f1oKZlot5upQ2+R+mOXu23Ea9HObu80zjSFp4zbh2Nxb7dz7e13WK7xNBKjm898xnF2sa4EkxPVbkvcSOTb/WxgxDKj8a/tvRofjpeMfDyOQ68bCnKCjnmY0fuZTrxt/MS1dNPa4j6npAc4NXwurPZdxmjrXqHVLuDiDU+IKpXvNloHRxCPnW3se9mSn1u23GiKWKNbU/zGv2gX2kXWYO2Q23cYvR2MBkIA4IZK3tgJFtzr2DTPlTfEYXc2QkIDLMZDS670A6omG+/UAgt2UoUeyaopxW4oTxm/m6h7LbvefAJL35TQZmakotgpL8Rix7fYNvbLGEWgmfCXPc4mOzaLg3RjjrCT+nbPHPuFHNVyZzO2rtU3z7bGuHNGiknDqimFZIybINU4IpGZCua73YW5eo8yB8pxu32h7e+Ms+fsXCgim/qOXNfKJhx1F8fB6hZy3PjnRlLidWu9X/ajMwpyZty/a4+eAmQ0G3Wynfom+0oWv4/cV5xxZzoOdqnJkXETLBmMEef6uVn2qMmQcf8+o0EynPh4T+SoILKPYtn+vRzlMrHAjdG4nXG//SZHtf1DOTqjfCZ2O9vJyz9nRhJG2515QSzPCOOFP01ws7F5bMy2jZH9MIw7I/VNxt2bsWdWts2YcNS3/PpzYwK0uIL4FJv2dCGwTawWrTax2azFMNfwLvRoNiC3Vxp9jzGQRubXUvp6jo/akvT4uHMvUFBX9NuF4Ge+Q96N6Aikv8A4h14LUca4+zNG5huqkJBumDtPKyG7WOxRZpvyjLQevIiJSKfMeVKDMd5nLnnebvsyhP8gx+1c5TxWs5aaQ2JQ6eCVxPwZ6hFvubf61wqkqfTQk1ul+O12ri/fYvT6jtWK/xKp11B23Squ7d5G3trNrRfh4GSTuyIlfFsNp7IOz2+9Btr9AeOycN3KSNw6gRZNNaOB2bg8nVJTtKwBt1uvq6PJESPvy3U0SWA/TeYtv57PZCTRNvIyNfLBIqvc7ivSaD/jRdMlTSvUUuxi5x3td/fTWVbzb8aekGpMSZF1uw+0ew0cTTJxLJN3FC2vYoZT1JUx6iaVvH9Y5+y3+z+Lj9vFeikKrkA/mlijfTSrz10rMjtjdRvmYHE0lM3q2BYMGiEKet9u9+/Xj3eMbiyhso/MRxdakeq25kyaieSjZmEVGQVH85NwfbGi29tyYfvqWL26Ma/6RKFCx0hDi4grr2i7D4tlyj3i5Whj7VS2m0WyZN6G+W6iwKjelqvN7f5dxoVJbm3eWjTsF+uszRwBta4IdY14ec4JWHWpdc0mrAbwwGYKuEEGi1X6/p8wauaWpyP2jl/MzZYl8AN/28iyBxc2XvmrtZh1xWon/bB7nOTGiu9/xrhkjSyPWV2jWpGVs07Xaz/Zec2+ttI/Xlu1pILMPsMywXpQBaAfuzs5bt9cFz5J3GLc7y3jxovC1GowptzI1xRxqAZDKbdZf5KJ90wdIF6rGtaPaL/9/Vj9jsiaQll6bVX5Lg61KylUGa6netZ+xtPyRw2i2V5VLG52XkOto9dR8Q8YIzFuwqgg233OcvQ6fLfxVZZPY8HIZ7wYngraIEf2ut3/CvmGHHe2KjXdxibHz1nXn1YFxSoH1/HnA6OWuYY3LQw2QdfxtE/2I+P+1TE72rRjYRYf2diUoPuRRVArb80b7nwm7Eus7ZLJ0fp8upf3677Zd0almY2tqlh8K+TRTTxSWp1gV0M7iz07f8Y3Gudrvom0Ufr8nXH33hE2lX5tFj8889hg9/P9p/u48b//WB3eOOJYn4c/OeK3+nzrWF3//cfq/MZxCQd/NE344LfuNWVZ1oU1bex+ib8Lv/XQxbqoOuvEeuKndfnLsbr8fDgix62bALwcpSwbtat56FyQF+Nkk6qqa87lXHVdV9nTi35+P1bNz0dVsZ+yZv916HeW77kqDfJcERHnFCIekixrY+xwq2qaum7btlaXaM07dU2N/Hqsqp8P9NtQl1XVFTUfKKejgQzLqigqUV/OLcbllfO5bauztQFqRbKykj1UFTqrC0rWp36ufj9W9cNBLE67sl+dGHkZ4igxkFTqn/yCfGWdl6atIbOasuFdgFWcGp6DHCFF4XOWNeVaN0ScxvnxeJCjz7vkJPGFn2UJIUGI6J+ya0ppH3rEL6rYnqoqTgTfRVvgLi0ADV2vNIZzze74GB/AF/toi7N6KHD8JEdazkxIc7pnrMh47igC6a5yRty9Y+RtMpGRngQZnekvmqUYazxdtwXVW5OxrMVokCaf8zuMNPKybDV6Kw+gS1jIMRs0xnNJIyNTYCQhf9eVYlFVyMkLKJxaVz/opaBJNjSExngv96O/xUgBmrwKCgoOyLER6y6mN06ZV0oZ3PSckGQIpXjKAo83tE/OpqWGbKr0mgv6rsV7fpTQK8Y7ezRGTBmWLs+Uh0iY7KVo20IhppQVSbBFBZ+GTBqeF7RDBHQ5M/uiB1XorahCjGcU0OeS6vyS8BsjZ2laQa9C5KhkpJbpT3U1BRWaVcnHLxcyegdNhSfIyG7oR6XmU0sLdLzA2MxYHm/fZFQco+8iJRQMPmf5thArWqqipaIgI7Gsgr5RyApgE7TJUjIHS0HPKlsLp4ylRU0TArtkbHaF30qgP/n1t7BdB5nUbjI2ciXBWnYuLdtUgrXE6NFcnuM53hnnA5PGpZqx4xyyQf07YzgpO06yKGA4BURoykTIoSFh4FLXSYsrCm9kaCrF5ZLuCeMouqYp6kupZy6F/MRsHLeLrr4wkhddC0a0hqbOJcesz03nmrao/5IR6oLc6o7xtOsYN/gguyqbDnbZdZIOOmVWxB1VMmgMfkVpXC8b4aNt0XTq5NIVNh3cxRlmUoLv3LX44zdOurprzh5pf2VEktIzFGN5wSC0l07aYL1iRwdBlEyBrY/Z1bSBirxsjGfobpQq810DGNZCFYHo+E3TMcx3F4odrdqWrUOYLJvfGDF0e72Wl04ygAjL9tp2lAV5us5rzhadox3vFDy5otW1LnVR96nJGq1LduDXasRKKvjMMfBkuKHWAH+HES4BVXftAUPTLgPitaa0Wo4favcrRCc0cLOFH2XtLYTUXg+Evx4+eByubYnyBNMD6RWDtKE3BKm2ay5TeviRsaSdde3HBwaDHGHfADig94b2BSEePlYa76MlPO+UpLdr+FWX14+P1cqR1ACf/swHxN7iCjynwC1jX7E1rpfFu4yVFETGzmy+FdZBv88le/Wpl+V0p73aVXx2pZ8fSCRGPiMZ60erJ8qGYwB+0gpNVohF1fzMCG+GvK6aMc4qahdjsj9cuJQ2jiyonO9cvz4+vnANX2L8EtHq4Fhog+mWvO2M8CpjNPiO9gifZEKoC1VP37LjxHiuFF+cEcm6E8gXUL7aM/ow5TE7GnyQER9oW33Zw9Rl66C4AO1KI8bIUt0ZaYnItDQs2jzClhhZqswLp3vGM0fvriv2itRiWjSLujI42qB0Bwy9Mov7uAY5BsYvqA7XDsZI61Z8mRlh3Us5ojsK5GwF3VnFswT4C6MFQpNb0WowyXF1+MLhuoSfqsXXilo/2HzA+HX9+vpYXWc5nhW1DqAXIzCc0Wz3WlolQ0b7UklkZa/qkKeMthg1jflgBTUY3Nolat/B23XJ3XoV/Jo07KyYGeEf7jM64KEI8OfAyGyvVSYXe3Udaoolo9sj6/DOfQQWySGrjoyaeW1sUDO/F7rmR8B1xtXMaLqGTKvg17RjFh3mIGCUhWpdxsUGILWwmOueR0bKzcaUHOGbbo9X3jlMd+SxkrLxfn3JRmyKreR0x4h06PERj8k5mdfMa8Wo08Yqouolo9bG1DUSwgH/Vgpr08w1vO8WGWPbFOYnFo54pZjskbWyedOVjMjgwa+ZuM/yaWV9klW+AGustHR7fMLogcvssfNc44JB3RE8vAsYio/B/JjwzB7tpsn+y03B+l769fXK1SNrVVbIF9WhBmmV+j2jlRSrkExspq0ZVtGF7CdvWgEEQVN+PecWY/TYYmI/THc9jOnH6nCXZxjZVLxZFafKsmh8t+mRsaQcZ+8VY+mMtKJDp/npDrrtXHYhYZuWdf/jGvL1h7kvUJTk6VJ+Q6fMoQ2qtAuLOSsAoXgYlEby+NhMjI2VV60djLysPyVL1hjcUeqYL8+dvFFbTNTsQWbKjHnVc6yWWA6xVcEih4L7alU6Xa0uYoniT7esnjpuqmH02lRcdb4D5rkwLCS4qEBeIo4OGnLVcReF9Sr0cL5evVO04Wxar/7MPwGk52iyBQXByXWqmWUPyvrtXH/6QKrwWuqpduGwoGYHLSR5ViRfzYsd5vOOK4GWCxo2Y5rWMuVC2HljtS26qWrsuODvmMO7syRzlaDV6MxnWitOrnOheTVYBhpCIoF7q1CyXKrAWN8zcr+Jy2nu4qky07qjKs6dqrvi6pWi6Wo2Q8gUKZeB6mLlHKbGChaQZ12G1FWdLR5pvZyC8PCro317MSyBN1oJcFOmbidG0hbGyB0FrmZYwV/O0F/D2GU17p17rKYBu8685UzjVUS8yndV4bAfk+TXzMhMSEfsVPd6nRRuc7XCsE7brNty4TNVUZocoSKu+X3zDKc1F7Tm16wpvlgIeVD+Mi3JY1HBVXa5NWcPQbLmioIFibIQixLVyx+tjHnBePjyOMuRq5reo5S9erb0Bhi3CG3XrLH9n2rKhV8fqymlmOHXXjl2lnXMRyx8Kxo1VhFZtG+twjzY8uG6WjAyNKiHM+mai0X36re95irseFt2wfJoSi8WPbhGdsazVQvd1YugsGJQDR8YaeXK2NbdPWNZiFGrZsnovjZ7vSOuDRRGZpoQJqi8G5YF12vNZb3B1XIVk4gVx6p8Oq80Tddeqdsclva4mnJqIS17tn6L0V9pXP3p0vp1n4G5yR7JqNV55zbZut6nMmN+hMyrq+YQGJU7P0JOZXAu5y2L3xhZvbfcoTsHxuJqjJaIqXwuyLjqaRi13G+mOmJaf7XzIyZHW3E8+PXKXIaBh68hlGp+Y2y0Mc6N2LCiLlzXB9N13SBzl/JrzL6xOPR1OPjC8ereYiH1yyK4M0q6zmieb7Wn6gp6NhN48xZjJcYqrAvnVQAEUjCini+VMdYw16Kzde20uCWx1Wx6pOSelKoSlZhfVgN5eWXFnMIj91qL4m3GAspu5vW1+adnN3p2WK+ENKeVl7WzsolPdtdgp6rkP7jBd7VSXrWeqUklE/IMskpT2Sb7O/bIorNu6naK4dMS8PplMbxppEeLz90Ux2WjF8uaVHVgt8WOVRiW/Mxn8HGxGpv7JNydLbQj90Z85KY89xjnrZuDQOaNnHL503V6MV+vVfEyaBXXxSNah7RKP8v42EkhH6p664pVz1ty5Ls0abxpfZ11sBx2mHO37UPMqfwgkyqtzmhYi7TdZZnwW1YR3LGR/TFpU6rcj+tYYbIcMjm+5zPTG5HLXJu181bj1cpCLybDdiK3fmEArCwbxvyr7bAtHrGUeNY9VZv0NZZzNetqe+OoN3xvMdpLa6SaUIOSgJvaVmljxmcvjK2uVlVLXU03WHRwfeqPC04FflF5IdxaVcyEBqPqtLNR1/Zu4g3G0l4fYVboqbqoesP6DV1wqxglYmHLJb2t42hYuJ07W1/oPRTqfsi90aY+9wjPF/tS1dmVRcnXLCzdsfjvGHXsBRZfJHOl2Jz/gJEmAgvputLeVkuc026qdlG52AcVXz2gIqg5F+50o8rT2kQvc86derlAE3oby1UHRrlocVjrHSClW+h9AONv9R4j5lJr1cBlpb2nwiqCpXBZaJ+Bb0a4kXNpsPqp+Il7aMu3NXz92UlrkGaDe+Dg7ITB9UoDaXXa0z9LBbbYsZuF1Y/Vr5DV4qVe5cXk2V57lbbGaBbvJO3drG8y6H+tCG/FGv91tv9HAGhnf9kxvYYrw8781Ol7dc///vGX8S/jX8a/jH8Z/zL+Zfz3H/8FZAduEtXWAyAAAAAASUVORK5CYII=" alt="Pôle Formation UIMM Centre-Val de Loire, La Fabrique de l'Avenir" width="163" height="174">
+  <div class="brandtxt">
+    <p class="org">Pôle Formation UIMM Centre-Val de Loire</p>
+    <h1>Atelier vibratoire BV12</h1>
+    <p class="sub">Comprendre la série de Fourier et les signatures spectrales des défauts, par la manipulation. Banc didactique ACOEM BV12, Bachelor maintenance avancée.</p>
+  </div>
+  <div class="author">
+    <span class="alabel">Conception et rédaction</span>
+    <span class="aname">S. Jaubert</span>
+    <span class="arole">Formateur mathématiques et organisation industrielle</span>
+  </div>
 </header>
 
 <!-- ============ BARRE CINEMATIQUE GLOBALE ============ -->
 <section class="kinbar">
-  <h2>Cinematique du banc, parametres communs a tous les modules</h2>
+  <h2>Cinématique du banc, paramètres communs à tous les modules</h2>
   <div class="kingrid">
     <div class="kinctl">
       <label for="rpm">Vitesse moteur (variateur)</label>
@@ -159,10 +190,10 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
       <input type="range" id="rpm" min="300" max="1500" step="30" value="1500"></div>
     </div>
     <div class="kinctl" style="max-width:250px">
-      <label for="beltModel">Courroie crantee</label>
+      <label for="beltModel">Courroie crantée</label>
       <select id="beltModel">
-        <option value="64" selected>Modele 240L, 64 crans</option>
-        <option value="56">Modele 210L, 56 crans</option>
+        <option value="64" selected>Modèle 240L, 64 crans</option>
+        <option value="56">Modèle 210L, 56 crans</option>
       </select>
     </div>
     <div class="kinctl" style="max-width:230px">
@@ -177,16 +208,16 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
   <div class="readouts" id="readouts"></div>
 
   <div class="note" style="margin-top:12px">
-    <b>Source de la cinematique.</b> Manuel constructeur ACOEM / OneProd du banc BV12, section 2.3.1 page 9 : pignon arbre 1 de 60 dents, pignon arbre 2 de 48 dents, poulie arbre 2 de 30 crans, poulie arbre 3 de 24 crans, courroie crantee de 64 crans (modele 240L) ou 56 crans (modele 210L) selon le banc, roulement 16101 monte sur le palier 7. Les coefficients de defaut sont ceux du tableau constructeur, confirmes page 19 sur un spectre reel du banc : 3,05 &times; F&#8322; &#8776; 117 Hz pour F&#8322; = 38,4 Hz.
-    <br><br><b>Le piege du banc.</b> A 1500 tr/min avec la courroie 240L, la frequence de cage FTF tombe a <span id="trapFtf">14,8 Hz</span> et la frequence de courroie F<sub>c</sub> a <span id="trapFc">14,6 Hz</span>. Les deux sont sub-synchrones et separees de 1,3 % seulement. Aucune resolution spectrale raisonnable ne les distingue, et changer la vitesse ne les separe pas non plus puisque toutes deux sont proportionnelles a F&#8322;. Seule la courroie 210L les ecarte franchement.
+    <b>Source de la cinématique.</b> Manuel constructeur ACOEM / OneProd du banc BV12, section 2.3.1 page 9 : pignon arbre 1 de 60 dents, pignon arbre 2 de 48 dents, poulie arbre 2 de 30 crans, poulie arbre 3 de 24 crans, courroie crantée de 64 crans (modèle 240L) ou 56 crans (modèle 210L) selon le banc, roulement 16101 monte sur le palier 7. Les coefficients de défaut sont ceux du tableau constructeur, confirmés page 19 sur un spectre réel du banc : 3,05 &times; F&#8322; &#8776; 117 Hz pour F&#8322; = 38,4 Hz.
+    <br><br><b>Le piège du banc.</b> A 1500 tr/min avec la courroie 240L, la fréquence de cage FTF tombe à <span id="trapFtf">14,8 Hz</span> et la fréquence de courroie F<sub>c</sub> a <span id="trapFc">14,6 Hz</span>. Les deux sont sub-synchrones et séparées de 1,3 % seulement. Aucune résolution spectrale raisonnable ne les distingue, et changer la vitesse ne les sépare pas non plus puisque toutes deux sont proportionnelles à F&#8322;. Seule la courroie 210L les écarte franchement.
   </div>
 </section>
 
 <nav class="tabs" id="tabs" role="tablist">
-  <button role="tab" data-p="reperes" aria-selected="true">Reperes</button>
+  <button role="tab" data-p="reperes" aria-selected="true">Repères</button>
   <button role="tab" data-p="fourier" aria-selected="false">1. Construire un signal</button>
   <button role="tab" data-p="choc" aria-selected="false">2. Du sinus au choc</button>
-  <button role="tab" data-p="defauts" aria-selected="false">3. Signatures des defauts</button>
+  <button role="tab" data-p="defauts" aria-selected="false">3. Signatures des défauts</button>
   <button role="tab" data-p="modul" aria-selected="false">4. Modulation et enveloppe</button>
 </nav>
 
@@ -195,62 +226,62 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
 <div class="module">
   <aside class="guide">
     <h3>A quoi sert cette page</h3>
-    <p class="lead">Quatre modules, dans l'ordre. Chacun repond a une question que se pose un technicien devant un spectre.</p>
+    <p class="lead">Quatre modules, dans l'ordre. Chacun répond à une question que se pose un technicien devant un spectre.</p>
     <ol>
       <li><b>Construire un signal.</b> Pourquoi additionner des sinus permet de fabriquer n'importe quelle forme d'onde.</li>
-      <li><b>Du sinus au choc.</b> Pourquoi un choc genere des harmoniques, et un balancement n'en genere aucune.</li>
-      <li><b>Signatures des defauts.</b> Ce que chaque defaut du BV12 imprime dans le spectre.</li>
-      <li><b>Modulation et enveloppe.</b> D'ou viennent les bandes laterales, et pourquoi la demodulation revele un roulement avant tout le monde.</li>
+      <li><b>Du sinus au choc.</b> Pourquoi un choc génère des harmoniques, et un balancement n'en génère aucune.</li>
+      <li><b>Signatures des défauts.</b> Ce que chaque défaut du BV12 imprime dans le spectre.</li>
+      <li><b>Modulation et enveloppe.</b> D'où viennent les bandes latérales, et pourquoi la démodulation révèle un roulement avant tout le monde.</li>
     </ol>
-    <div class="note"><b>Regle d'usage.</b> Change un parametre a la fois. Regarde ce qui bouge dans le spectre avant de toucher au suivant.</div>
+    <div class="note"><b>Règle d'usage.</b> Change un paramètre à la fois. Regarde ce qui bouge dans le spectre avant de toucher au suivant.</div>
   </aside>
 
   <div class="stage">
     <div class="card">
-      <h3>Frequences caracteristiques a la vitesse courante</h3>
+      <h3>Fréquences caractéristiques à la vitesse courante</h3>
       <div class="scrollx"><table class="data" id="kinTable"></table></div>
-      <div class="note"><b>Rappel.</b> Toutes ces valeurs se recalculent seules quand tu deplaces le curseur de vitesse en haut de page. Sur le banc, c'est exactement ce que tu dois produire avant d'ouvrir un spectre : l'inventaire cinematique.</div>
+      <div class="note"><b>Rappel.</b> Toutes ces valeurs se recalculent seules quand tu déplaces le curseur de vitesse en haut de page. Sur le banc, c'est exactement ce que tu dois produire avant d'ouvrir un spectre : l'inventaire cinématique.</div>
     </div>
 
     <div class="card">
       <h3>Architecture du banc</h3>
       <div class="plot"><canvas id="cv-arch" height="230"></canvas></div>
       <div class="legend">
-        <span><i style="background:var(--accent)"></i>Chaine cinematique</span>
-        <span><i style="background:var(--orange)"></i>Frequence caracteristique associee</span>
+        <span><i style="background:var(--accent)"></i>Chaîne cinématique</span>
+        <span><i style="background:var(--orange)"></i>Fréquence caractéristique associée</span>
       </div>
     </div>
 
     <div class="card">
-      <h3>Les cinq criteres de lecture d'un spectre</h3>
+      <h3>Les cinq critères de lecture d'un spectre</h3>
       <div class="diagbox">
         <ul>
-          <li><b>Frequence.</b> Le pic correspond-il a une frequence de l'inventaire cinematique ? Si non, c'est deja une information.</li>
-          <li><b>Motif harmonique.</b> Un pic isole, un peigne regulier, des bandes laterales symetriques ?</li>
-          <li><b>Direction.</b> Quel axe du capteur reagit le plus : radial horizontal, radial vertical, axial ?</li>
-          <li><b>Niveau et tendance.</b> L'amplitude absolue compte moins que son evolution dans le temps.</li>
-          <li><b>Signal temporel.</b> Des impulsions visibles ? Une modulation d'amplitude ? Une periodicite lente ?</li>
+          <li><b>Fréquence.</b> Le pic correspond-il à une fréquence de l'inventaire cinématique ? Si non, c'est déjà une information.</li>
+          <li><b>Motif harmonique.</b> Un pic isolé, un peigne régulier, des bandes latérales symétriques ?</li>
+          <li><b>Direction.</b> Quel axe du capteur réagit le plus : radial horizontal, radial vertical, axial ?</li>
+          <li><b>Niveau et tendance.</b> L'amplitude absolue compte moins que son évolution dans le temps.</li>
+          <li><b>Signal temporel.</b> Des impulsions visibles ? Une modulation d'amplitude ? Une périodicité lente ?</li>
         </ul>
       </div>
-      <div class="note">Un diagnostic ne tient jamais sur un seul critere. Il en faut au moins deux, independants.</div>
-      <details class="math"><summary>Formules utilisees dans toute la page</summary><div class="body">
-        <p>Frequence de rotation a partir de la vitesse :</p>
+      <div class="note">Un diagnostic ne tient jamais sur un seul critère. Il en faut au moins deux, indépendants.</div>
+      <details class="math"><summary>Formules utilisées dans toute la page</summary><div class="body">
+        <p>Fréquence de rotation à partir de la vitesse :</p>
         <div class="eq"><span class="v">F</span> (Hz) = <span class="frac"><span class="n">N (tr/min)</span><span class="d">60</span></span></div>
-        <p>Chaine du banc, engrenage 60/48 puis poulies 30/24 :</p>
+        <p>Chaîne du banc, engrenage 60/48 puis poulies 30/24 :</p>
         <div class="eq"><span class="v">F</span><sub>1</sub> = <span class="frac"><span class="n">60</span><span class="d">48</span></span> <span class="v">F</span><sub>0</sub> = 1,25 <span class="v">F</span><sub>0</sub> &nbsp;&nbsp;&nbsp; <span class="v">F</span><sub>2</sub> = <span class="frac"><span class="n">30</span><span class="d">24</span></span> <span class="v">F</span><sub>1</sub> = 1,5625 <span class="v">F</span><sub>0</sub></div>
-        <p>Frequence d'engrenement, avec Z le nombre de dents de la roue portee par l'arbre considere :</p>
+        <p>Fréquence d'engrènement, avec Z le nombre de dents de la roue portée par l'arbre considéré :</p>
         <div class="eq"><span class="v">F</span><sub>e</sub> = <span class="v">Z</span><sub>1</sub> <span class="v">F</span><sub>0</sub> = <span class="v">Z</span><sub>2</sub> <span class="v">F</span><sub>1</sub> = 60 <span class="v">F</span><sub>0</sub></div>
-        <p>Frequence de passage du defaut de courroie. Un point marque de la courroie revient a la meme position quand la courroie a parcouru sa propre longueur, d'ou le rapport entre le nombre de crans de la poulie et celui de la courroie :</p>
+        <p>Fréquence de passage du défaut de courroie. Un point marqué de la courroie revient à la même position quand la courroie a parcouru sa propre longueur, d'où le rapport entre le nombre de crans de la poulie et celui de la courroie :</p>
         <div class="eq"><span class="v">F</span><sub>c</sub> = <span class="frac"><span class="n">N<sub>crans poulie</sub></span><span class="d">N<sub>crans courroie</sub></span></span> <span class="v">F</span><sub>poulie</sub> = <span class="frac"><span class="n">24</span><span class="d">64</span></span> <span class="v">F</span><sub>2</sub> = <span class="frac"><span class="n">30</span><span class="d">64</span></span> <span class="v">F</span><sub>1</sub></div>
-        <p>Les deux ecritures donnent la meme valeur, puisque 24 <span class="v">F</span><sub>2</sub> = 30 <span class="v">F</span><sub>1</sub> : c'est la meme courroie qui defile, vue depuis l'une ou l'autre poulie. Attention au piege : le nombre de crans du denominateur est celui de la <b>courroie</b>, jamais celui de la poulie menee. Confondre les deux fausse a la fois la vitesse de l'arbre 3 et la frequence de courroie.</p>
-        <p>Frequences de defaut de roulement, avec <span class="v">n</span> le nombre d'elements roulants, <span class="v">B</span><sub>d</sub> le diametre des billes, <span class="v">P</span><sub>d</sub> le diametre primitif et <span class="v">&phi;</span> l'angle de contact :</p>
+        <p>Les deux écritures donnent la même valeur, puisque 24 <span class="v">F</span><sub>2</sub> = 30 <span class="v">F</span><sub>1</sub> : c'est la même courroie qui défile, vue depuis l'une ou l'autre poulie. Attention au piège : le nombre de crans du dénominateur est celui de la <b>courroie</b>, jamais celui de la poulie menée. Confondre les deux fausse à la fois la vitesse de l'arbre 3 et la fréquence de courroie.</p>
+        <p>Fréquences de défaut de roulement, avec <span class="v">n</span> le nombre d'éléments roulants, <span class="v">B</span><sub>d</sub> le diamètre des billes, <span class="v">P</span><sub>d</sub> le diamètre primitif et <span class="v">&phi;</span> l'angle de contact :</p>
         <div class="eq">BPFO = <span class="frac"><span class="n">n</span><span class="d">2</span></span> <span class="v">f</span> (1 &minus; <span class="frac"><span class="n">B<sub>d</sub></span><span class="d">P<sub>d</sub></span></span> cos&phi;) &nbsp;&nbsp;&nbsp; BPFI = <span class="frac"><span class="n">n</span><span class="d">2</span></span> <span class="v">f</span> (1 + <span class="frac"><span class="n">B<sub>d</sub></span><span class="d">P<sub>d</sub></span></span> cos&phi;)</div>
         <div class="eq">FTF = <span class="frac"><span class="n">1</span><span class="d">2</span></span> <span class="v">f</span> (1 &minus; <span class="frac"><span class="n">B<sub>d</sub></span><span class="d">P<sub>d</sub></span></span> cos&phi;) &nbsp;&nbsp;&nbsp; BSF = <span class="frac"><span class="n">P<sub>d</sub></span><span class="d">2B<sub>d</sub></span></span> <span class="v">f</span> (1 &minus; <span class="frac"><span class="n">B<sub>d</sub><sup>2</sup></span><span class="d">P<sub>d</sub><sup>2</sup></span></span> cos<sup>2</sup>&phi;)</div>
-        <p>Ces quatre frequences ne sont pas des multiples entiers de la vitesse de rotation. C'est precisement ce qui permet de les distinguer d'un balourd ou d'un desalignement.</p>
-        <p><b>En pratique on ne les calcule pas.</b> Le constructeur les publie deja, pour une vitesse de rotation de 1 Hz. Cette page utilise directement le tableau du manuel BV12 :</p>
+        <p>Ces quatre fréquences ne sont pas des multiples entiers de la vitesse de rotation. C'est précisément ce qui permet de les distinguer d'un balourd ou d'un désalignement.</p>
+        <p><b>En pratique on ne les calcule pas.</b> Le constructeur les publie déjà, pour une vitesse de rotation de 1 Hz. Cette page utilise directement le tableau du manuel BV12 :</p>
         <div class="scrollx"><table class="data" id="bearTable"></table></div>
-        <p>Une remarque sur la ligne <i>element roulant</i>. La formule ci-dessus donne la vitesse de rotation propre de la bille sur elle-meme. Or une bille ecaillee frappe une piste a chaque demi-tour : la bague exterieure, puis la bague interieure. La frequence de choc observee vaut donc 2 &times; BSF, et c'est cette valeur doublee que les constructeurs tabulent. Verification sur le SKF 16101 : la geometrie deduite des coefficients BPFO et BPFI donne BSF = 1,99, et 2 &times; 1,99 = 3,97, soit la valeur tabulee de 3,96.</p>
-        <p>Autre verification utile : BPFO + BPFI doit valoir exactement le nombre de billes. Ici 3,05 + 4,95 = 8,00. Le roulement 16101 possede donc huit billes, et le rapport B<sub>d</sub>/P<sub>d</sub> vaut 0,2375.</p>
+        <p>Une remarque sur la ligne <i>élément roulant</i>. La formule ci-dessus donne la vitesse de rotation propre de la bille sur elle-même. Or une bille écaillée frappe une piste à chaque demi-tour : la bague extérieure, puis la bague intérieure. La fréquence de choc observée vaut donc 2 &times; BSF, et c'est cette valeur doublée que les constructeurs tabulent. Vérification sur le SKF 16101 : la géométrie déduite des coefficients BPFO et BPFI donne BSF = 1,99, et 2 &times; 1,99 = 3,97, soit la valeur tabulée de 3,96.</p>
+        <p>Autre vérification utile : BPFO + BPFI doit valoir exactement le nombre de billes. Ici 3,05 + 4,95 = 8,00. Le roulement 16101 possède donc huit billes, et le rapport B<sub>d</sub>/P<sub>d</sub> vaut 0,2375.</p>
       </div></details>
     </div>
   </div>
@@ -262,15 +293,15 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
 <div class="module">
   <aside class="guide">
     <h3>Construire un signal</h3>
-    <p class="lead">Fourier affirme qu'un signal periodique quelconque se fabrique en additionnant des sinus. Verifie-le toi-meme.</p>
+    <p class="lead">Fourier affirme qu'un signal périodique quelconque se fabrique en additionnant des sinus. Vérifie-le toi-même.</p>
     <ol>
-      <li>Choisis la forme <b>Signal carre</b> et amene le curseur des harmoniques sur <b>1</b>. Tu n'as qu'un sinus. La forme cible en gris ne ressemble a rien de ce que tu vois.</li>
-      <li>Monte le curseur harmonique par harmonique. Regarde <b>ou</b> la courbe s'ameliore : les fronts verticaux, en premier.</li>
+      <li>Choisis la forme <b>Signal carré</b> et amène le curseur des harmoniques sur <b>1</b>. Tu n'as qu'un sinus. La forme cible en gris ne ressemble à rien de ce que tu vois.</li>
+      <li>Monte le curseur harmonique par harmonique. Regarde <b>ou</b> la courbe s'améliore : les fronts verticaux, en premier.</li>
       <li>Appuie sur <b>Animer</b> et laisse tourner. Observe le spectre de raies en bas : chaque nouvelle harmonique ajoute une raie, de plus en plus petite.</li>
-      <li>Passe sur <b>Train d'impulsions</b> et reduis la largeur. Compte les raies necessaires. Compare avec le carre.</li>
-      <li>Active <b>Ecouter</b>. Monte le nombre d'harmoniques pendant que le son tourne : le timbre passe de la flute au buzz.</li>
+      <li>Passe sur <b>Train d'impulsions</b> et réduis la largeur. Compte les raies nécessaires. Compare avec le carré.</li>
+      <li>Active <b>Écouter</b>. Monte le nombre d'harmoniques pendant que le son tourne : le timbre passe de la flûte au buzz.</li>
     </ol>
-    <div class="note"><b>Ce que tu dois retenir.</b> Plus la forme temporelle est pointue ou cassee, plus il faut d'harmoniques de rang eleve pour la reconstruire. Un spectre riche en harmoniques est la signature mathematique d'un signal brutal.</div>
+    <div class="note"><b>Ce que tu dois retenir.</b> Plus la forme temporelle est pointue ou cassée, plus il faut d'harmoniques de rang élevé pour la reconstruire. Un spectre riche en harmoniques est la signature mathématique d'un signal brutal.</div>
   </aside>
 
   <div class="stage">
@@ -278,34 +309,34 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
       <div class="ctlrow">
         <div class="ctl"><label for="fw-shape"><span>Forme cible</span></label>
           <select id="fw-shape">
-            <option value="carre">Signal carre</option>
+            <option value="carre">Signal carré</option>
             <option value="triangle">Signal triangulaire</option>
             <option value="scie">Dent de scie</option>
             <option value="impulsion">Train d'impulsions</option>
             <option value="redresse">Redressement double alternance</option>
           </select></div>
-        <div class="ctl"><label for="fw-n"><span>Harmoniques cumulees</span><span class="val" id="fw-nv">1</span></label>
+        <div class="ctl"><label for="fw-n"><span>Harmoniques cumulées</span><span class="val" id="fw-nv">1</span></label>
           <input type="range" id="fw-n" min="1" max="80" step="1" value="1"></div>
         <div class="ctl" id="fw-dutywrap"><label for="fw-duty"><span>Largeur de l'impulsion</span><span class="val" id="fw-dutyv">10 %</span></label>
           <input type="range" id="fw-duty" min="1" max="50" step="1" value="10"></div>
         <div class="ctl narrow" style="flex:0 0 auto;display:flex;gap:8px">
           <button class="act" id="fw-play">Animer</button>
-          <button class="act ghost" id="fw-audio">Ecouter</button>
+          <button class="act ghost" id="fw-audio">Écouter</button>
         </div>
       </div>
       <div class="chkrow" style="margin-top:12px">
         <label class="chk"><input type="checkbox" id="fw-target" checked> Afficher la forme cible</label>
-        <label class="chk"><input type="checkbox" id="fw-last" checked> Isoler la derniere harmonique ajoutee</label>
+        <label class="chk"><input type="checkbox" id="fw-last" checked> Isoler la dernière harmonique ajoutée</label>
         <label class="chk"><input type="checkbox" id="fw-epi"> Roues de Fourier</label>
       </div>
     </div>
 
     <div class="card">
-      <h3>Domaine temporel<span class="tag">ce que voit l'accelerometre</span></h3>
+      <h3>Domaine temporel<span class="tag">ce que voit l'accéléromètre</span></h3>
       <div class="plot"><canvas id="cv-fw-time" height="270"></canvas></div>
       <div class="legend">
         <span><i style="background:#94a3b8"></i>Forme cible exacte</span>
-        <span><i style="background:var(--accent)"></i>Somme des harmoniques 1 a N</span>
+        <span><i style="background:var(--accent)"></i>Somme des harmoniques 1 à N</span>
         <span><i style="background:var(--orange)"></i>Harmonique de rang N seule</span>
       </div>
     </div>
@@ -313,7 +344,7 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
     <div class="card" id="fw-epicard" style="display:none">
       <h3>Roues de Fourier<span class="tag">chaque harmonique est un cercle qui tourne</span></h3>
       <div class="plot"><canvas id="cv-fw-epi" height="330"></canvas></div>
-      <div class="note">Chaque cercle tourne <span class="v">n</span> fois plus vite que le precedent et son rayon vaut l'amplitude <span class="v">A</span><sub>n</sub>. Le bout du dernier bras trace le signal. C'est exactement ce que dit la serie de Fourier, en image.</div>
+      <div class="note">Chaque cercle tourne <span class="v">n</span> fois plus vite que le précédent et son rayon vaut l'amplitude <span class="v">A</span><sub>n</sub>. Le bout du dernier bras trace le signal. C'est exactement ce que dit la série de Fourier, en image.</div>
     </div>
 
     <div class="card">
@@ -321,22 +352,22 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
       <div class="plot"><canvas id="cv-fw-spec" height="230"></canvas></div>
       <div class="legend">
         <span><i style="background:var(--accent)"></i>Harmoniques prises en compte</span>
-        <span><i style="background:#c9d3de"></i>Harmoniques ignorees</span>
+        <span><i style="background:#c9d3de"></i>Harmoniques ignorées</span>
         <span><i style="background:var(--orange)"></i>Rang N</span>
       </div>
-      <details class="math"><summary>La serie de Fourier, ecriture complete</summary><div class="body">
-        <p>Soit <span class="v">f</span>(<span class="v">t</span>) un signal periodique de periode <span class="v">T</span>, de frequence fondamentale <span class="v">f</span><sub>0</sub> = 1/<span class="v">T</span> et de pulsation <span class="v">&omega;</span><sub>0</sub> = 2&pi;/<span class="v">T</span>. Sous les conditions de Dirichlet :</p>
+      <details class="math"><summary>La série de Fourier, écriture complète</summary><div class="body">
+        <p>Soit <span class="v">f</span>(<span class="v">t</span>) un signal périodique de période <span class="v">T</span>, de fréquence fondamentale <span class="v">f</span><sub>0</sub> = 1/<span class="v">T</span> et de pulsation <span class="v">&omega;</span><sub>0</sub> = 2&pi;/<span class="v">T</span>. Sous les conditions de Dirichlet :</p>
         <div class="eq"><span class="v">f</span>(<span class="v">t</span>) = <span class="v">a</span><sub>0</sub> + <span class="sum"><span class="lim">&#8734;</span><span class="big">&Sigma;</span><span class="lim">n=1</span></span> [ <span class="v">a</span><sub>n</sub> cos(<span class="v">n&omega;</span><sub>0</sub><span class="v">t</span>) + <span class="v">b</span><sub>n</sub> sin(<span class="v">n&omega;</span><sub>0</sub><span class="v">t</span>) ]</div>
-        <p>Les coefficients se calculent par integration sur une periode :</p>
+        <p>Les coefficients se calculent par intégration sur une période :</p>
         <div class="eq"><span class="v">a</span><sub>n</sub> = <span class="frac"><span class="n">2</span><span class="d">T</span></span> &#8747;<sub>0</sub><sup>T</sup> <span class="v">f</span>(<span class="v">t</span>) cos(<span class="v">n&omega;</span><sub>0</sub><span class="v">t</span>) d<span class="v">t</span> &nbsp;&nbsp;&nbsp; <span class="v">b</span><sub>n</sub> = <span class="frac"><span class="n">2</span><span class="d">T</span></span> &#8747;<sub>0</sub><sup>T</sup> <span class="v">f</span>(<span class="v">t</span>) sin(<span class="v">n&omega;</span><sub>0</sub><span class="v">t</span>) d<span class="v">t</span></div>
-        <p>L'analyseur ne trace ni les <span class="v">a</span><sub>n</sub> ni les <span class="v">b</span><sub>n</sub> separement. Il affiche le module de chaque harmonique :</p>
+        <p>L'analyseur ne trace ni les <span class="v">a</span><sub>n</sub> ni les <span class="v">b</span><sub>n</sub> séparément. Il affiche le module de chaque harmonique :</p>
         <div class="eq"><span class="v">A</span><sub>n</sub> = &radic;<span style="border-top:1.3px solid currentColor;padding:0 3px">&nbsp;<span class="v">a</span><sub>n</sub><sup>2</sup> + <span class="v">b</span><sub>n</sub><sup>2</sup>&nbsp;</span></div>
-        <p>C'est cette quantite <span class="v">A</span><sub>n</sub> qui est portee en ordonnee du spectre, en face de la frequence <span class="v">f</span><sub>n</sub> = <span class="v">n f</span><sub>0</sub>.</p>
+        <p>C'est cette quantité <span class="v">A</span><sub>n</sub> qui est portée en ordonnée du spectre, en face de la fréquence <span class="v">f</span><sub>n</sub> = <span class="v">n f</span><sub>0</sub>.</p>
         <p id="fw-coefTxt"></p>
       </div></details>
-      <details class="math"><summary>Pourquoi les fronts raides resistent : le phenomene de Gibbs</summary><div class="body">
-        <p>Quel que soit le nombre d'harmoniques ajoutees, un depassement d'environ <b>9 %</b> subsiste de part et d'autre de chaque discontinuite du signal carre. Il ne disparait jamais : il se resserre autour du front sans diminuer en hauteur.</p>
-        <p>Ce n'est pas un defaut de l'analyseur. C'est une propriete mathematique de la convergence de la serie. Pratiquement, cela rappelle qu'un front vertical parfait n'existe pas dans un spectre de largeur finie : l'analyseur voit toujours une version adoucie du choc reel.</p>
+      <details class="math"><summary>Pourquoi les fronts raides résistent : le phénomène de Gibbs</summary><div class="body">
+        <p>Quel que soit le nombre d'harmoniques ajoutées, un dépassement d'environ <b>9 %</b> subsiste de part et d'autre de chaque discontinuité du signal carré. Il ne disparaît jamais : il se resserre autour du front sans diminuer en hauteur.</p>
+        <p>Ce n'est pas un défaut de l'analyseur. C'est une propriété mathématique de la convergence de la série. Pratiquement, cela rappelle qu'un front vertical parfait n'existe pas dans un spectre de largeur finie : l'analyseur voit toujours une version adoucie du choc réel.</p>
       </div></details>
     </div>
   </div>
@@ -348,32 +379,32 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
 <div class="module">
   <aside class="guide">
     <h3>Du sinus au choc</h3>
-    <p class="lead">Le module precedent partait d'une forme et cherchait les harmoniques. Celui-ci fait l'inverse : il deforme continument un sinus en choc et te montre le spectre se peupler.</p>
+    <p class="lead">Le module précédent partait d'une forme et cherchait les harmoniques. Celui-ci fait l'inverse : il déforme continûment un sinus en choc et te montre le spectre se peupler.</p>
     <ol>
-      <li>Place le curseur <b>Durete du contact</b> tout a gauche. Le signal est un sinus pur. Regarde le spectre : <b>une seule raie</b>.</li>
-      <li>Deplace le curseur lentement vers la droite. Note la valeur a laquelle la deuxieme raie devient visible.</li>
-      <li>Continue jusqu'a l'impulsion. Lis le compteur <b>harmoniques significatives</b> : il passe de 1 a plusieurs dizaines.</li>
-      <li>Regarde la courbe en pointille sur le spectre : c'est l'enveloppe theorique. Elle ne depend que de la largeur du choc.</li>
-      <li>Ecoute la transition. Le sinus pur est une note pure ; l'impulsion est un claquement.</li>
+      <li>Place le curseur <b>Dureté du contact</b> tout à gauche. Le signal est un sinus pur. Regarde le spectre : <b>une seule raie</b>.</li>
+      <li>Déplace le curseur lentement vers la droite. Note la valeur à laquelle la deuxième raie devient visible.</li>
+      <li>Continue jusqu'à l'impulsion. Lis le compteur <b>harmoniques significatives</b> : il passe de 1 à plusieurs dizaines.</li>
+      <li>Regarde la courbe en pointillé sur le spectre : c'est l'enveloppe théorique. Elle ne dépend que de la largeur du choc.</li>
+      <li>Écoute la transition. Le sinus pur est une note pure ; l'impulsion est un claquement.</li>
     </ol>
-    <div class="note"><b>La regle d'or.</b> Balancement doux, une seule raie a 1&times;F&#8320;. Choc metallique, un peigne d'harmoniques. Voir monter les harmoniques, c'est voir un glissement se transformer en martelement.</div>
+    <div class="note"><b>La règle d'or.</b> Balancement doux, une seule raie à 1&times;F&#8320;. Choc métallique, un peigne d'harmoniques. Voir monter les harmoniques, c'est voir un glissement se transformer en martèlement.</div>
   </aside>
 
   <div class="stage">
     <div class="card">
       <div class="ctlrow">
-        <div class="ctl" style="flex:2 1 300px"><label for="ch-hard"><span>Durete du contact : du sinus pur a l'impulsion</span><span class="val" id="ch-hardv">0 %</span></label>
+        <div class="ctl" style="flex:2 1 300px"><label for="ch-hard"><span>Dureté du contact : du sinus pur à l'impulsion</span><span class="val" id="ch-hardv">0 %</span></label>
           <input type="range" id="ch-hard" min="0" max="100" step="1" value="0"></div>
         <div class="ctl narrow"><label for="ch-f0"><span>Cadence</span><span class="val" id="ch-f0v">25 Hz</span></label>
           <input type="range" id="ch-f0" min="5" max="100" step="1" value="25"></div>
         <div class="ctl narrow" style="flex:0 0 auto;display:flex;gap:8px;align-items:flex-end">
           <button class="act" id="ch-sweep">Balayer</button>
-          <button class="act ghost" id="ch-audio">Ecouter</button>
+          <button class="act ghost" id="ch-audio">Écouter</button>
         </div>
       </div>
       <div class="chkrow" style="margin-top:12px">
-        <label class="chk"><input type="checkbox" id="ch-env" checked> Enveloppe theorique du spectre</label>
-        <label class="chk"><input type="checkbox" id="ch-log"> Echelle verticale logarithmique (dB)</label>
+        <label class="chk"><input type="checkbox" id="ch-env" checked> Enveloppe théorique du spectre</label>
+        <label class="chk"><input type="checkbox" id="ch-log"> Échelle verticale logarithmique (dB)</label>
       </div>
     </div>
 
@@ -387,16 +418,16 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
       <div class="plot"><canvas id="cv-ch-spec" height="250"></canvas></div>
       <div class="legend">
         <span><i style="background:var(--accent)"></i>Raies</span>
-        <span><i style="background:var(--orange)"></i>Enveloppe theorique (sinus cardinal)</span>
+        <span><i style="background:var(--orange)"></i>Enveloppe théorique (sinus cardinal)</span>
         <span id="ch-count" style="font-weight:600;color:var(--ink)"></span>
       </div>
       <details class="math"><summary>Pourquoi un choc court remplit tout le spectre</summary><div class="body">
-        <p>Un train d'impulsions rectangulaires de periode <span class="v">T</span> et de largeur <span class="v">&tau;</span> a pour coefficients de Fourier :</p>
+        <p>Un train d'impulsions rectangulaires de période <span class="v">T</span> et de largeur <span class="v">&tau;</span> a pour coefficients de Fourier :</p>
         <div class="eq"><span class="v">A</span><sub>n</sub> = 2 <span class="frac"><span class="n">&tau;</span><span class="d">T</span></span> &middot; <span class="frac"><span class="n">sin(n&pi;&tau;/T)</span><span class="d">n&pi;&tau;/T</span></span> = 2 <span class="frac"><span class="n">&tau;</span><span class="d">T</span></span> sinc(<span class="v">n&pi;&tau;</span>/<span class="v">T</span>)</div>
-        <p>L'enveloppe du spectre est donc un sinus cardinal dont le premier zero se situe a la frequence :</p>
-        <div class="eq"><span class="v">f</span><sub>zero</sub> = <span class="frac"><span class="n">1</span><span class="d">&tau;</span></span></div>
-        <p>Consequence directe et contre-intuitive : <b>plus le choc est bref, plus le spectre s'etale loin</b>. Un choc de 1 ms garde de l'energie jusqu'a 1 000 Hz environ. Un ecaillage de roulement, dont le choc dure quelques dizaines de microsecondes, excite jusqu'a plusieurs dizaines de kilohertz. C'est la raison physique pour laquelle on surveille les roulements en acceleration haute frequence et non en vitesse.</p>
-        <p>A la limite <span class="v">&tau;</span> &rarr; 0, l'impulsion de Dirac a un spectre parfaitement plat : toutes les frequences, a amplitude egale.</p>
+        <p>L'enveloppe du spectre est donc un sinus cardinal dont le premier zéro se situé à la fréquence :</p>
+        <div class="eq"><span class="v">f</span><sub>zéro</sub> = <span class="frac"><span class="n">1</span><span class="d">&tau;</span></span></div>
+        <p>Conséquence directe et contre-intuitive : <b>plus le choc est bref, plus le spectre s'étale loin</b>. Un choc de 1 ms garde de l'énergie jusqu'à 1 000 Hz environ. Un écaillage de roulement, dont le choc dure quelques dizaines de microsecondes, excite jusqu'à plusieurs dizaines de kilohertz. C'est la raison physique pour laquelle on surveille les roulements en accélération haute fréquence et non en vitesse.</p>
+        <p>A la limite <span class="v">&tau;</span> &rarr; 0, l'impulsion de Dirac a un spectre parfaitement plat : toutes les fréquences, à amplitude égale.</p>
       </div></details>
     </div>
   </div>
@@ -407,57 +438,57 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
 <section id="p-defauts" class="hidden">
 <div class="module">
   <aside class="guide">
-    <h3>Signatures des defauts</h3>
-    <p class="lead">Un seul banc, cinq defauts. Active-les un par un, puis combine-les. Le spectre affiche est calcule par FFT sur le signal temporel synthetise, exactement comme le fait le FALCON.</p>
+    <h3>Signatures des défauts</h3>
+    <p class="lead">Un seul banc, cinq défauts. Active-les un par un, puis combine-les. Le spectre affiché est calculé par FFT sur le signal temporel synthétisé, exactement comme le fait le FALCON.</p>
     <ol>
-      <li>Active le <b>balourd</b> seul. Zoom <b>0 a 200 Hz</b>. Un unique pic a 1&times;F&#8320;, rien d'autre. Puis baisse la vitesse moteur en haut de page : l'amplitude chute comme le carre de la vitesse.</li>
-      <li>Coupe le balourd, active le <b>desalignement</b>. Monte la severite. Le pic a 2&times;F&#8320; depasse celui a 1&times;F&#8320;.</li>
-      <li>Active <b>l'engrenement</b>, zoom <b>0 a 2 kHz</b>. Un pic isole a F&#8323;. Monte l'usure : 2F&#8323; et 3F&#8323; sortent du bruit. Monte l'excentricite : des bandes laterales apparaissent, espacees de la vitesse de l'arbre.</li>
-      <li>Active la <b>courroie</b>. Zoom 0 a 200 Hz. Le pic est <b>sous</b> F&#8320;. C'est le seul defaut sub-synchrone du banc.</li>
-      <li>Active le <b>roulement</b>, zoom <b>plein spectre</b>. Une bosse haute frequence, loin de tout. Puis va au module 4 pour la demoduler.</li>
-      <li>Active tout en meme temps et monte le bruit. C'est ce que tu recevras en realite.</li>
+      <li>Active le <b>balourd</b> seul. Zoom <b>0 à 200 Hz</b>. Un unique pic à 1&times;F&#8320;, rien d'autre. Puis baisse la vitesse moteur en haut de page : l'amplitude chute comme le carré de la vitesse.</li>
+      <li>Coupe le balourd, active le <b>désalignement</b>. Monte la sévérité. Le pic à 2&times;F&#8320; dépasse celui à 1&times;F&#8320;.</li>
+      <li>Active <b>l'engrènement</b>, zoom <b>0 à 2 kHz</b>. Un pic isolé à F&#8323;. Monte l'usure : 2F&#8323; et 3F&#8323; sortent du bruit. Monte l'excentricité : des bandes latérales apparaissent, espacées de la vitesse de l'arbre.</li>
+      <li>Active la <b>courroie</b>. Zoom 0 à 200 Hz. Le pic est <b>sous</b> F&#8320;. C'est le seul défaut sub-synchrone du banc.</li>
+      <li>Active le <b>roulement</b>, zoom <b>plein spectre</b>. Une bosse haute fréquence, loin de tout. Puis va au module 4 pour la démoduler.</li>
+      <li>Active tout en même temps et monte le bruit. C'est ce que tu recevras en réalité.</li>
     </ol>
-    <div class="note"><b>Attention.</b> Les amplitudes affichees sont arbitraires et servent la comparaison relative. Elles ne representent pas des mm/s reels sur le banc, dont le moteur de 0,18 kW produit des niveaux tres inferieurs aux seuils industriels de l'ISO 10816.</div>
+    <div class="note"><b>Attention.</b> Les amplitudes affichées sont arbitraires et servent la comparaison relative. Elles ne représentent pas des mm/s réels sur le banc, dont le moteur de 0,18 kW produit des niveaux très inférieurs aux seuils industriels de l'ISO 10816.</div>
   </aside>
 
   <div class="stage">
     <div class="card">
-      <h3>Defauts a injecter</h3>
+      <h3>Défauts à injecter</h3>
       <div class="faults" id="faultGrid">
 
         <div class="fault" data-f="bal">
           <div class="hd"><span class="nm"><label class="chk"><input type="checkbox" id="f-bal"> Balourd</label></span><span class="fq" id="fq-bal">1&times;F&#8320;</span></div>
-          <div class="ctl"><label><span>Masse excentree</span><span class="val" id="v-bal">60 %</span></label><input type="range" id="a-bal" min="0" max="100" value="60"></div>
+          <div class="ctl"><label><span>Masse excentrée</span><span class="val" id="v-bal">60 %</span></label><input type="range" id="a-bal" min="0" max="100" value="60"></div>
         </div>
 
         <div class="fault" data-f="des">
-          <div class="hd"><span class="nm"><label class="chk"><input type="checkbox" id="f-des"> Desalignement</label></span><span class="fq" id="fq-des">2&times;F&#8320;</span></div>
-          <div class="ctl"><label><span>Severite du pincement</span><span class="val" id="v-des">50 %</span></label><input type="range" id="a-des" min="0" max="100" value="50"></div>
+          <div class="hd"><span class="nm"><label class="chk"><input type="checkbox" id="f-des"> Désalignement</label></span><span class="fq" id="fq-des">2&times;F&#8320;</span></div>
+          <div class="ctl"><label><span>Sévérité du pincement</span><span class="val" id="v-des">50 %</span></label><input type="range" id="a-des" min="0" max="100" value="50"></div>
         </div>
 
         <div class="fault" data-f="eng">
-          <div class="hd"><span class="nm"><label class="chk"><input type="checkbox" id="f-eng"> Engrenement</label></span><span class="fq" id="fq-eng">F&#8323;</span></div>
+          <div class="hd"><span class="nm"><label class="chk"><input type="checkbox" id="f-eng"> Engrènement</label></span><span class="fq" id="fq-eng">F&#8323;</span></div>
           <div class="ctl"><label><span>Usure de denture</span><span class="val" id="v-eng">20 %</span></label><input type="range" id="a-eng" min="0" max="100" value="20"></div>
-          <div class="ctl" style="margin-top:7px"><label><span>Excentricite (voile de roue)</span><span class="val" id="v-engm">0 %</span></label><input type="range" id="a-engm" min="0" max="100" value="0"></div>
+          <div class="ctl" style="margin-top:7px"><label><span>Excentricité (voile de roue)</span><span class="val" id="v-engm">0 %</span></label><input type="range" id="a-engm" min="0" max="100" value="0"></div>
         </div>
 
         <div class="fault" data-f="cou">
           <div class="hd"><span class="nm"><label class="chk"><input type="checkbox" id="f-cou"> Courroie</label></span><span class="fq" id="fq-cou">F&#8348;</span></div>
-          <div class="ctl"><label><span>Gravite de la craquelure</span><span class="val" id="v-cou">50 %</span></label><input type="range" id="a-cou" min="0" max="100" value="50"></div>
+          <div class="ctl"><label><span>Gravité de la craquelure</span><span class="val" id="v-cou">50 %</span></label><input type="range" id="a-cou" min="0" max="100" value="50"></div>
         </div>
 
         <div class="fault" data-f="rlt">
           <div class="hd"><span class="nm"><label class="chk"><input type="checkbox" id="f-rlt"> Roulement</label></span><span class="fq" id="fq-rlt">BPFO</span></div>
           <div class="ctl"><label for="t-rlt"><span>Bague atteinte</span></label>
-            <select id="t-rlt"><option value="bpfo">Bague exterieure (BPFO)</option><option value="bpfi">Bague interieure (BPFI)</option><option value="bsf">Element roulant, bille</option></select></div>
-          <div class="ctl" style="margin-top:7px"><label><span>Profondeur de l'ecaillage</span><span class="val" id="v-rlt">50 %</span></label><input type="range" id="a-rlt" min="0" max="100" value="50"></div>
-          <div class="ctl" style="margin-top:7px"><label><span>Resonance de structure</span><span class="val" id="v-res">8000 Hz</span></label><input type="range" id="a-res" min="2000" max="16000" step="250" value="8000"></div>
+            <select id="t-rlt"><option value="bpfo">Bague extérieure (BPFO)</option><option value="bpfi">Bague intérieure (BPFI)</option><option value="bsf">Élément roulant, bille</option></select></div>
+          <div class="ctl" style="margin-top:7px"><label><span>Profondeur de l'écaillage</span><span class="val" id="v-rlt">50 %</span></label><input type="range" id="a-rlt" min="0" max="100" value="50"></div>
+          <div class="ctl" style="margin-top:7px"><label><span>Résonance de structure</span><span class="val" id="v-res">8000 Hz</span></label><input type="range" id="a-res" min="2000" max="16000" step="250" value="8000"></div>
         </div>
 
         <div class="fault" data-f="brt">
-          <div class="hd"><span class="nm">Bruit de fond</span><span class="fq">aleatoire</span></div>
+          <div class="hd"><span class="nm">Bruit de fond</span><span class="fq">aléatoire</span></div>
           <div class="ctl"><label><span>Niveau</span><span class="val" id="v-brt">8 %</span></label><input type="range" id="a-brt" min="0" max="60" value="8"></div>
-          <div class="ctl" style="margin-top:7px"><label for="d-preset"><span>Cas d'etude tout prepare</span></label>
+          <div class="ctl" style="margin-top:7px"><label for="d-preset"><span>Cas d'étude tout préparé</span></label>
             <select id="d-preset">
               <option value="">Choisir un cas...</option>
               <option value="sain">Machine saine</option>
@@ -466,7 +497,7 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
               <option value="eng">Cas C : sifflement aigu</option>
               <option value="cou">Cas D : battement lent</option>
               <option value="rlt">Cas E : rien d'audible, indicateur choc en hausse</option>
-              <option value="mix">Cas F : machine reelle, tout melange</option>
+              <option value="mix">Cas F : machine réelle, tout mélange</option>
             </select></div>
         </div>
 
@@ -477,26 +508,26 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
       <div class="ctlrow">
         <div class="ctl"><label for="d-zoom"><span>Bande d'analyse</span></label>
           <select id="d-zoom">
-            <option value="200">0 a 200 Hz, basses frequences cinematiques</option>
-            <option value="500">0 a 500 Hz, harmoniques et roulements</option>
-            <option value="2000" selected>0 a 2 000 Hz, engrenement</option>
-            <option value="6000">0 a 6 000 Hz</option>
-            <option value="12800">Plein spectre, 0 a 12 800 Hz</option>
+            <option value="200">0 à 200 Hz, basses fréquences cinématiques</option>
+            <option value="500">0 à 500 Hz, harmoniques et roulements</option>
+            <option value="2000" selected>0 à 2 000 Hz, engrènement</option>
+            <option value="6000">0 à 6 000 Hz</option>
+            <option value="12800">Plein spectre, 0 à 12 800 Hz</option>
           </select></div>
         <div class="ctl narrow" style="flex:0 0 auto;display:flex;gap:8px;align-items:flex-end">
-          <button class="act ghost" id="d-audio">Ecouter</button>
-          <select id="d-transp" style="width:auto"><option value="1">Hauteur reelle</option><option value="2">Transposer &times;2</option><option value="4">Transposer &times;4</option></select>
+          <button class="act ghost" id="d-audio">Écouter</button>
+          <select id="d-transp" style="width:auto"><option value="1">Hauteur réelle</option><option value="2">Transposer &times;2</option><option value="4">Transposer &times;4</option></select>
         </div>
       </div>
       <div class="chkrow" style="margin-top:12px">
-        <label class="chk"><input type="checkbox" id="d-mark" checked> Curseurs cinematiques</label>
-        <label class="chk"><input type="checkbox" id="d-log"> Echelle logarithmique (dB)</label>
-        <label class="chk"><input type="checkbox" id="d-hann" checked> Fenetrage de Hann</label>
+        <label class="chk"><input type="checkbox" id="d-mark" checked> Curseurs cinématiques</label>
+        <label class="chk"><input type="checkbox" id="d-log"> Échelle logarithmique (dB)</label>
+        <label class="chk"><input type="checkbox" id="d-hann" checked> Fenêtrage de Hann</label>
       </div>
     </div>
 
     <div class="card">
-      <h3>Signal temporel<span class="tag">0 a 160 ms</span></h3>
+      <h3>Signal temporel<span class="tag">0 à 160 ms</span></h3>
       <div class="plot"><canvas id="cv-d-time" height="215"></canvas></div>
     </div>
 
@@ -504,13 +535,13 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
       <h3>Spectre</h3>
       <div class="plot"><canvas id="cv-d-spec" height="285"></canvas></div>
       <div class="legend">
-        <span><i style="background:var(--accent)"></i>Spectre mesure</span>
-        <span><i style="background:var(--orange)"></i>Frequences cinematiques attendues</span>
+        <span><i style="background:var(--accent)"></i>Spectre mesuré</span>
+        <span><i style="background:var(--orange)"></i>Fréquences cinématiques attendues</span>
       </div>
     </div>
 
     <div class="card">
-      <h3>Lecture guidee</h3>
+      <h3>Lecture guidée</h3>
       <div class="diagbox" id="d-diag"></div>
     </div>
   </div>
@@ -522,48 +553,48 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
 <div class="module">
   <aside class="guide">
     <h3>Modulation et enveloppe</h3>
-    <p class="lead">Deux mecanismes que rien d'autre ne produit : les bandes laterales, et la resonance de structure excitee par des chocs. Ce sont les deux cles du diagnostic fin.</p>
+    <p class="lead">Deux mécanismes que rien d'autre ne produit : les bandes latérales, et la résonance de structure excitée par des chocs. Ce sont les deux clés du diagnostic fin.</p>
     <ol>
-      <li>Onglet <b>Bandes laterales</b>. Mets la profondeur de modulation a zero : une raie unique a F&#8323;.</li>
-      <li>Monte la profondeur. Deux raies apparaissent, <b>symetriques</b>, a F&#8323; &minus; f<sub>mod</sub> et F&#8323; + f<sub>mod</sub>.</li>
-      <li>Change f<sub>mod</sub>. L'ecartement suit. <b>C'est cet ecartement qui designe l'arbre coupable</b>, pas la raie centrale.</li>
-      <li>Onglet <b>Enveloppe</b>. Regarde le spectre brut : la bosse haute frequence ne dit rien sur la periodicite des chocs.</li>
-      <li>Suis les trois etapes de demodulation. Le spectre d'enveloppe fait sortir BPFO et ses harmoniques, en bas du spectre, la ou tu sais lire.</li>
-      <li>Monte le bruit jusqu'a noyer la bosse dans le spectre brut. Le spectre d'enveloppe tient encore.</li>
+      <li>Onglet <b>Bandes latérales</b>. Mets la profondeur de modulation à zéro : une raie unique à F&#8323;.</li>
+      <li>Monte la profondeur. Deux raies apparaissent, <b>symétriques</b>, à F&#8323; &minus; f<sub>mod</sub> et F&#8323; + f<sub>mod</sub>.</li>
+      <li>Change f<sub>mod</sub>. L'écartement suit. <b>C'est cet écartement qui désigne l'arbre coupable</b>, pas la raie centrale.</li>
+      <li>Onglet <b>Enveloppe</b>. Regarde le spectre brut : la bosse haute fréquence ne dit rien sur la périodicité des chocs.</li>
+      <li>Suis les trois étapes de démodulation. Le spectre d'enveloppe fait sortir BPFO et ses harmoniques, en bas du spectre, là où tu sais lire.</li>
+      <li>Monte le bruit jusqu'à noyer la bosse dans le spectre brut. Le spectre d'enveloppe tient encore.</li>
     </ol>
-    <div class="note"><b>Le point dur.</b> Un defaut de bague interieure tourne avec l'arbre : il traverse la zone de charge une fois par tour. Sa raie BPFI porte donc elle-meme des bandes laterales espacees de la frequence de rotation. Ce motif n'appartient qu'a elle.</div>
+    <div class="note"><b>Le point dur.</b> Un défaut de bague intérieure tourne avec l'arbre : il traverse la zone de charge une fois par tour. Sa raie BPFI porte donc elle-même des bandes latérales espacées de la fréquence de rotation. Ce motif n'appartient qu'à elle.</div>
   </aside>
 
   <div class="stage">
     <div class="card">
       <div class="subtabs" id="msub">
-        <button data-s="am" aria-selected="true">Bandes laterales</button>
-        <button data-s="env" aria-selected="false">Demodulation d'enveloppe</button>
+        <button data-s="am" aria-selected="true">Bandes latérales</button>
+        <button data-s="env" aria-selected="false">Démodulation d'enveloppe</button>
       </div>
 
       <div id="m-am">
         <div class="ctlrow">
-          <div class="ctl"><label for="m-fc"><span>Porteuse : frequence d'engrenement</span><span class="val" id="m-fcv">1500 Hz</span></label>
+          <div class="ctl"><label for="m-fc"><span>Porteuse : fréquence d'engrènement</span><span class="val" id="m-fcv">1500 Hz</span></label>
             <input type="range" id="m-fc" min="300" max="3000" step="25" value="1500"></div>
           <div class="ctl"><label for="m-fm"><span>Modulante : rotation de l'arbre porteur</span><span class="val" id="m-fmv">31 Hz</span></label>
             <input type="range" id="m-fm" min="5" max="120" step="1" value="31"></div>
           <div class="ctl"><label for="m-m"><span>Profondeur de modulation</span><span class="val" id="m-mv">0 %</span></label>
             <input type="range" id="m-m" min="0" max="100" step="1" value="0"></div>
-          <div class="ctl narrow" style="flex:0 0 auto"><button class="act ghost" id="m-audio">Ecouter</button></div>
+          <div class="ctl narrow" style="flex:0 0 auto"><button class="act ghost" id="m-audio">Écouter</button></div>
         </div>
       </div>
 
       <div id="m-envctl" class="hidden">
         <div class="ctlrow">
-          <div class="ctl"><label for="e-def"><span>Defaut simule</span></label>
-            <select id="e-def"><option value="bpfo">Bague exterieure, BPFO</option><option value="bpfi">Bague interieure, BPFI</option></select></div>
-          <div class="ctl"><label for="e-res"><span>Resonance de structure</span><span class="val" id="e-resv">8000 Hz</span></label>
+          <div class="ctl"><label for="e-def"><span>Défaut simulé</span></label>
+            <select id="e-def"><option value="bpfo">Bague extérieure, BPFO</option><option value="bpfi">Bague intérieure, BPFI</option></select></div>
+          <div class="ctl"><label for="e-res"><span>Résonance de structure</span><span class="val" id="e-resv">8000 Hz</span></label>
             <input type="range" id="e-res" min="3000" max="15000" step="250" value="8000"></div>
           <div class="ctl"><label for="e-amort"><span>Amortissement du choc</span><span class="val" id="e-amortv">50 %</span></label>
             <input type="range" id="e-amort" min="5" max="100" step="1" value="50"></div>
           <div class="ctl"><label for="e-noise"><span>Bruit de fond</span><span class="val" id="e-noisev">15 %</span></label>
             <input type="range" id="e-noise" min="0" max="120" step="1" value="15"></div>
-          <div class="ctl narrow" style="flex:0 0 auto"><button class="act ghost" id="e-audio">Ecouter</button></div>
+          <div class="ctl narrow" style="flex:0 0 auto"><button class="act ghost" id="e-audio">Écouter</button></div>
         </div>
       </div>
     </div>
@@ -581,14 +612,14 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
       <div class="card" style="margin-top:12px">
         <h3>Spectre, zoom autour de la porteuse</h3>
         <div class="plot"><canvas id="cv-m-spec" height="255"></canvas></div>
-        <details class="math"><summary>D'ou sortent exactement les bandes laterales</summary><div class="body">
-          <p>Une modulation d'amplitude s'ecrit comme le produit d'une porteuse par une enveloppe :</p>
+        <details class="math"><summary>D'où sortent exactement les bandes latérales</summary><div class="body">
+          <p>Une modulation d'amplitude s'écrit comme le produit d'une porteuse par une enveloppe :</p>
           <div class="eq"><span class="v">x</span>(<span class="v">t</span>) = [ 1 + <span class="v">m</span> cos(2&pi;<span class="v">f</span><sub>mod</sub><span class="v">t</span>) ] &middot; <span class="v">A</span> cos(2&pi;<span class="v">F</span><sub>e</sub><span class="v">t</span>)</div>
-          <p>En developpant le produit et en appliquant l'identite cos<span class="v">a</span>&middot;cos<span class="v">b</span> = &frac12;[cos(<span class="v">a</span>&minus;<span class="v">b</span>) + cos(<span class="v">a</span>+<span class="v">b</span>)] :</p>
+          <p>En développant le produit et en appliquant l'identité cos<span class="v">a</span>&middot;cos<span class="v">b</span> = &frac12;[cos(<span class="v">a</span>&minus;<span class="v">b</span>) + cos(<span class="v">a</span>+<span class="v">b</span>)] :</p>
           <div class="eq"><span class="v">x</span>(<span class="v">t</span>) = <span class="v">A</span> cos(2&pi;<span class="v">F</span><sub>e</sub><span class="v">t</span>) + <span class="frac"><span class="n">mA</span><span class="d">2</span></span> cos[2&pi;(<span class="v">F</span><sub>e</sub>&minus;<span class="v">f</span><sub>mod</sub>)<span class="v">t</span>] + <span class="frac"><span class="n">mA</span><span class="d">2</span></span> cos[2&pi;(<span class="v">F</span><sub>e</sub>+<span class="v">f</span><sub>mod</sub>)<span class="v">t</span>]</div>
-          <p>Le spectre contient donc exactement trois raies : la porteuse, et deux bandes laterales d'amplitude <span class="v">mA</span>/2 chacune, placees symetriquement a &plusmn;<span class="v">f</span><sub>mod</sub>.</p>
-          <p><b>Consequence pour le diagnostic.</b> Aucune addition de signaux ne peut produire ce motif symetrique. Des bandes laterales signent obligatoirement un produit, donc une modulation, donc une variation cyclique de l'effort transmis. Et leur ecartement identifie l'arbre responsable.</p>
-          <p>En pratique la modulation n'est jamais un cosinus pur : on observe plusieurs paires de bandes, a <span class="v">F</span><sub>e</sub> &plusmn; <span class="v">k f</span><sub>mod</sub>.</p>
+          <p>Le spectre contient donc exactement trois raies : la porteuse, et deux bandes latérales d'amplitude <span class="v">mA</span>/2 chacune, placées symétriquement à &plusmn;<span class="v">f</span><sub>mod</sub>.</p>
+          <p><b>Conséquence pour le diagnostic.</b> Aucune addition de signaux ne peut produire ce motif symétrique. Des bandes latérales signent obligatoirement un produit, donc une modulation, donc une variation cyclique de l'effort transmis. Et leur écartement identifie l'arbre responsable.</p>
+          <p>En pratique la modulation n'est jamais un cosinus pur : on observe plusieurs paires de bandes, à <span class="v">F</span><sub>e</sub> &plusmn; <span class="v">k f</span><sub>mod</sub>.</p>
         </div></details>
       </div>
     </div>
@@ -596,36 +627,36 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
     <!-- sous-module enveloppe -->
     <div id="m-envview" class="hidden">
       <div class="card">
-        <h3>Etape 0 : signal brut de l'accelerometre</h3>
+        <h3>Étape 0 : signal brut de l'accéléromètre</h3>
         <div class="plot"><canvas id="cv-e-raw" height="200"></canvas></div>
-        <div class="note" style="margin-top:8px">Chaque passage de bille sur l'ecaillage produit un choc tres bref. Le choc n'est pas mesure directement : il excite la structure du palier, qui sonne comme une cloche a sa frequence propre puis s'amortit.</div>
+        <div class="note" style="margin-top:8px">Chaque passage de bille sur l'écaillage produit un choc très bref. Le choc n'est pas mesure directement : il excite la structure du palier, qui sonne comme une cloche à sa fréquence propre puis s'amortit.</div>
       </div>
       <div class="card" style="margin-top:12px">
-        <h3>Etape 1 : spectre brut<span class="tag">illisible, et c'est normal</span></h3>
+        <h3>Étape 1 : spectre brut<span class="tag">illisible, et c'est normal</span></h3>
         <div class="plot"><canvas id="cv-e-rawspec" height="225"></canvas></div>
-        <div class="note" style="margin-top:8px">La seule information visible est une bosse d'energie autour de la resonance. Elle prouve qu'il y a des chocs, mais ne dit rien de leur cadence, donc rien du composant fautif. La zone grisee est la bande retenue pour le filtrage.</div>
+        <div class="note" style="margin-top:8px">La seule information visible est une bosse d'énergie autour de la résonance. Elle prouve qu'il y a des chocs, mais ne dit rien de leur cadence, donc rien du composant fautif. La zone grisée est la bande retenue pour le filtrage.</div>
       </div>
       <div class="card" style="margin-top:12px">
-        <h3>Etape 2 : filtrage puis extraction de l'enveloppe</h3>
+        <h3>Étape 2 : filtrage puis extraction de l'enveloppe</h3>
         <div class="plot"><canvas id="cv-e-env" height="205"></canvas></div>
         <div class="legend">
-          <span><i style="background:#9db4cb"></i>Signal filtre autour de la resonance</span>
+          <span><i style="background:#9db4cb"></i>Signal filtré autour de la résonance</span>
           <span><i style="background:var(--orange)"></i>Enveloppe, module du signal analytique</span>
         </div>
       </div>
       <div class="card" style="margin-top:12px">
-        <h3>Etape 3 : spectre de l'enveloppe<span class="tag">le diagnostic est ici</span></h3>
+        <h3>Étape 3 : spectre de l'enveloppe<span class="tag">le diagnostic est ici</span></h3>
         <div class="plot"><canvas id="cv-e-envspec" height="245"></canvas></div>
         <div class="diagbox" id="e-diag" style="margin-top:10px"></div>
-        <details class="math"><summary>La demodulation, etape par etape</summary><div class="body">
-          <p><b>1. Filtrage passe-bande.</b> On isole une bande autour de la resonance de structure, typiquement entre 3 et 20 kHz. Cette operation elimine tout le contenu basse frequence, balourd et engrenement compris, qui ecraserait la suite.</p>
-          <p><b>2. Signal analytique.</b> On annule les frequences negatives du spectre et on double les positives. Le signal reel devient complexe :</p>
+        <details class="math"><summary>La démodulation, étape par étape</summary><div class="body">
+          <p><b>1. Filtrage passe-bande.</b> On isole une bande autour de la résonance de structure, typiquement entre 3 et 20 kHz. Cette opération élimine tout le contenu basse fréquence, balourd et engrènement compris, qui écraserait la suite.</p>
+          <p><b>2. Signal analytique.</b> On annule les fréquences négatives du spectre et on double les positives. Le signal réel devient complexe :</p>
           <div class="eq"><span class="v">z</span>(<span class="v">t</span>) = <span class="v">x</span><sub>filtre</sub>(<span class="v">t</span>) + <span class="v">j</span> &middot; <span class="v">H</span>{<span class="v">x</span><sub>filtre</sub>}(<span class="v">t</span>)</div>
-          <p>ou <span class="v">H</span> designe la transformee de Hilbert.</p>
-          <p><b>3. Enveloppe.</b> Son module donne l'enveloppe instantanee, debarrassee de la porteuse :</p>
+          <p>ou <span class="v">H</span> désigne la transformée de Hilbert.</p>
+          <p><b>3. Enveloppe.</b> Son module donne l'enveloppe instantanée, débarrassée de la porteuse :</p>
           <div class="eq"><span class="v">A</span>(<span class="v">t</span>) = |<span class="v">z</span>(<span class="v">t</span>)|</div>
-          <p><b>4. FFT de l'enveloppe.</b> Cette enveloppe est periodique a la cadence des chocs. Sa transformee fait apparaitre une raie nette a la frequence de defaut, accompagnee de ses harmoniques.</p>
-          <p><b>Pourquoi c'est decisif.</b> Le spectre classique en vitesse ne detecte un roulement qu'au stade 3, quand le bruit devient audible et qu'il reste peu de temps. Le spectre d'enveloppe le detecte des le stade 1 ou 2, plusieurs semaines avant, alors que rien ne s'entend.</p>
+          <p><b>4. FFT de l'enveloppe.</b> Cette enveloppe est périodique à la cadence des chocs. Sa transformée fait apparaître une raie nette à la fréquence de défaut, accompagnée de ses harmoniques.</p>
+          <p><b>Pourquoi c'est décisif.</b> Le spectre classique en vitesse ne détecte un roulement qu'au stade 3, quand le bruit devient audible et qu'il reste peu de temps. Le spectre d'enveloppe le détecte dès le stade 1 ou 2, plusieurs semaines avant, alors que rien ne s'entend.</p>
         </div></details>
       </div>
     </div>
@@ -634,15 +665,15 @@ footer.foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);fo
 </section>
 
 <footer class="foot">
-  Atelier construit a partir des supports de formation CFAI Centre, banc ACOEM BV12, collecteur FALCON Smart, logiciel NESTi4.0.
-  Les signaux sont synthetises puis analyses par FFT dans le navigateur : ce ne sont pas des mesures reelles, mais des modeles dont chaque parametre est explicite.
+  Atelier construit à partir des supports de formation CFAI Centre, banc ACOEM BV12, collecteur FALCON Smart, logiciel NESTi4.0.
+  Les signaux sont synthétisés puis analysés par FFT dans le navigateur : ce ne sont pas des mesures réelles, mais des modèles dont chaque paramètre est explicite.
 </footer>
 </div>
 
 <button id="soundOff" class="soundoff hidden" type="button">Couper le son</button>
 
 <script>
-"use strict";
+"usé strict";
 if (!CanvasRenderingContext2D.prototype.roundRect) {
   CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
     if (typeof r === 'number') r = [r, r, r, r];
@@ -871,7 +902,7 @@ function stopAudio() {
   if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = 0; }
   refreshArgs = null;
   if (curSrc) { try { curSrc.stop(); } catch (e) { } curSrc.disconnect(); curSrc = null; }
-  if (curBtn) { curBtn.classList.remove('on'); curBtn.textContent = 'Ecouter'; curBtn = null; }
+  if (curBtn) { curBtn.classList.remove('on'); curBtn.textContent = '\u00c9couter'; curBtn = null; }
   curGen = null;
   const so = document.getElementById('soundOff'); if (so) so.classList.add('hidden');
 }
@@ -894,7 +925,7 @@ function startLoop(btn, gen, period) {
   const gN = actx.createGain(); gN.gain.value = 1;
   src.connect(gN).connect(actx.destination); src.start();
   curSrc = src; curBtn = btn; curGen = gen;
-  btn.classList.add('on'); btn.textContent = 'Arreter';
+  btn.classList.add('on'); btn.textContent = 'Arr\u00eater';
   const so = document.getElementById('soundOff'); if (so) so.classList.remove('hidden');
 }
 /* le clic sur un bouton d'ecoute : coupe si ce bouton joue deja, demarre sinon */
@@ -943,8 +974,8 @@ function renderKin() {
   $('#rpmv').textContent = S.rpm;
   const items = [
     ['F0 moteur', hz(K.F0), ''], ['F1 arbre 2', hz(K.F1), ''], ['F2 arbre 3', hz(K.F2), ''],
-    ['Fe engrenement', hz(K.Fe), 'o'], ['Fc courroie', hz(K.Fc), 'g'],
-    ['BPFO', hz(K.BPFO), 'vi'], ['BPFI', hz(K.BPFI), 'vi'], ['Elem. roulant', hz(K.BSF), 'vi'], ['FTF cage', hz(K.FTF), 'vi']
+    ['Fe engrènement', hz(K.Fe), 'o'], ['Fc courroie', hz(K.Fc), 'g'],
+    ['BPFO', hz(K.BPFO), 'vi'], ['BPFI', hz(K.BPFI), 'vi'], ['Élém. roulant', hz(K.BSF), 'vi'], ['FTF cage', hz(K.FTF), 'vi']
   ];
   $('#readouts').innerHTML = items.map(function (i) {
     return '<div class="ro ' + i[2] + '"><div class="k">' + i[0] + '</div><div class="v">' + i[1] + '</div></div>';
@@ -955,32 +986,32 @@ function renderKin() {
   const bt = $('#bearTable');
   if (bt) {
     const lignes = [
-      ['Bague exterieure (BPFO)', 'bpfo'], ['Bague interieure (BPFI)', 'bpfi'],
-      ['Element roulant', 'bsf'], ['Cage (FTF)', 'ftf']
+      ['Bague extérieure (BPFO)', 'bpfo'], ['Bague intérieure (BPFI)', 'bpfi'],
+      ['Élément roulant', 'bsf'], ['Cage (FTF)', 'ftf']
     ];
     bt.innerHTML =
-      '<thead><tr><th>Element du roulement 16101</th><th style="text-align:right">SKF 16101</th><th style="text-align:right">RHP 16101</th><th style="text-align:right">Sur le banc a ' + S.rpm + ' tr/min</th></tr></thead><tbody>' +
+      '<thead><tr><th>Élément du roulement 16101</th><th style="text-align:right">SKF 16101</th><th style="text-align:right">RHP 16101</th><th style="text-align:right">Sur le banc à ' + S.rpm + ' tr/min</th></tr></thead><tbody>' +
       lignes.map(function (l) {
         return '<tr><td><b>' + l[0] + '</b></td><td class="num">' + nf(BEARINGS.skf[l[1]], 2) + '</td><td class="num">' + nf(BEARINGS.rhp[l[1]], 2) + '</td><td class="num">' + hz(K.bear[l[1]] * K.F2) + '</td></tr>';
       }).join('') +
-      '</tbody><tfoot><tr><td colspan="4" style="color:var(--muted);font-size:12px;padding-top:8px">Coefficients donnes par le constructeur pour 1 Hz de rotation de la bague interne, a multiplier par F<sub>2</sub>. Colonne de droite : roulement selectionne en haut de page (' + K.bear.nom + ').</td></tr></tfoot>';
+      '</tbody><tfoot><tr><td colspan="4" style="color:var(--muted);font-size:12px;padding-top:8px">Coefficients données par le constructeur pour 1 Hz de rotation de la bague interne, à multiplier par F<sub>2</sub>. Colonne de droite : roulement sélectionné en haut de page (' + K.bear.nom + ').</td></tr></tfoot>';
   }
 
   const rows = [
     ['Balourd', '1 &times; F<sub>0</sub>', K.F0, 'Radiale (RH, RV)', 'Pic unique, sans harmonique'],
-    ['Desalignement', '2 &times; F<sub>0</sub>', 2 * K.F0, 'Axiale (AX)', '2&times; superieur a 1&times;, 3&times; frequent'],
-    ['Pied bancal', '2 &times; F<sub>0</sub>', 2 * K.F0, 'Radiale', 'Verifier les appuis avant de conclure'],
-    ['Rotation arbre 2', 'F<sub>1</sub> = 1,25 F<sub>0</sub>', K.F1, '&mdash;', 'Ecartement des bandes laterales du pignon'],
-    ['Rotation arbre 3', 'F<sub>2</sub> = 1,5625 F<sub>0</sub>', K.F2, '&mdash;', 'Reference des frequences de roulement'],
-    ['Engrenement', '60 &times; F<sub>0</sub>', K.Fe, '&mdash;', 'Pic HF isole, bandes laterales si excentricite'],
-    ['Courroie', '(24 / ' + S.cranC + ') &times; F<sub>2</sub>', K.Fc, '&mdash;', 'Sub-synchrone, inferieur a F<sub>0</sub>'],
-    ['Bague exterieure', nf(K.bear.bpfo, 2) + ' &times; F<sub>2</sub>', K.BPFO, 'Radiale', 'Non harmonique de F<sub>2</sub>'],
-    ['Bague interieure', nf(K.bear.bpfi, 2) + ' &times; F<sub>2</sub>', K.BPFI, 'Radiale', 'Bandes laterales espacees de F<sub>2</sub>'],
-    ['Element roulant', nf(K.bear.bsf, 2) + ' &times; F<sub>2</sub>', K.BSF, 'Radiale', 'Valeur tabulee = 2 &times; la rotation propre de la bille'],
-    ['Cage', nf(K.bear.ftf, 2) + ' &times; F<sub>2</sub>', K.FTF, '&mdash;', 'Tres basse frequence, tres proche de F<sub>c</sub>']
+    ['D\u00e9salignement', '2 &times; F<sub>0</sub>', 2 * K.F0, 'Axiale (AX)', '2&times; supérieur à 1&times;, 3&times; fréquent'],
+    ['Pied bancal', '2 &times; F<sub>0</sub>', 2 * K.F0, 'Radiale', 'Vérifier les appuis avant de conclure'],
+    ['Rotation arbre 2', 'F<sub>1</sub> = 1,25 F<sub>0</sub>', K.F1, '&mdash;', 'Écartement des bandes latérales du pignon'],
+    ['Rotation arbre 3', 'F<sub>2</sub> = 1,5625 F<sub>0</sub>', K.F2, '&mdash;', 'Référence des fréquences de roulement'],
+    ['Engr\u00e8nement', '60 &times; F<sub>0</sub>', K.Fe, '&mdash;', 'Pic HF isolé, bandes latérales si excentricité'],
+    ['Courroie', '(24 / ' + S.cranC + ') &times; F<sub>2</sub>', K.Fc, '&mdash;', 'Sub-synchrone, inférieur à F<sub>0</sub>'],
+    ['Bague extérieure', nf(K.bear.bpfo, 2) + ' &times; F<sub>2</sub>', K.BPFO, 'Radiale', 'Non harmonique de F<sub>2</sub>'],
+    ['Bague intérieure', nf(K.bear.bpfi, 2) + ' &times; F<sub>2</sub>', K.BPFI, 'Radiale', 'Bandes latérales espacées de F<sub>2</sub>'],
+    ['Élément roulant', nf(K.bear.bsf, 2) + ' &times; F<sub>2</sub>', K.BSF, 'Radiale', 'Valeur tabulée = 2 &times; la rotation propre de la bille'],
+    ['Cage', nf(K.bear.ftf, 2) + ' &times; F<sub>2</sub>', K.FTF, '&mdash;', 'Très basse fréquence, très proche de F<sub>c</sub>']
   ];
   $('#kinTable').innerHTML =
-    '<thead><tr><th>Defaut ou organe</th><th>Formule</th><th style="text-align:right">Frequence</th><th>Direction</th><th>Signature</th></tr></thead><tbody>' +
+    '<thead><tr><th>Défaut ou organe</th><th>Formule</th><th style="text-align:right">Fréquence</th><th>Direction</th><th>Signature</th></tr></thead><tbody>' +
     rows.map(function (r) { return '<tr><td><b>' + r[0] + '</b></td><td>' + r[1] + '</td><td class="num">' + hz(r[2]) + '</td><td>' + r[3] + '</td><td style="color:var(--muted)">' + r[4] + '</td></tr>'; }).join('') +
     '</tbody>';
 }
@@ -1034,7 +1065,7 @@ function drawArch() {
     x += bw + lw;
   }
   g.fillStyle = COL.muted; g.font = '600 11px system-ui,sans-serif'; g.textAlign = 'left'; g.textBaseline = 'top';
-  g.fillText('Chaine cinematique du banc BV12 a ' + S.rpm + ' tr/min', m, 16);
+  g.fillText('Chaîne cinématique du banc BV12 à ' + S.rpm + ' tr/min', m, 16);
   g.fillStyle = COL.faint; g.font = '11px system-ui,sans-serif';
   g.fillText('Capteur triaxial WLS sur palier, collecteur FALCON Smart, analyse NESTi4.0', m, h - 26);
 }
@@ -1098,7 +1129,7 @@ function drawFourier() {
   }
   const pad = 0.22 * (hi - lo || 1);
   const s = surface(cv), g = s.g;
-  const A = axes(g, s.w, s.h, { xmin: 0, xmax: PER, ymin: lo - pad, ymax: hi + pad, xticks: 8, yticks: 4, xlabel: 'periodes', ylabel: 'amplitude', xfmt: function (v) { return nf(v, 1) + ' T'; } });
+  const A = axes(g, s.w, s.h, { xmin: 0, xmax: PER, ymin: lo - pad, ymax: hi + pad, xticks: 8, yticks: 4, xlabel: 'p\u00e9riodes', ylabel: 'amplitude', xfmt: function (v) { return nf(v, 1) + ' T'; } });
   if ($('#fw-target').checked) curve(g, A, yT, PER / (M - 1), 0, COL.gray, 1.6, [5, 4]);
   if ($('#fw-last').checked && lastC) curve(g, A, yL, PER / (M - 1), 0, COL.or, 1.3);
   curve(g, A, yS, PER / (M - 1), 0, COL.acc, 2.3);
@@ -1109,7 +1140,7 @@ function drawFourier() {
   const NMAX = 40;
   let amax = 0; C.list.forEach(function (c) { if (c.n <= NMAX) amax = Math.max(amax, c.A); });
   amax = amax || 1;
-  const A2 = axes(g2, s2.w, s2.h, { xmin: 0, xmax: NMAX + 0.6, ymin: 0, ymax: amax * 1.16, xticks: 10, yticks: 4, xlabel: "rang de l'harmonique n  (frequence = n \u00d7 f\u2080)", ylabel: 'amplitude Aₙ', xfmt: function (v) { return nf(v, 0); } });
+  const A2 = axes(g2, s2.w, s2.h, { xmin: 0, xmax: NMAX + 0.6, ymin: 0, ymax: amax * 1.16, xticks: 10, yticks: 4, xlabel: "rang de l'harmonique n  (fr\u00e9quence = n \u00d7 f\u2080)", ylabel: 'amplitude Aₙ', xfmt: function (v) { return nf(v, 0); } });
   const base = A2.sy(0);
   C.list.forEach(function (c) {
     if (c.n > NMAX) return;
@@ -1128,11 +1159,11 @@ function drawFourier() {
 
   /* --- texte des coefficients --- */
   const txt = {
-    carre: "Signal carre : seules les harmoniques impaires existent, avec A<sub>n</sub> = 4/(n&pi;). Aucune harmonique paire, quelle que soit la precision demandee.",
-    triangle: "Signal triangulaire : harmoniques impaires uniquement, A<sub>n</sub> = 8/(&pi;<sup>2</sup>n<sup>2</sup>). La decroissance en 1/n<sup>2</sup> est bien plus rapide qu'en 1/n : quatre ou cinq harmoniques suffisent deja.",
+    carre: "Signal carré : seules les harmoniques impaires existent, avec A<sub>n</sub> = 4/(n&pi;). Aucune harmonique paire, quelle que soit la précision demandée.",
+    triangle: "Signal triangulaire : harmoniques impaires uniquement, A<sub>n</sub> = 8/(&pi;<sup>2</sup>n<sup>2</sup>). La décroissance en 1/n<sup>2</sup> est bien plus rapide qu'en 1/n : quatre ou cinq harmoniques suffisent déjà.",
     scie: "Dent de scie : toutes les harmoniques, paires et impaires, avec A<sub>n</sub> = 2/(n&pi;) et alternance de signe.",
-    impulsion: "Train d'impulsions de rapport cyclique " + duty + " % : A<sub>n</sub> = 2 &times; sinc(n&pi;&tau;/T). L'enveloppe du spectre s'annule tous les T/&tau; rangs, soit tous les " + nf(100 / duty, 1) + " rangs ici. Plus l'impulsion est etroite, plus il faut d'harmoniques.",
-    redresse: "Redressement double alternance : uniquement des harmoniques paires de la frequence d'origine, A<sub>n</sub> = 4/(&pi;(1&minus;4n<sup>2</sup>)). C'est la raison pour laquelle un pont redresseur pollue le reseau a 100 Hz et non a 50 Hz."
+    impulsion: "Train d'impulsions de rapport cyclique " + duty + " % : A<sub>n</sub> = 2 &times; sinc(n&pi;&tau;/T). L'enveloppe du spectre s'annule tous les T/&tau; rangs, soit tous les " + nf(100 / duty, 1) + " rangs ici. Plus l'impulsion est étroite, plus il faut d'harmoniques.",
+    redresse: "Redressement double alternance : uniquement des harmoniques paires de la fréquence d'origine, A<sub>n</sub> = 4/(&pi;(1&minus;4n<sup>2</sup>)). C'est la raison pour laquelle un pont redresseur pollue le réseau à 100 Hz et non à 50 Hz."
   };
   $('#fw-coefTxt').innerHTML = '<b>Cas en cours.</b> ' + txt[shape];
 }
@@ -1258,10 +1289,10 @@ function drawChoc() {
   for (let i = 0; i < M; i++) { yt[i] = chWave(i * dt, f0, hard); lo = Math.min(lo, yt[i]); hi = Math.max(hi, yt[i]); }
   const pad = 0.2 * (hi - lo || 1);
   const s = surface(cvT), g = s.g;
-  const A = axes(g, s.w, s.h, { xmin: 0, xmax: span * 1000, ymin: lo - pad, ymax: hi + pad, xticks: 8, yticks: 4, xlabel: 'temps (ms)', ylabel: 'acceleration (u.a.)' });
+  const A = axes(g, s.w, s.h, { xmin: 0, xmax: span * 1000, ymin: lo - pad, ymax: hi + pad, xticks: 8, yticks: 4, xlabel: 'temps (ms)', ylabel: 'accélération (u.à.)' });
   curve(g, A, yt, dt * 1000, 0, COL.acc, 2);
   g.fillStyle = COL.muted; g.font = '600 11.5px system-ui,sans-serif'; g.textAlign = 'right'; g.textBaseline = 'top';
-  g.fillText(hard <= 0 ? 'sinusoide pure' : 'largeur du creneau ≈ ' + nf(chPulseWidth(hard) * 1000, 2) + ' ms   rapport cyclique ' + nf(chDuty(hard) * 100, 1) + ' %', A.R.x1 - 4, A.R.y0 + 2);
+  g.fillText(hard <= 0 ? 'sinusoïde pure' : 'largeur du créneau ≈ ' + nf(chPulseWidth(hard) * 1000, 2) + ' ms   rapport cyclique ' + nf(chDuty(hard) * 100, 1) + ' %', A.R.x1 - 4, A.R.y0 + 2);
 
   /* spectre */
   const N = CH.NFFT, fe = CH.fe;
@@ -1279,7 +1310,7 @@ function drawChoc() {
   for (let k = 0; k < sp.mag.length; k++) disp[k] = log ? Math.max(FLOOR, 20 * Math.log10(Math.max(sp.mag[k], 1e-9) / mx)) : sp.mag[k] / mx;
   const A2 = axes(g2, s2.w, s2.h, {
     xmin: 0, xmax: fmax, ymin: log ? FLOOR : 0, ymax: log ? 3 : 1.08, xticks: 9, yticks: log ? 4 : 4,
-    xlabel: 'frequence (Hz)', ylabel: log ? 'amplitude (dB)' : 'amplitude relative'
+    xlabel: 'fréquence (Hz)', ylabel: log ? 'amplitude (dB)' : 'amplitude relative'
   });
   A2.ymin0 = log ? FLOOR : 0;
   bars(g2, A2, disp, sp.df, COL.acc, 2);
@@ -1299,7 +1330,7 @@ function drawChoc() {
   let cnt = 0;
   const ref = mx;
   for (let n = 1; n <= 600; n++) { const f = n * f0; if (f > fmax) break; const k = Math.round(f / sp.df); if (k >= sp.mag.length) break; if (sp.mag[k] > 0.05 * ref) cnt++; }
-  $('#ch-count').textContent = cnt + ' harmonique' + (cnt > 1 ? 's' : '') + ' au-dessus de 5 % du maximum' + (hard > 0 ? '   |   premier zero de l\'enveloppe : ' + hz(1 / tau) : '');
+  $('#ch-count').textContent = cnt + ' harmonique' + (cnt > 1 ? 's' : '') + ' au-dessus de 5 % du maximum' + (hard > 0 ? '   |   premier z\u00e9ro de l\'enveloppe : ' + hz(1 / tau) : '');
 }
 
 $('#ch-hard').addEventListener('input', function (e) { CH.hard = +e.target.value; $('#ch-hardv').textContent = CH.hard + ' %'; drawChoc(); chSound(true); });
@@ -1403,7 +1434,7 @@ function bvMarkers() {
     const f = D.rtype === 'bpfi' ? K.BPFI : D.rtype === 'bsf' ? K.BSF : K.BPFO;
     const lbl = D.rtype === 'bpfi' ? 'BPFI' : D.rtype === 'bsf' ? 'BSF' : 'BPFO';
     m.push({ f: f, t: lbl, c: COL.vi }); m.push({ f: 2 * f, t: '2x' + lbl, c: COL.vi });
-    m.push({ f: D.fres, t: 'resonance', c: COL.vi });
+    m.push({ f: D.fres, t: 'r\u00e9sonance', c: COL.vi });
   }
   return raw;
 }
@@ -1421,7 +1452,7 @@ function drawDefauts() {
   if (hi - lo < 1e-6) { lo = -1; hi = 1; }
   const pad = 0.18 * (hi - lo);
   const s = surface(cvT), g = s.g;
-  const A = axes(g, s.w, s.h, { xmin: 0, xmax: nT / fe * 1000, ymin: lo - pad, ymax: hi + pad, xticks: 8, yticks: 4, xlabel: 'temps (ms)', ylabel: 'acceleration (u.a.)' });
+  const A = axes(g, s.w, s.h, { xmin: 0, xmax: nT / fe * 1000, ymin: lo - pad, ymax: hi + pad, xticks: 8, yticks: 4, xlabel: 'temps (ms)', ylabel: 'accélération (u.à.)' });
   curve(g, A, ys, step / fe * 1000, 0, COL.acc, 1.5);
 
   /* spectre */
@@ -1434,7 +1465,7 @@ function drawDefauts() {
   const s2 = surface($('#cv-d-spec')), g2 = s2.g;
   const A2 = axes(g2, s2.w, s2.h, {
     xmin: 0, xmax: fmax, ymin: log ? FLOOR : 0, ymax: log ? 4 : 1.1, xticks: 9, yticks: 4, top: 26,
-    xlabel: 'frequence (Hz)', ylabel: log ? 'amplitude (dB, ref. max)' : 'amplitude relative',
+    xlabel: 'fréquence (Hz)', ylabel: log ? 'amplitude (dB, ref. max)' : 'amplitude relative',
     xfmt: function (v) { return fmax > 3000 ? nf(v / 1000, 1) + 'k' : nf(v, 0); }
   });
   A2.ymin0 = log ? FLOOR : 0;
@@ -1449,23 +1480,23 @@ function drawDefauts() {
 function renderDiag() {
   const K = kin(); const L = [];
   if (!D.bal && !D.des && !D.eng && !D.cou && !D.rlt) {
-    L.push("Aucun defaut actif. Le spectre ne contient que le bruit de fond. C'est l'etat de reference : c'est lui qu'il faut connaitre avant de chercher une anomalie.");
+    L.push("Aucun défaut actif. Le spectre ne contient que le bruit de fond. C'est l'état de référence : c'est lui qu'il faut connaître avant de chercher une anomalie.");
   }
-  if (D.bal) L.push("<b>Balourd.</b> Raie unique a 1&times;F<sub>0</sub> = " + hz(K.F0) + ", sans harmonique. La force centrifuge est une sinusoide parfaite : Fourier n'a besoin d'aucune harmonique pour la decrire. Amplitude proportionnelle au carre de la vitesse, verifie-le avec le curseur de vitesse. Predominance radiale, souvent horizontale car la raideur horizontale est plus faible.");
-  if (D.des) L.push("<b>Desalignement.</b> Raies a 1&times;, 2&times; et 3&times;F<sub>0</sub>, avec 2&times;F<sub>0</sub> = " + hz(2 * K.F0) + " qui domine. Le pincement cyclique de l'accouplement deforme la sinusoide deux fois par tour : Fourier doit ajouter des harmoniques. Mesure en direction axiale pour confirmer.");
+  if (D.bal) L.push("<b>Balourd.</b> Raie unique à 1&times;F<sub>0</sub> = " + hz(K.F0) + ", sans harmonique. La force centrifuge est une sinusoïde parfaite : Fourier n'a besoin d'aucune harmonique pour la décrire. Amplitude proportionnelle au carré de la vitesse, vérifie-le avec le curseur de vitesse. Prédominance radiale, souvent horizontale car la raideur horizontale est plus faible.");
+  if (D.des) L.push("<b>Désalignement.</b> Raies à 1&times;, 2&times; et 3&times;F<sub>0</sub>, avec 2&times;F<sub>0</sub> = " + hz(2 * K.F0) + " qui domine. Le pincement cyclique de l'accouplement déforme la sinusoïde deux fois par tour : Fourier doit ajouter des harmoniques. Mesure en direction axiale pour confirmer.");
   if (D.eng) {
-    L.push("<b>Engrenement.</b> Raie a F<sub>e</sub> = " + hz(K.Fe) + " = 60 &times; F<sub>0</sub>, tres loin des raies cinematiques basses. L'usure de denture fait monter 2F<sub>e</sub> et 3F<sub>e</sub> : c'est le passage du glissement au martelement.");
-    if (D.aEngM > 0.02) L.push("Excentricite active : bandes laterales a F<sub>e</sub> &plusmn; F<sub>1</sub>, ecartees de " + hz(K.F1) + ". Cet ecartement designe l'arbre 2, porteur du pignon de 48 dents. C'est l'ecartement qui identifie le coupable, pas la raie centrale.");
+    L.push("<b>Engrènement.</b> Raie à F<sub>e</sub> = " + hz(K.Fe) + " = 60 &times; F<sub>0</sub>, très loin des raies cinématiques basses. L'usure de denture fait monter 2F<sub>e</sub> et 3F<sub>e</sub> : c'est le passage du glissement au martèlement.");
+    if (D.aEngM > 0.02) L.push("Excentricité active : bandes latérales à F<sub>e</sub> &plusmn; F<sub>1</sub>, écartées de " + hz(K.F1) + ". Cet écartement désigne l'arbre 2, porteur du pignon de 48 dents. C'est l'écartement qui identifie le coupable, pas la raie centrale.");
   }
-  if (D.cou) L.push("<b>Courroie.</b> Raie a F<sub>c</sub> = " + hz(K.Fc) + ", inferieure a F<sub>0</sub> = " + hz(K.F0) + ". Un pic sub-synchrone ne peut venir ni du balourd ni du desalignement : c'est la signature d'un organe qui tourne moins vite que l'arbre. Le choc de la craquelure genere un peigne d'harmoniques de F<sub>c</sub>.");
+  if (D.cou) L.push("<b>Courroie.</b> Raie à F<sub>c</sub> = " + hz(K.Fc) + ", inférieure à F<sub>0</sub> = " + hz(K.F0) + ". Un pic sub-synchrone ne peut venir ni du balourd ni du désalignement : c'est la signature d'un organe qui tourne moins vite que l'arbre. Le choc de la craquelure génère un peigne d'harmoniques de F<sub>c</sub>.");
   if (D.rlt) {
     const f = D.rtype === 'bpfi' ? K.BPFI : D.rtype === 'bsf' ? K.BSF : K.BPFO;
-    const nm = D.rtype === 'bpfi' ? 'BPFI' : D.rtype === 'bsf' ? 'element roulant' : 'BPFO';
-    L.push("<b>Roulement.</b> Frequence de defaut " + nm + " = " + hz(f) + ", soit " + nf(f / K.F2, 2) + " &times; F<sub>2</sub>. Ce rapport n'est pas entier : c'est le critere qui distingue un roulement de tout defaut lie a la rotation. L'energie principale se trouve autour de la resonance de structure a " + hz(D.fres) + ", pas a la frequence de defaut elle-meme.");
-    if (D.rtype === 'bpfi') L.push("La bague interieure tourne avec l'arbre et traverse la zone de charge une fois par tour : la raie BPFI porte des bandes laterales espacees de F<sub>2</sub> = " + hz(K.F2) + ". Ce motif n'appartient qu'a elle.");
-    L.push("Passe au module 4 pour demoduler ce signal et faire sortir la raie de defaut.");
+    const nm = D.rtype === 'bpfi' ? 'BPFI' : D.rtype === 'bsf' ? 'élément roulant' : 'BPFO';
+    L.push("<b>Roulement.</b> Fréquence de défaut " + nm + " = " + hz(f) + ", soit " + nf(f / K.F2, 2) + " &times; F<sub>2</sub>. Ce rapport n'est pas entier : c'est le critère qui distingue un roulement de tout défaut lié à la rotation. L'énergie principale se trouve autour de la résonance de structure à " + hz(D.fres) + ", pas à la fréquence de défaut elle-même.");
+    if (D.rtype === 'bpfi') L.push("La bague intérieure tourne avec l'arbre et traverse la zone de charge une fois par tour : la raie BPFI porte des bandes latérales espacées de F<sub>2</sub> = " + hz(K.F2) + ". Ce motif n'appartient qu'à elle.");
+    L.push("Passe au module 4 pour démoduler ce signal et faire sortir la raie de défaut.");
   }
-  if (D.noise > 0.25) L.push("<b>Bruit eleve.</b> Le plancher remonte et les raies faibles disparaissent. En pratique, c'est ce qui impose le moyennage : M spectres moyennes reduisent le bruit d'un facteur racine de M, tandis que les raies deterministes s'accumulent.");
+  if (D.noise > 0.25) L.push("<b>Bruit élevé.</b> Le plancher remonte et les raies faibles disparaissent. En pratique, c'est ce qui impose le moyennage : M spectres moyennes réduisent le bruit d'un facteur racine de M, tandis que les raies déterministes s'accumulent.");
   $('#d-diag').innerHTML = '<ul><li>' + L.join('</li><li>') + '</li></ul>';
 }
 
@@ -1570,7 +1601,7 @@ function drawAM() {
   const s2 = surface($('#cv-m-spec')), g2 = s2.g;
   const disp = new Float64Array(sp.mag.length);
   for (let k = 0; k < sp.mag.length; k++) disp[k] = sp.mag[k] / mx;
-  const A2 = axes(g2, s2.w, s2.h, { xmin: f1, xmax: f2, ymin: 0, ymax: 1.16, xticks: 8, yticks: 4, top: 26, xlabel: 'frequence (Hz)', ylabel: 'amplitude relative' });
+  const A2 = axes(g2, s2.w, s2.h, { xmin: f1, xmax: f2, ymin: 0, ymax: 1.16, xticks: 8, yticks: 4, top: 26, xlabel: 'fréquence (Hz)', ylabel: 'amplitude relative' });
   A2.ymin0 = 0;
   bars(g2, A2, disp, sp.df, COL.acc, 0);
   const mk = [{ f: MA.fc, t: 'porteuse Fe', c: COL.or }];
@@ -1581,7 +1612,7 @@ function drawAM() {
   markers(g2, A2, mk);
   g2.fillStyle = COL.muted; g2.font = '600 11.5px system-ui,sans-serif'; g2.textAlign = 'right'; g2.textBaseline = 'bottom';
   const th = MA.m / 2;
-  g2.fillText(MA.m > 0.01 ? ('amplitude theorique des bandes laterales : m/2 = ' + nf(th, 3) + '   |   ecartement ' + hz(MA.fm)) : 'modulation nulle : une seule raie', A2.R.x1 - 2, A2.R.y1 - 3);
+  g2.fillText(MA.m > 0.01 ? ('amplitude théorique des bandes latérales : m/2 = ' + nf(th, 3) + '   |   écartement ' + hz(MA.fm)) : 'modulation nulle : une seule raie', A2.R.x1 - 2, A2.R.y1 - 3);
 }
 
 ['m-fc', 'm-fm', 'm-m'].forEach(function (id) {
@@ -1640,7 +1671,7 @@ function drawEnv() {
   const yr = new Float64Array(M); let lo = 1e9, hi = -1e9;
   for (let i = 0; i < M; i++) { yr[i] = sig[i * step]; lo = Math.min(lo, yr[i]); hi = Math.max(hi, yr[i]); }
   let s = surface(cv), g = s.g;
-  let A = axes(g, s.w, s.h, { xmin: 0, xmax: span * 1000, ymin: lo * 1.15, ymax: hi * 1.15, xticks: 8, yticks: 4, xlabel: 'temps (ms)', ylabel: 'acceleration (u.a.)' });
+  let A = axes(g, s.w, s.h, { xmin: 0, xmax: span * 1000, ymin: lo * 1.15, ymax: hi * 1.15, xticks: 8, yticks: 4, xlabel: 'temps (ms)', ylabel: 'accélération (u.à.)' });
   curve(g, A, yr, step / fe * 1000, 0, COL.acc, 1.2);
   const Td = 1 / o.fd;
   const mk = [];
@@ -1655,16 +1686,16 @@ function drawEnv() {
   const RFLOOR = -65;
   const disp = new Float64Array(sp.mag.length);
   for (let k = 0; k < sp.mag.length; k++) disp[k] = Math.max(RFLOOR, 20 * Math.log10(Math.max(sp.mag[k], 1e-10) / mx));
-  const A1 = axes(g1, s1.w, s1.h, { xmin: 0, xmax: fmaxR, ymin: RFLOOR, ymax: 8, xticks: 8, yticks: 4, top: 24, xlabel: 'frequence (Hz)', ylabel: 'amplitude (dB, ref. max)', xfmt: function (v) { return nf(v / 1000, 0) + 'k'; } });
+  const A1 = axes(g1, s1.w, s1.h, { xmin: 0, xmax: fmaxR, ymin: RFLOOR, ymax: 8, xticks: 8, yticks: 4, top: 24, xlabel: 'fréquence (Hz)', ylabel: 'amplitude (dB, ref. max)', xfmt: function (v) { return nf(v / 1000, 0) + 'k'; } });
   A1.ymin0 = RFLOOR;
   g1.save(); g1.fillStyle = 'rgba(109,40,217,.10)';
   g1.fillRect(A1.sx(f1), A1.R.y0, A1.sx(f2) - A1.sx(f1), A1.R.y1 - A1.R.y0);
   g1.strokeStyle = 'rgba(109,40,217,.45)'; g1.lineWidth = 1; g1.setLineDash([4, 3]);
   g1.strokeRect(A1.sx(f1), A1.R.y0, A1.sx(f2) - A1.sx(f1), A1.R.y1 - A1.R.y0); g1.setLineDash([]); g1.restore();
   bars(g1, A1, disp, sp.df, COL.acc, sp.df * 1.5);
-  markers(g1, A1, [{ f: EN.res, t: 'resonance ' + hz(EN.res), c: COL.vi }, { f: K.F0, t: 'F0', c: COL.or }, { f: K.Fe, t: 'Fe', c: COL.gr }]);
+  markers(g1, A1, [{ f: EN.res, t: 'résonance ' + hz(EN.res), c: COL.vi }, { f: K.F0, t: 'F0', c: COL.or }, { f: K.Fe, t: 'Fe', c: COL.gr }]);
   g1.font = '600 11px system-ui,sans-serif'; g1.textAlign = 'center'; g1.textBaseline = 'middle';
-  var capTxt = 'bande filtree ' + hz(f1) + ' a ' + hz(f2), capX = (A1.sx(f1) + A1.sx(f2)) / 2, capY = A1.R.y0 + 46;
+  var capTxt = 'bande filtrée ' + hz(f1) + ' à ' + hz(f2), capX = (A1.sx(f1) + A1.sx(f2)) / 2, capY = A1.R.y0 + 46;
   var capW = g1.measureText(capTxt).width;
   g1.fillStyle = 'rgba(255,255,255,.92)'; g1.fillRect(capX - capW / 2 - 5, capY - 8, capW + 10, 16);
   g1.fillStyle = COL.vi; g1.fillText(capTxt, capX, capY);
@@ -1689,7 +1720,7 @@ function drawEnv() {
   const s4 = surface($('#cv-e-envspec')), g4 = s4.g;
   const de = new Float64Array(spe.mag.length);
   for (let k = 0; k < spe.mag.length; k++) de[k] = spe.mag[k] / mxe;
-  const A4 = axes(g4, s4.w, s4.h, { xmin: 0, xmax: fmaxE, ymin: 0, ymax: 1.14, xticks: 9, yticks: 4, top: 26, xlabel: 'frequence (Hz)', ylabel: 'amplitude relative' });
+  const A4 = axes(g4, s4.w, s4.h, { xmin: 0, xmax: fmaxE, ymin: 0, ymax: 1.14, xticks: 9, yticks: 4, top: 26, xlabel: 'fréquence (Hz)', ylabel: 'amplitude relative' });
   A4.ymin0 = 0;
   bars(g4, A4, de, spe.df, COL.acc, spe.df * 1.5);
   const lbl = EN.def === 'bpfi' ? 'BPFI' : 'BPFO';
@@ -1699,11 +1730,11 @@ function drawEnv() {
   markers(g4, A4, mk4);
 
   const L = [];
-  L.push("Frequence de defaut attendue : <b>" + lbl + " = " + hz(o.fd) + "</b>, soit " + nf(o.fd / K.F2, 2) + " &times; F<sub>2</sub>.");
-  L.push("Dans le spectre brut, cette frequence n'apparait nulle part. On y lit le balourd, l'engrenement, et une large bosse d'energie autour de " + hz(EN.res) + " : ce n'est pas le choc qu'on mesure, c'est la reponse de la structure au choc. L'echelle est en dB pour rendre les trois visibles ensemble.");
-  L.push("Dans le spectre d'enveloppe, la raie sort nettement, accompagnee de ses harmoniques regulierement espacees. Le peigne est la signature d'un choc periodique.");
-  if (EN.def === 'bpfi') L.push("Des bandes laterales apparaissent autour de chaque raie, espacees de F<sub>2</sub> = " + hz(K.F2) + " : le defaut tourne avec l'arbre et traverse la zone de charge une fois par tour. Ce motif est exclusif a la bague interieure.");
-  L.push("Monte le bruit jusqu'a noyer completement la bosse du spectre brut : le spectre d'enveloppe continue de designer le defaut. C'est pour cette raison que la demodulation detecte un ecaillage plusieurs semaines avant le spectre en vitesse.");
+  L.push("Fréquence de défaut attendue : <b>" + lbl + " = " + hz(o.fd) + "</b>, soit " + nf(o.fd / K.F2, 2) + " &times; F<sub>2</sub>.");
+  L.push("Dans le spectre brut, cette fréquence n'apparaît nulle part. On y lit le balourd, l'engrènement, et une large bosse d'énergie autour de " + hz(EN.res) + " : ce n'est pas le choc qu'on mesure, c'est la réponse de la structure au choc. L'échelle est en dB pour rendre les trois visibles ensemble.");
+  L.push("Dans le spectre d'enveloppe, la raie sort nettement, accompagnée de ses harmoniques régulièrement espacées. Le peigne est la signature d'un choc périodique.");
+  if (EN.def === 'bpfi') L.push("Des bandes latérales apparaissent autour de chaque raie, espacées de F<sub>2</sub> = " + hz(K.F2) + " : le défaut tourne avec l'arbre et traverse la zone de charge une fois par tour. Ce motif est exclusif à la bague intérieure.");
+  L.push("Monte le bruit jusqu'à noyer complètement la bosse du spectre brut : le spectre d'enveloppe continue de désigner le défaut. C'est pour cette raison que la démodulation détecte un écaillage plusieurs semaines avant le spectre en vitesse.");
   $('#e-diag').innerHTML = '<ul><li>' + L.join('</li><li>') + '</li></ul>';
 }
 

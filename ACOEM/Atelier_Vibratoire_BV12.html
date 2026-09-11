@@ -808,7 +808,11 @@ const COL = { ink: '#16202c', muted: '#5c6b7d', faint: '#8a97a6', line: '#d8e0e8
 function surface(cv) {
   const dpr = window.devicePixelRatio || 1;
   const w = Math.max(320, cv.clientWidth || cv.parentNode.clientWidth);
-  const h = +cv.getAttribute('height');
+  /* canvas.height est un attribut reflete : lui affecter h*dpr ecrase l'attribut HTML.
+     Sans memorisation, chaque redessin remultiplierait la hauteur par dpr.
+     La hauteur logique est donc figee au premier passage. */
+  if (cv.dataset.h === undefined) cv.dataset.h = cv.getAttribute('height') || '200';
+  const h = +cv.dataset.h;
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   cv.style.height = h + 'px';
   const g = cv.getContext('2d');

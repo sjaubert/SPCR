@@ -1,0 +1,230 @@
+% Petits développements autour des estimateurs statistiques
+% S. Jaubert. Première version : 15 décembre 2019. Version corrigée : 30 octobre 2026.
+% Compilation : xelatex (deux passes)
+\documentclass[11pt,a4paper]{article}
+\usepackage{polyglossia}
+\setmainlanguage{french}
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[a4paper,margin=3.2cm,headheight=14pt]{geometry}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=black,urlcolor=blue!60!black]{hyperref}
+
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\lhead{\small BACHELOR TRONC COMMUN - Enseignement Scientifique}
+\lfoot{\LaTeX\ \scriptsize S. Jaubert - Bachelor \textbackslash\ Estimation}
+\cfoot{\thepage}
+\rfoot{\scriptsize Version corrigée, octobre 2026}
+
+\newtheoremstyle{sj}{6pt}{6pt}{\itshape}{}{\bfseries}{.}{0.5em}{}
+\theoremstyle{sj}
+\newtheorem*{prop}{Propriété}
+\newtheorem*{thm}{Théorème}
+\theoremstyle{remark}
+\newtheorem*{rem}{Remarque}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\V}{\mathbb{V}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Xb}{\overline{X}}
+\newcommand{\dd}{\,\mathrm{d}}
+
+\newtcolorbox{code}{colback=black!85,colframe=black!85,coltext=white,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fontupper=\small\ttfamily}
+\newtcolorbox{note}[1][]{colback=black!3,colframe=black!40,boxrule=0.5pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries\small,title={#1}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlength{\emergencystretch}{2em}
+
+\begin{document}
+
+{\raggedright\Huge\bfseries Petits développements autour\\[4pt] des estimateurs statistiques\par}
+
+\bigskip
+Il est très rare de trouver une explication claire des différentes constantes utilisées pour les calculs de capabilité. Très souvent, on nous renvoie à des tables sans autre explication. Mon propos ici est de donner les grandes lignes qui permettent le calcul de ces constantes.
+
+Bien sûr, il faut quelques prérequis en mathématiques, en particulier être familier avec la loi du $\chi^2$ et la fonction $\Gamma$, qui prolonge la factorielle : $\Gamma(n)=(n-1)!$ pour tout entier $n\ge1$, et $\Gamma$ est définie sur les complexes sauf en $0,-1,-2,\dots$ (\href{https://fr.wikipedia.org/wiki/Fonction_gamma}{voir ici}).
+
+\textbf{Notation.} Comme dans les tables industrielles, $\N(\mu;\sigma)$ désigne la loi normale de moyenne $\mu$ et d'\emph{écart-type} $\sigma$.
+
+Soient $(X_i)_{1\le i\le n}$ $n$ variables aléatoires indépendantes et de même loi, d'espérance $\mu$ et d'écart-type $\sigma$. Cette hypothèse est essentielle, on le verra par la suite.
+
+On rappelle que la variable aléatoire égale à la moyenne est
+\[
+\Xb=\frac{X_1+X_2+\dots+X_n}{n},
+\]
+et que la variable aléatoire égale à la variance des $n$ valeurs est
+\[
+S^2=\frac1n\sum_{i=1}^n\big(X_i-\Xb\big)^2 .
+\]
+
+\section*{1. La moyenne}
+
+\begin{prop}
+$\E(\Xb)=\mu$ et $\V(\Xb)=\dfrac{\sigma^2}{n}$, quelle que soit la loi des $X_i$.
+Si de plus les $X_i$ suivent la loi $\N(\mu;\sigma)$, alors $\Xb$ suit la loi $\N\big(\mu;\frac{\sigma}{\sqrt n}\big)$.
+\end{prop}
+
+En effet : $\E(\Xb)=\frac1n\sum_{i=1}^n\E(X_i)=\frac{n\mu}{n}=\mu$, et, par indépendance,
+\[
+\V(\Xb)=\frac{1}{n^2}\sum_{i=1}^n\V(X_i)=\frac{n\sigma^2}{n^2}=\frac{\sigma^2}{n}.
+\]
+Ces deux calculs ne donnent que l'espérance et la variance de $\Xb$. Que $\Xb$ soit normale vient d'une autre propriété : une somme de variables normales \emph{indépendantes} est encore normale (stabilité de la loi normale, qui se démontre par un produit de convolution).
+
+\begin{thm}[Théorème central limite]
+Si les $X_i$ sont indépendantes et de même loi, \emph{quelconque}, d'espérance $\mu$ et d'écart-type $\sigma$ finis, alors pour $n$ « grand » la loi de $\Xb$ se rapproche de la loi $\N\big(\mu;\frac{\sigma}{\sqrt n}\big)$.
+\end{thm}
+
+C'est ce théorème qui rend les cartes de moyennes peu sensibles à la forme de la loi des pièces : la moyenne de 5 pièces est déjà bien plus « normale » qu'une pièce isolée.
+
+\section*{2. La variance}
+
+\subsection*{2.1 Une approche valable pour toute loi}
+
+On écrit $S^2=\dfrac{1}{n}\sum_{i=1}^nX_i^2-\Xb^{\,2}$ (formule de König-Huygens). Alors
+\begin{align*}
+\E(S^2)&=\frac1n\sum_{i=1}^n\E(X_i^2)-\E\big(\Xb^{\,2}\big)=\E(X^2)-\E\big(\Xb^{\,2}\big)\\
+&=\V(X)+\E(X)^2-\Big(\V(\Xb)+\E(\Xb)^2\Big)=\V(X)-\V(\Xb)\qquad\text{car }\E(\Xb)=\E(X)\\
+&=\V(X)-\frac1n\V(X)=\frac{n-1}{n}\,\sigma^2 .
+\end{align*}
+Pour éviter le biais $\frac{n-1}{n}$, on prend pour estimateur ponctuel de la variance
+\[
+S_{n-1}^2=\frac{nS^2}{n-1}=\frac{\sum_{i=1}^n\big(X_i-\Xb\big)^2}{n-1},\qquad \E\big(S_{n-1}^2\big)=\sigma^2 .
+\]
+Ce calcul n'utilise que l'indépendance et l'existence de $\sigma$ : il vaut pour \emph{toute} loi.
+
+\subsection*{2.2 Le cas normal : la loi du \texorpdfstring{$\chi^2$}{khi-deux}}
+
+On suppose maintenant les $X_i$ de loi $\N(\mu;\sigma)$. On a
+\[
+\frac{nS^2}{\sigma^2}=\sum_{i=1}^n\left(\frac{X_i-\Xb}{\sigma}\right)^2 .
+\]
+Attention : les termes de cette somme ne sont ni indépendants (ils sont liés par $\sum(X_i-\Xb)=0$) ni de variance 1 (chacun a pour variance $\frac{n-1}{n}$). On ne peut donc pas conclure directement à une loi du $\chi^2(n)$. Le résultat exact est le suivant.
+
+\begin{thm}[Fisher]
+Si les $X_i$ sont indépendantes de loi $\N(\mu;\sigma)$, alors $\dfrac{nS^2}{\sigma^2}$ suit la loi du $\chi^2(n-1)$ (\href{https://fr.wikipedia.org/w/index.php?title=Loi_du_\%CF\%87\%C2\%B2&oldid=161071288}{loi du chi2}), et elle est indépendante de $\Xb$.
+\end{thm}
+
+\textbf{Idée de la preuve.} Soit $Q$ une matrice orthogonale dont la première ligne est $\big(\frac{1}{\sqrt n},\dots,\frac{1}{\sqrt n}\big)$. Le vecteur $Z=\frac{1}{\sigma}(X_1-\mu,\dots,X_n-\mu)$ a une densité qui ne dépend que de $\|z\|$ ; une rotation ne change donc pas sa loi, et les coordonnées $V_1,\dots,V_n$ de $QZ$ sont encore indépendantes de loi $\N(0;1)$. Or $V_1=\frac{\sqrt n}{\sigma}(\Xb-\mu)$ et, comme $Q$ conserve la norme,
+\[
+\frac{nS^2}{\sigma^2}=\frac{1}{\sigma^2}\Big(\sum(X_i-\mu)^2-n(\Xb-\mu)^2\Big)=\|QZ\|^2-V_1^2=\sum_{j=2}^nV_j^2 .
+\]
+C'est une somme de $n-1$ carrés de variables $\N(0;1)$ indépendantes, indépendante de $V_1$ : d'où le $\chi^2(n-1)$. On retrouve au passage l'idée de \emph{degrés de liberté} : la contrainte $\sum(X_i-\Xb)=0$ fait perdre une dimension.
+
+Comme $\E\big(\chi^2(n-1)\big)=n-1$, on a $\E\left(\frac{nS^2}{\sigma^2}\right)=n-1$ : on retrouve l'estimateur sans biais $S_{n-1}^2$ du paragraphe 2.1.
+
+\section*{3. L'écart-type : la constante \texorpdfstring{$c_4$}{c4}}
+
+Nous avons un estimateur sans biais de la variance, mais il ne faut pas penser que sa racine carrée est un estimateur sans biais de l'écart-type. En effet, posons $K=\dfrac{nS^2}{\sigma^2}$, qui suit la loi du $\chi^2(n-1)$, de densité
+\[
+f(t)=\frac{e^{-t/2}\,t^{\frac{n-1}{2}-1}}{2^{\frac{n-1}{2}}\,\Gamma\big(\frac{n-1}{2}\big)}\qquad(t>0).
+\]
+Alors, avec le changement de variable $t=2u$ et la définition $\Gamma(a)=\int_0^{+\infty}u^{a-1}e^{-u}\dd u$ :
+\[
+\E\big(\sqrt K\big)=\int_0^{+\infty}\sqrt t\,f(t)\dd t=\frac{2^{\frac n2}\,\Gamma\big(\frac n2\big)}{2^{\frac{n-1}{2}}\,\Gamma\big(\frac{n-1}{2}\big)}=\frac{\sqrt2\,\Gamma\big(\frac n2\big)}{\Gamma\big(\frac{n-1}{2}\big)} .
+\]
+Comme $\sqrt K=\frac{\sqrt n\,S}{\sigma}$, on obtient $\E\big(\sqrt n\,S\big)=\dfrac{\sqrt2\,\Gamma\big(\frac n2\big)}{\Gamma\big(\frac{n-1}{2}\big)}\,\sigma$, puis, avec $S_{n-1}=\sqrt{\frac{n}{n-1}}\,S$ :
+\[
+\E\big(S_{n-1}\big)=\sqrt{\frac{2}{n-1}}\,\frac{\Gamma\big(\frac n2\big)}{\Gamma\big(\frac{n-1}{2}\big)}\,\sigma .
+\]
+On pose
+\[
+c_4(n)=\sqrt{\frac{2}{n-1}}\,\frac{\Gamma\big(\frac n2\big)}{\Gamma\big(\frac{n-1}{2}\big)} .
+\]
+On a alors
+\[
+\E\left(\frac{S_{n-1}}{c_4(n)}\right)=\sigma ,
+\]
+et l'on peut donc prendre pour estimateur ponctuel de $\sigma$ : $\hat\sigma=\dfrac{S_{n-1}}{c_4(n)}$.
+
+\begin{rem}
+$c_4(n)<1$ : $S_{n-1}$ sous-estime $\sigma$ en moyenne. On le voit aussi sans calcul : $\V(S_{n-1})=\E(S_{n-1}^2)-\E(S_{n-1})^2\ge0$ donne $\E(S_{n-1})\le\sigma$. Pour $n=2$, $\Gamma(1)=1$ et $\Gamma(\frac12)=\sqrt\pi$ donnent $c_4(2)=\sqrt{2/\pi}\approx0{,}798$. Le calcul de $c_4$ utilise la loi du $\chi^2$, donc la normalité.
+\end{rem}
+
+\newpage
+{\raggedright\Huge\bfseries Estimateur ponctuel de l'écart-type~$\sigma$\\[4pt] d'une population à partir\\[4pt] de l'étendue~$R$\par}
+
+\bigskip
+Soient $(X_i)_{1\le i\le n}$ $n$ variables aléatoires indépendantes suivant toutes la loi $\N(\mu;\sigma)$. Les variables centrées réduites $X_i^*=\frac{X_i-\mu}{\sigma}$ ont pour densité $\varphi$ et pour fonction de répartition $\Phi$.
+
+L'étendue $R$ (\emph{range} en anglais) est définie par
+\[
+R=\max_i(X_i)-\min_i(X_i).
+\]
+On a
+\[
+\frac{R}{\sigma}=\frac{\max_i(X_i)-\mu}{\sigma}-\frac{\min_i(X_i)-\mu}{\sigma}.
+\]
+Considérons
+\[
+M_n=\frac{\max_i(X_i)-\mu}{\sigma}=\max_i(X_i^*)\qquad\text{et}\qquad m_n=\frac{\min_i(X_i)-\mu}{\sigma}=\min_i(X_i^*).
+\]
+La fonction de répartition de $M_n$ est donnée, pour tout réel $t$, par
+\[
+\P(M_n<t)=\P\Big(\bigcap_i\{X_i^*<t\}\Big)=\prod_i\P(X_i^*<t)=\big(\Phi(t)\big)^n ,
+\]
+où l'indépendance justifie le produit. Ainsi, la densité de $M_n$, notée $f_{M_n}$, est obtenue par dérivation :
+\[
+f_{M_n}(t)=n\,\varphi(t)\,\big(\Phi(t)\big)^{n-1}.
+\]
+En outre, $m_n=\min_i(X_i^*)=-\max_i(-X_i^*)$. La loi normale centrée réduite est symétrique : $-X_i^*$ a la même loi que $X_i^*$, donc $\max_i(-X_i^*)$ a la même loi que $M_n$ et $\E(m_n)=-\E(M_n)$. Ainsi
+\[
+\E\left(\frac R\sigma\right)=\E(M_n)-\E(m_n)=2\,\E(M_n).
+\]
+On notera $d_2=2\,\E(M_n)$, et l'on a
+\[
+d_2(n)=2\int_{-\infty}^{+\infty}n\,t\,\varphi(t)\,\big(\Phi(t)\big)^{n-1}\dd t,
+\qquad\text{soit}\qquad \E\left(\frac R\sigma\right)=d_2 .
+\]
+Si l'on dispose de $k$ échantillons \emph{de même taille} $n$, d'étendues $R_1,\dots,R_k$, et $\overline R=\frac1k\sum_jR_j$, alors $\E(\overline R)=d_2\,\sigma$ par linéarité. D'où l'estimateur ponctuel
+\[
+\hat\sigma=\frac{\overline R}{d_2}.
+\]
+Il ne mesure que la dispersion \emph{à l'intérieur} des échantillons : décaler toutes les valeurs d'un échantillon ne change pas son étendue. C'est le « $\sigma$ court terme » des calculs de capabilité.
+
+\begin{note}[Pourquoi l'hypothèse de normalité est essentielle]
+La symétrie et la forme de $\Phi$ interviennent dans $d_2$. Pour une autre loi, la constante change. Pour $n=5$ : loi normale, $d_2=2{,}326$ ; loi uniforme, $d_2=\sqrt{12}\cdot\frac46\approx2{,}309$ ; loi exponentielle, $d_2=1+\frac12+\frac13+\frac14\approx2{,}083$. Appliquer la table normale à des données exponentielles sous-estime donc $\sigma$ d'environ 10 \%.
+\end{note}
+
+\begin{rem}
+Pour $n=2$ et $n=3$, on a les valeurs exactes $d_2(2)=\frac{2}{\sqrt\pi}\approx1{,}128$ et $d_2(3)=\frac{3}{\sqrt\pi}\approx1{,}693$. Il n'existe pas de formule générale à l'aide de la fonction $\Gamma$ : $d_2$ se calcule numériquement.
+\end{rem}
+
+$d_2$ et $c_4$ se calculent numériquement (voir ci-dessous), ou l'on utilise des tables.
+
+\section*{Exemples de code en R}
+
+Fonction $d_2$, par l'intégrale ci-dessus :
+\begin{code}
+d2 <- function(n) 2*integrate(function(x) n*x*dnorm(x)*pnorm(x)\^{}(n-1),\\
+\phantom{d2 <- function(n) 2*integrate(}-Inf, Inf)\$value
+\end{code}
+ou en utilisant la loi de l'étendue de $n$ normales, disponible dans R par \texttt{ptukey} avec \mbox{\texttt{df = Inf}} (l'espérance d'une variable positive est l'intégrale de $\P(R>w)$) :
+\begin{code}
+d2 <- function(n) integrate(function(w)\\
+\phantom{d2 <- }1 - ptukey(w, nmeans = n, df = Inf), 0, Inf)\$value
+\end{code}
+Fonction $c_4$ :
+\begin{code}
+c4 <- function(n) sqrt(2/(n-1))*gamma(n/2)/gamma((n-1)/2)
+\end{code}
+On retrouve bien :
+\begin{code}
+> d2(3)\\
+{[1]} 1.692569\\
+> c4(3)\\
+{[1]} 0.8862269
+\end{code}
+
+\begin{note}[Correction par rapport à la version de 2019]
+La version de 2019 proposait une seconde fonction \texttt{d2} « en utilisant la fonction Gamma ». Elle calculait en réalité $c_4$ (même formule que la fonction \texttt{C4}). Si on la définissait après la première, \texttt{d2(3)} renvoyait $0{,}886$ au lieu de $1{,}693$. Elle est remplacée ci-dessus par la version \texttt{ptukey}. Les trois fonctions ont été exécutées le 30 octobre 2026.
+\end{note}
+
+\end{document}

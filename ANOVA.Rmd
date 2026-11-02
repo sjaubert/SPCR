@@ -3,8 +3,9 @@ title: "Test F pour une ANOVA à un facteur"
 author: "S. Jaubert"
 date: "`r format(Sys.time(), ' %d %B %Y')`"
 output:
-  html_document: default
   pdf_document: default
+  word_document: default
+  html_document: default
 ---
 **Contexte ** 
 Soient 5 étudiants (ou $k=5$ opérateurs) qui ont effectué chacun $n=20$ mesures avec le même moyen de mesure.

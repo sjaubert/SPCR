@@ -364,7 +364,7 @@ summary {
 
 <h1 class="title toc-ignore">Analyse de capabilité (cas Normal)</h1>
 <h4 class="author">S. Jaubert</h4>
-<h4 class="date">13/10/2019</h4>
+<h4 class="date">13/10/2019, révisé le 2 novembre 2026</h4>
 
 </div>
 
@@ -389,9 +389,9 @@ summary {
 <p>Si <span class="math inline">\(\;C_{p} \approx 1.67\)</span> la proportion de défectueux est d’environ 6 pour 10 millions</p>
 <p>La formule <span class="math inline">\(C_{p} =\frac{USL - LSL }{6\sigma}\;\)</span> ne nous permet pas de vérifier si le processus est centré par rapport à la moyenne. Pour traiter ce problème nous utilisons l’indice : <span class="math inline">\(C_{pk}=min\left \{ \frac{USL-\mu}{3\sigma} ; \frac{\mu-LSL}{3\sigma}\right \}\)</span> remarquons que si <span class="math inline">\(\mu=\frac{USL+LSL}{2}\)</span> on a : <span class="math inline">\(C_{p}=C_{pk}\)</span></p>
 <p>Un autre indice commence aussi à être très utilisé le <span class="math inline">\(C_{pm}\)</span> (dit index de Taguchi), il tient compte à la fois de la dispersion et du centrage (voir ici : <a href="https://hal.archives-ouvertes.fr/hal-00974315/document">https://hal.archives-ouvertes.fr/hal-00974315/document</a> ) :</p>
-<p><span class="math inline">\(C_{pm} =\frac{USL - LSL}{6\sqrt{\sigma^{2}+\left ( \mu - cible\right )^{2}}}=\frac{C_{p}}{\sqrt{1+9\left ( C_{p} - C_{pk}\right )^{2}}}\)</span></p>
+<p><span class="math inline">\(C_{pm} =\frac{USL - LSL}{6\sqrt{\sigma^{2}+\left ( \mu - cible\right )^{2}}}=\frac{C_{p}}{\sqrt{1+9\left ( C_{p} - C_{pk}\right )^{2}}}\)</span> (la seconde égalité n’est vraie que si la cible est au milieu de la tolérance)</p>
 <p>De même pour le décentrage :</p>
-<p><span class="math inline">\(C_{pmk} =\frac{min\left \{ USL - cible ; cible -LSL\right \} }{3\sqrt{\sigma^{2}+\left ( \mu - cible\right )^{2}}}\)</span> qui peut-être calculé avec le <span class="math inline">\(C_{pk}\)</span> :</p>
+<p><span class="math inline">\(C_{pmk} =\frac{min\left \{ USL - \mu ; \mu -LSL\right \} }{3\sqrt{\sigma^{2}+\left ( \mu - cible\right )^{2}}}\)</span> qui peut être calculé avec le <span class="math inline">\(C_{pk}\)</span> :</p>
 <p><span class="math inline">\(C_{pmk}=\frac{C_{pk}}{\sqrt{1+\left ( \frac{\mu-cible}{\sigma}\right )^{2}}}\)</span></p>
 <p>(Dans le cas où le process est parfaitement centré on a bien évidement : <span class="math inline">\(C_{pm}=C_{p}=C_{pk}=C_{pmk}\)</span>)</p>
 <blockquote>
@@ -405,7 +405,7 @@ summary {
 </ul>
 
 <p>Pour compliquer les choses, depuis une quarantaine d’années différentes normes et notations ont vu le jour… (voir à ce propos l’article de Maurice Pillet : <a href="https://www.researchgate.net/publication/305721683_Le_point_sur_les_etudes_de_capabilite_ou_d%27aptitude">Le point sur les études de capabilité ou d’aptitude</a>)</p>
-<p>De nos jours la plupart des industriels s’aligne sur la norme <strong><a href="https://www.iso.org/standard/52844.html">ISO/TS 16949</a></strong>, et les indices qui ont gagné en popularité sont les <span class="math inline">\(C_{p}\)</span> et <span class="math inline">\(C_{pk}\)</span> pour le court terme et les <span class="math inline">\(P_{p}\)</span> et <span class="math inline">\(P_{pk}\)</span> pour le long terme (Performance Process) et le fameux indice de Taguchi <span class="math inline">\(\;C_{pm}\)</span> (B. LEROUX &quot;Outils Avancés pour le management Niveau C -Ellipses)</p>
+<p>De nos jours la plupart des industriels s’aligne sur la norme <strong>IATF 16949</strong> (publiée en 2016, elle a remplacé l’ISO/TS 16949), et les indices qui ont gagné en popularité sont les <span class="math inline">\(C_{p}\)</span> et <span class="math inline">\(C_{pk}\)</span> pour le court terme et les <span class="math inline">\(P_{p}\)</span> et <span class="math inline">\(P_{pk}\)</span> pour le long terme (Performance Process) et le fameux indice de Taguchi <span class="math inline">\(\;C_{pm}\)</span> (B. LEROUX &quot;Outils Avancés pour le management Niveau C -Ellipses)</p>
 <p>Il faudra être très prudent lors de l’examen des indices de capabilité et être certain de l’estimation de l’écart-type sur laquelle ils sont basés. Des intervalles et des limites de confiance peuvent être établis pour <span class="math inline">\(C_{p}\)</span> ou <span class="math inline">\(P_{p}\)</span> lorsque les données sont supposées provenir <strong>d’une distribution normale</strong>. L’intervalle de confiance de 100(1-<span class="math inline">\(\alpha\)</span>)% est :</p>
 <p><span class="math inline">\(\hat{C_{p}}\sqrt{\frac{\chi_{1-\alpha/2,\nu }^{2}}{\nu }}\leq C_{p}\leq \hat{C_{p}}\sqrt{\frac{\chi_{\alpha/2,\nu }^{2}}{\nu }}\)</span></p>
 <p>où <span class="math inline">\(\chi_{p,\nu }^{2}\)</span> est la valeur de la distribution chi-carré avec <span class="math inline">\(\nu\)</span> degrés de liberté qui est dépassée avec une probabilité <span class="math inline">\(p\)</span></p>
@@ -463,7 +463,7 @@ USL&lt;-74.04</code></pre>
 ## 
 ## Exp&lt;LSL 0%    Obs&lt;LSL 0%
 ## Exp&gt;USL 0%    Obs&gt;USL 0%</code></pre>
-<p>Notons qu’en plus des indices un intervalle de confiance est fourni ce qui est utile pour le suivi de la capabilité. Nous constatons dans cette exemple que le processus est bien centré <span class="math inline">\(C_{pk}=1.477&gt;1.33\)</span> et capable <span class="math inline">\(C_{p}=1.491&gt;1.33\)</span></p>
+<p>Notons qu’en plus des indices un intervalle de confiance est fourni ce qui est utile pour le suivi de la capabilité. Nous constatons dans cette exemple que le processus est capable, <span class="math inline">\(C_{p}=1.491&gt;1.33\)</span>, et bien centré, puisque <span class="math inline">\(C_{pk}=1.477\)</span> est très proche de <span class="math inline">\(C_{p}\)</span> (l’écart <span class="math inline">\(C_{p}-C_{pk}\)</span> mesure le décentrage).</p><div style="border:1px solid #c55a11;background:#fff6ee;padding:8px 12px;margin:14px 0;border-radius:4px"><b>Version corrigée, novembre 2026.</b> Corrections : numérateur de <span class="math inline">\(C_{pmk}\)</span> (μ et non la cible) ; condition de validité de <span class="math inline">\(C_{pm}=C_p/\sqrt{1+9(C_p-C_{pk})^2}\)</span> ; ISO/TS 16949 remplacée par l’IATF 16949 ; lecture de l’exemple (le centrage se lit sur l’écart entre <span class="math inline">\(C_p\)</span> et <span class="math inline">\(C_{pk}\)</span>, la capabilité sur leur valeur).</div>
 <p>Une étude de capabilité plus complète avec une sortie graphique peut aussi être réalisée avec le package <strong>SixSigma</strong>. Cette fois à titre d’exemple, nous allons effectuer les calculs sur le court terme et le long terme.</p>
 <pre class="r"><code>library(SixSigma)
 ss.study.ca(xLT = pistonrings$diameter,xST = pistonrings$diameter[6:55],LSL = 73.96,USL = 74.04,Target = 74,alpha = 0.05,f.sub = &quot;Diamètre&quot;)</code></pre>

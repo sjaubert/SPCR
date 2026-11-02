@@ -171,11 +171,11 @@ On obtient :
 
 $V(X_{ij})=\sigma_{o}^{2}+\sigma_{r}^{2}=\sigma_{R}^{2}$
 
-$SCR=\sum_{i=1}^{k}\sum_{j=1}^{n}\epsilon_{ij}^{2}$ soit :
+$SCR=\sum_{i=1}^{k}\sum_{j=1}^{n}(X_{ij}-\bar{X_{i}})^{2}=\sum_{i=1}^{k}\sum_{j=1}^{n}(\epsilon_{ij}-\bar{\epsilon_{i}})^{2}$ avec $\bar{\epsilon_{i}}=\frac{1}{n}\Sigma_{j}\epsilon_{ij}$ (le terme $\mu+\alpha_{i}$ disparaît dans la différence) soit :
 
-$\frac{SCR}{\sigma_{r}^{2}} =\sum_{i=1}^{k}\sum_{j=1}^{n}(\frac{\epsilon_{ij}}{\sigma_{r}})^{2}$ mais on sait que 
+$\frac{SCR}{\sigma_{r}^{2}} =\sum_{i=1}^{k}\sum_{j=1}^{n}(\frac{\epsilon_{ij}-\bar{\epsilon_{i}}}{\sigma_{r}})^{2}$ mais on sait que 
 
-$\sum_{j=1}^{n}(\frac{\epsilon_{ij}}{\sigma_{r}})^{2}$ suit la loi du $\chi ^{2}$ à $n-1$ ddl alors $\frac{SCR}{\sigma_{r}^{2}}\hookrightarrow \chi ^{2}(k(n-1))$ d'où 
+$\sum_{j=1}^{n}(\frac{\epsilon_{ij}-\bar{\epsilon_{i}}}{\sigma_{r}})^{2}$ suit la loi du $\chi ^{2}$ à $n-1$ ddl (un degré de liberté est perdu car on centre sur la moyenne observée $\bar{\epsilon_{i}}$ ; centrée sur la vraie moyenne 0, la somme suivrait un $\chi ^{2}$ à $n$ ddl). Les $k$ sommes étant indépendantes, alors $\frac{SCR}{\sigma_{r}^{2}}\hookrightarrow \chi ^{2}(k(n-1))$ d'où 
 
 $\mathbb{E}(\frac{SCR}{\sigma_{r}^{2}})=nk-k=N-k\Leftrightarrow \mathbb{E}(\frac{SCR}{N-k})=\sigma_{r}^{2}$
 
@@ -203,6 +203,8 @@ $\mathbb{E}(\frac{SCF}{k-1})=nV(\bar{X_{i}})=n(\sigma_{o}^{2}+\frac{1}{n}\sigma_
 on pose enfin $CMF=\frac{SCF}{k-1}$ et  $CMR=\frac{SCR}{N-k}$ 
 
 et ainsi on calcule la statistique de Fisher  $F_{k-1,N-k}=\frac{\frac{SCF}{k-1}}{\frac{SCR}{N-k}}$
+
+**Version corrigée, novembre 2026.** Correction de la démonstration : la somme des carrés résiduelle s'écrit avec les écarts $\epsilon_{ij}-\bar{\epsilon_{i}}$ et non avec $\epsilon_{ij}$. Les deux erreurs de la version de 2020 (cette écriture et le nombre de degrés de liberté) se compensaient : la conclusion, $\mathbb{E}(SCR/(N-k))=\sigma_{r}^{2}$, et tous les résultats numériques restent inchangés.
 
 
 

@@ -486,9 +486,9 @@ plot(res)</code></pre>
 <p>où <span class="math inline">\(\epsilon_{ij}\hookrightarrow \mathcal{N}(0;\sigma_{r})\)</span> avec <span class="math inline">\(\sigma_{r} \;l&#39;\acute{e}cart\;type\;de\;r\acute{e}p\acute{e}tabilit\acute{e}\)</span> et <span class="math inline">\(\alpha_{i}\hookrightarrow \mathcal{N}(0;\sigma_{o})\)</span> avec <span class="math inline">\(\sigma_{o} \;l&#39;\acute{e}cart\;type\;du facteur \;op\acute{e}rateur\)</span></p>
 <p>On obtient :</p>
 <p><span class="math inline">\(V(X_{ij})=\sigma_{o}^{2}+\sigma_{r}^{2}=\sigma_{R}^{2}\)</span></p>
-<p><span class="math inline">\(SCR=\sum_{i=1}^{k}\sum_{j=1}^{n}\epsilon_{ij}^{2}\)</span> soit :</p>
-<p><span class="math inline">\(\frac{SCR}{\sigma_{r}^{2}} =\sum_{i=1}^{k}\sum_{j=1}^{n}(\frac{\epsilon_{ij}}{\sigma_{r}})^{2}\)</span> mais on sait que</p>
-<p><span class="math inline">\(\sum_{j=1}^{n}(\frac{\epsilon_{ij}}{\sigma_{r}})^{2}\)</span> suit la loi du <span class="math inline">\(\chi ^{2}\)</span> à <span class="math inline">\(n-1\)</span> ddl alors <span class="math inline">\(\frac{SCR}{\sigma_{r}^{2}}\hookrightarrow \chi ^{2}(k(n-1))\)</span> d’où</p>
+<p><span class="math inline">\(SCR=\sum_{i=1}^{k}\sum_{j=1}^{n}(X_{ij}-\bar{X_{i}})^{2}=\sum_{i=1}^{k}\sum_{j=1}^{n}(\epsilon_{ij}-\bar{\epsilon_{i}})^{2}\)</span> avec <span class="math inline">\(\bar{\epsilon_{i}}=\frac{1}{n}\Sigma_{j}\epsilon_{ij}\)</span> (le terme <span class="math inline">\(\mu+\alpha_{i}\)</span> disparaît dans la différence) soit :</p>
+<p><span class="math inline">\(\frac{SCR}{\sigma_{r}^{2}} =\sum_{i=1}^{k}\sum_{j=1}^{n}(\frac{\epsilon_{ij}-\bar{\epsilon_{i}}}{\sigma_{r}})^{2}\)</span> mais on sait que</p>
+<p><span class="math inline">\(\sum_{j=1}^{n}(\frac{\epsilon_{ij}-\bar{\epsilon_{i}}}{\sigma_{r}})^{2}\)</span> suit la loi du <span class="math inline">\(\chi ^{2}\)</span> à <span class="math inline">\(n-1\)</span> ddl (un degré de liberté est perdu car on centre sur la moyenne observée <span class="math inline">\(\bar{\epsilon_{i}}\)</span> ; centrée sur la vraie moyenne 0, la somme suivrait un <span class="math inline">\(\chi ^{2}\)</span> à <span class="math inline">\(n\)</span> ddl). Les <span class="math inline">\(k\)</span> sommes étant indépendantes, alors <span class="math inline">\(\frac{SCR}{\sigma_{r}^{2}}\hookrightarrow \chi ^{2}(k(n-1))\)</span> d’où</p>
 <p><span class="math inline">\(\mathbb{E}(\frac{SCR}{\sigma_{r}^{2}})=nk-k=N-k\Leftrightarrow \mathbb{E}(\frac{SCR}{N-k})=\sigma_{r}^{2}\)</span></p>
 <p><span class="math inline">\(\frac{SCR}{N-k}\)</span> est un estimateur sans biais de <span class="math inline">\(\sigma_{r}^{2}\)</span></p>
 <p><strong>Cherchons à présent un estimateur de la variance de reproductibilité</strong></p>
@@ -501,7 +501,7 @@ plot(res)</code></pre>
 <p><span class="math inline">\(\mathbb{E}(\frac{SCF}{V(\bar{X_{i}})})=n(k-1)\Leftrightarrow\mathbb{E}(SCF)=n(k-1)V(\bar{X_{i}})\)</span></p>
 <p>Soit : <span class="math inline">\(\mathbb{E}(\frac{SCF}{k-1})=nV(\bar{X_{i}})=n(\sigma_{o}^{2}+\frac{1}{n}\sigma_{r}^{2})=n\sigma_{o}^{2}+\sigma_{r}^{2}\)</span></p>
 <p>on pose enfin <span class="math inline">\(CMF=\frac{SCF}{k-1}\)</span> et <span class="math inline">\(CMR=\frac{SCR}{N-k}\)</span></p>
-<p>et ainsi on calcule la statistique de Fisher <span class="math inline">\(F_{k-1,N-k}=\frac{\frac{SCF}{k-1}}{\frac{SCR}{N-k}}\)</span></p>
+<p>et ainsi on calcule la statistique de Fisher <span class="math inline">\(F_{k-1,N-k}=\frac{\frac{SCF}{k-1}}{\frac{SCR}{N-k}}\)</span></p><div style="border:1px solid #c55a11;background:#fff6ee;padding:8px 12px;margin:14px 0;border-radius:4px"><b>Version corrigée, novembre 2026.</b> Correction de la démonstration : la somme des carrés résiduelle s’écrit avec les écarts <span class="math inline">\(\epsilon_{ij}-\bar{\epsilon_{i}}\)</span> et non avec <span class="math inline">\(\epsilon_{ij}\)</span>. Les deux erreurs de la version de 2020 (cette écriture et le nombre de degrés de liberté) se compensaient : la conclusion, <span class="math inline">\(\mathbb{E}(SCR/(N-k))=\sigma_{r}^{2}\)</span>, et tous les résultats numériques restent inchangés.</div>
 </div>
 
 

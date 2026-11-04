@@ -1,0 +1,742 @@
+% L'analyse de la variance à plusieurs facteurs
+% S. Jaubert, novembre 2026. Compilation : xelatex (deux passes)
+\documentclass[11pt,a4paper]{article}
+\usepackage{polyglossia}
+\setmainlanguage{french}
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[a4paper,margin=2.6cm,headheight=14pt]{geometry}
+\usepackage{xcolor}
+\definecolor{bleu}{HTML}{1F4E79}
+\definecolor{orange}{HTML}{B4530F}
+\definecolor{vert}{HTML}{2E7D32}
+\usepackage{fancyhdr}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{booktabs,array,tabularx,multirow}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usepackage{caption}
+\captionsetup{font=small,labelfont={bf,color=bleu}}
+\usepackage[colorlinks=true,linkcolor=bleu,urlcolor=blue!60!black,citecolor=bleu]{hyperref}
+\usepackage{xurl}
+\usepackage{titlesec}
+\titleformat{\section}{\Large\bfseries\color{bleu}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{bleu}}{\thesubsection}{0.6em}{}
+
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\lhead{\small Statistique appliquée · analyse de la variance}
+\rhead{\small\nouppercase{\leftmark}}
+\lfoot{\scriptsize S. Jaubert · ANOVA à plusieurs facteurs}
+\cfoot{\thepage}
+\rfoot{\scriptsize Novembre 2026}
+
+\newtheoremstyle{sj}{6pt}{6pt}{\itshape}{}{\bfseries}{.}{0.5em}{}
+\theoremstyle{sj}
+\newtheorem{thm}{Théorème}
+\newtheorem{prop}[thm]{Propriété}
+\theoremstyle{definition}
+\newtheorem{defi}{Définition}
+\theoremstyle{remark}
+\newtheorem*{rem}{Remarque}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\V}{\mathbb{V}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\SC}{\mathrm{SC}}
+\newcommand{\CM}{\mathrm{CM}}
+\newcommand{\ybar}{\bar y}
+\newcommand{\dotp}{{\scriptscriptstyle\bullet}}
+
+\newtcolorbox{code}{colback=black!85,colframe=black!85,coltext=white,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fontupper=\footnotesize\ttfamily,breakable}
+\newtcolorbox{note}[1][]{colback=black!3,colframe=black!40,boxrule=0.5pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries\small,title={#1},breakable}
+\newtcolorbox{essentiel}[1][À retenir]{colback=bleu!6,colframe=bleu,boxrule=0.7pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries,title={#1},breakable}
+\newtcolorbox{attention}[1][Attention]{colback=orange!6,colframe=orange,boxrule=0.7pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries,title={#1},breakable}
+\providecommand{\og}{\guillemotleft\nobreakspace}
+\providecommand{\fg}{\nobreakspace\guillemotright}
+
+\newcommand{\nosp}[1]{{\XeTeXinterchartokenstate=0 #1}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\emergencystretch}{2em}
+\renewcommand{\arraystretch}{1.25}
+
+\begin{document}
+
+{\raggedright\Huge\bfseries\color{bleu} L'analyse de la variance\\[4pt] à plusieurs facteurs\par}
+\medskip
+{\large Modèles, décomposition des sommes de carrés, interactions, facteurs fixes et aléatoires\par}
+\medskip
+{\small S. Jaubert · novembre 2026 · exemples calculés et vérifiés avec R 4.3.3\par}
+
+\bigskip
+Ce document répond à trois questions. Que représente chaque terme de la relation
+\[
+\SC_T=\SC_A+\SC_B+\SC_{AB}+\SC_R \;?
+\]
+Que devient-elle avec un troisième facteur $C$ ? Peut-on négliger l'interaction $ABC$ ? Il pose les modèles, démontre les décompositions, donne les espérances des carrés moyens qui fixent les tests, et applique tout à trois jeux de données : des mesures de tension sur des batteries, la grille d'un flash mesure, un plan d'usinage à trois facteurs. Le document compagnon \emph{Gage R\&R et ANOVA} en est l'application à la qualification d'un processus de mesure.
+
+\textbf{Notations.} Comme dans les tables industrielles, $\N(\mu;\sigma)$ désigne la loi normale de moyenne $\mu$ et d'\emph{écart-type} $\sigma$. Un point en indice remplace un indice sur lequel on a fait la moyenne : $\ybar_{i\dotp\dotp}$ est la moyenne de toutes les observations du niveau $i$ de $A$, $\ybar_{\dotp\dotp\dotp}$ la moyenne générale. On note $\SC$ une somme de carrés d'écarts, $\nu$ son nombre de degrés de liberté (ddl) et $\CM=\SC/\nu$ le carré moyen.
+
+\tableofcontents
+
+% =====================================================================
+\section{Le vocabulaire et le rôle des facteurs}
+
+\begin{defi}
+Un \textbf{facteur} est une variable qualitative ou quantitative dont on fait varier la valeur dans l'expérience ; chacune de ses valeurs est un \textbf{niveau}. Une \textbf{cellule} est une combinaison de niveaux, une par facteur. La \textbf{réponse} $y$ est la grandeur mesurée. Une \textbf{répétition} est une nouvelle réalisation complète de l'essai dans la même cellule.
+\end{defi}
+
+\begin{attention}[Répétition ou simple mesure répétée]
+Mesurer trois fois de suite la même pièce sans la démonter n'est pas une répétition de l'essai : les trois valeurs partagent la même mise en place et ne sont pas indépendantes. Elles sous-estiment l'erreur expérimentale. Une vraie répétition refait tout ce qui varie d'un essai à l'autre (Burdick et al., chap.~4).
+\end{attention}
+
+Deux facteurs sont \textbf{croisés} quand chaque niveau de l'un est associé à chaque niveau de l'autre : chaque opérateur mesure chaque pièce. Un facteur $B$ est \textbf{emboîté} dans $A$ quand ses niveaux n'ont de sens qu'à l'intérieur d'un niveau de $A$ : les pièces d'un lot ne se retrouvent pas dans un autre lot. Ce document traite les plans croisés, complets et \textbf{équilibrés} (même nombre $r$ de répétitions dans chaque cellule).
+
+\subsection{Facteur fixe ou facteur aléatoire}
+
+La distinction ne tient pas au facteur lui-même mais à la question posée.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{l X X}
+\toprule
+& \textbf{Facteur fixe} & \textbf{Facteur aléatoire}\\
+\midrule
+Niveaux & choisis, ce sont eux qui intéressent & tirés au hasard dans une population de niveaux possibles\\
+Conclusion & porte sur ces niveaux-là & porte sur toute la population de niveaux\\
+Paramètre & des effets $\alpha_i$, avec $\sum\alpha_i=0$ & une variance $\sigma_A^2$\\
+Question & les moyennes diffèrent-elles ? & quelle part de la variance vient de ce facteur ?\\
+Exemple & trois outils de coupe à comparer & dix pièces prises dans la production\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Les mêmes données peuvent être analysées dans les deux modèles. Les sommes de carrés sont identiques ; ce sont les tests et les estimations qui changent (section~\ref{sec:aleatoire}).
+
+% =====================================================================
+\section{Rappel : un facteur}\label{sec:un}
+
+On dispose de $a$ niveaux et de $r$ observations par niveau. Le modèle s'écrit
+\[
+y_{ij}=\mu+\alpha_i+\varepsilon_{ij},\qquad \sum_{i=1}^a\alpha_i=0,\qquad \varepsilon_{ij}\ \text{indépendantes de loi}\ \N(0;\sigma).
+\]
+
+\begin{thm}[Décomposition à un facteur]
+\[
+\underbrace{\sum_{i,j}(y_{ij}-\ybar_{\dotp\dotp})^2}_{\SC_T}
+=\underbrace{r\sum_i(\ybar_{i\dotp}-\ybar_{\dotp\dotp})^2}_{\SC_A}
++\underbrace{\sum_{i,j}(y_{ij}-\ybar_{i\dotp})^2}_{\SC_R}.
+\]
+\end{thm}
+
+\begin{proof}
+On écrit $y_{ij}-\ybar_{\dotp\dotp}=(\ybar_{i\dotp}-\ybar_{\dotp\dotp})+(y_{ij}-\ybar_{i\dotp})$ et on développe le carré. Le double produit est nul : $\sum_{i,j}(\ybar_{i\dotp}-\ybar_{\dotp\dotp})(y_{ij}-\ybar_{i\dotp})=\sum_i(\ybar_{i\dotp}-\ybar_{\dotp\dotp})\sum_j(y_{ij}-\ybar_{i\dotp})$ et chaque somme intérieure vaut $0$ par définition de $\ybar_{i\dotp}$.
+\end{proof}
+
+Les ddl se partagent de la même façon : $ar-1=(a-1)+a(r-1)$. Sous l'hypothèse $H_0:\alpha_1=\dots=\alpha_a=0$, $F=\CM_A/\CM_R$ suit la loi de Fisher $\mathcal F(a-1;\,a(r-1))$.
+
+% =====================================================================
+\section{Deux facteurs croisés avec répétitions}\label{sec:deux}
+
+\subsection{Le modèle et le rôle de chaque terme}
+
+Le facteur $A$ a $a$ niveaux, le facteur $B$ en a $b$, et chaque cellule $(i,j)$ contient $r\ge2$ répétitions :
+\begin{equation}\label{eq:mod2}
+y_{ijk}=\mu+\alpha_i+\beta_j+(\alpha\beta)_{ij}+\varepsilon_{ijk},\qquad i\le a,\ j\le b,\ k\le r,
+\end{equation}
+avec, en modèle fixe, $\sum_i\alpha_i=\sum_j\beta_j=0$ et $\sum_i(\alpha\beta)_{ij}=\sum_j(\alpha\beta)_{ij}=0$, et des erreurs $\varepsilon_{ijk}$ indépendantes de loi $\N(0;\sigma)$.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{c X}
+\toprule
+\textbf{Terme} & \textbf{Ce qu'il représente}\\
+\midrule
+$\mu$ & le niveau moyen de la réponse sur tout le plan\\
+$\alpha_i$ & l'effet principal du niveau $i$ de $A$ : de combien ce niveau déplace la réponse, \emph{en moyenne sur les niveaux de $B$}\\
+$\beta_j$ & l'effet principal du niveau $j$ de $B$, en moyenne sur les niveaux de $A$\\
+$(\alpha\beta)_{ij}$ & l'interaction : ce que la cellule $(i,j)$ ajoute à la somme des deux effets principaux. Elle est nulle pour toutes les cellules si et seulement si l'effet de $A$ est le même à tous les niveaux de $B$\\
+$\varepsilon_{ijk}$ & l'erreur : ce qui varie d'une répétition à l'autre dans une même cellule\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{essentiel}[Lire une interaction]
+Sur le graphique des moyennes de cellules (une ligne par niveau de $B$, les niveaux de $A$ en abscisse), l'absence d'interaction se voit à des lignes parallèles : l'écart entre deux niveaux de $B$ est le même partout. Des lignes qui s'écartent ou se croisent signalent une interaction. On le vérifie ensuite par le test.
+\end{essentiel}
+
+\subsection{Les estimateurs et la décomposition}
+
+Les estimateurs des moindres carrés sont des contrastes de moyennes :
+\[
+\hat\mu=\ybar_{\dotp\dotp\dotp},\quad \hat\alpha_i=\ybar_{i\dotp\dotp}-\ybar_{\dotp\dotp\dotp},\quad \hat\beta_j=\ybar_{\dotp j\dotp}-\ybar_{\dotp\dotp\dotp},\quad \widehat{(\alpha\beta)}_{ij}=\ybar_{ij\dotp}-\ybar_{i\dotp\dotp}-\ybar_{\dotp j\dotp}+\ybar_{\dotp\dotp\dotp}.
+\]
+Tout écart à la moyenne générale se découpe exactement en quatre morceaux :
+\begin{equation}\label{eq:ecart}
+y_{ijk}-\ybar_{\dotp\dotp\dotp}=\underbrace{(\ybar_{i\dotp\dotp}-\ybar_{\dotp\dotp\dotp})}_{u_i}+\underbrace{(\ybar_{\dotp j\dotp}-\ybar_{\dotp\dotp\dotp})}_{v_j}+\underbrace{(\ybar_{ij\dotp}-\ybar_{i\dotp\dotp}-\ybar_{\dotp j\dotp}+\ybar_{\dotp\dotp\dotp})}_{w_{ij}}+\underbrace{(y_{ijk}-\ybar_{ij\dotp})}_{e_{ijk}}.
+\end{equation}
+
+\begin{thm}[Décomposition à deux facteurs]\label{thm:dec2}
+Dans un plan équilibré,
+\[
+\underbrace{\sum_{i,j,k}(y_{ijk}-\ybar_{\dotp\dotp\dotp})^2}_{\SC_T}
+=\underbrace{br\sum_i u_i^2}_{\SC_A}+\underbrace{ar\sum_j v_j^2}_{\SC_B}+\underbrace{r\sum_{i,j}w_{ij}^2}_{\SC_{AB}}+\underbrace{\sum_{i,j,k}e_{ijk}^2}_{\SC_R}.
+\]
+\end{thm}
+
+\begin{proof}
+On élève~\eqref{eq:ecart} au carré et on somme sur $i,j,k$. Les quatre carrés donnent les quatre termes annoncés, puisque $u_i$ ne dépend ni de $j$ ni de $k$ (d'où le facteur $br$), etc. Il reste à montrer que les six doubles produits sont nuls. Les sommes utiles sont
+\[
+\textstyle\sum_i u_i=0,\quad \sum_j v_j=0,\quad \sum_i w_{ij}=0\ \ \forall j,\quad \sum_j w_{ij}=0\ \ \forall i,\quad \sum_k e_{ijk}=0\ \ \forall (i,j).
+\]
+Les trois premières viennent de ce que les moyennes marginales sont les moyennes des moyennes de cellules (plan équilibré) ; par exemple $\sum_i w_{ij}=a\ybar_{\dotp j\dotp}-a\ybar_{\dotp\dotp\dotp}-a\ybar_{\dotp j\dotp}+a\ybar_{\dotp\dotp\dotp}=0$. La dernière est la définition de $\ybar_{ij\dotp}$. Alors :
+\begin{itemize}
+\item $\sum_{i,j,k}u_iv_j=r\big(\sum_iu_i\big)\big(\sum_jv_j\big)=0$ ;
+\item $\sum_{i,j,k}u_iw_{ij}=r\sum_iu_i\big(\sum_jw_{ij}\big)=0$, et de même $\sum v_jw_{ij}=0$ ;
+\item $\sum_{i,j,k}u_ie_{ijk}=\sum_iu_i\sum_j\big(\sum_ke_{ijk}\big)=0$, et de même pour $v_j$ et $w_{ij}$, qui ne dépendent pas de $k$.\qedhere
+\end{itemize}
+\end{proof}
+
+\begin{rem}
+La preuve utilise l'équilibre du plan. Si les cellules n'ont pas le même effectif, les morceaux ne sont plus orthogonaux, la décomposition n'est plus unique et le résultat dépend de l'ordre des facteurs (sommes de carrés de type I, II ou III, section~\ref{sec:deseq}).
+\end{rem}
+
+\textbf{Degrés de liberté.} On compte les quantités libres dans chaque morceau : $a$ valeurs $u_i$ liées par une relation, $b$ valeurs $v_j$ liées par une relation, $ab$ valeurs $w_{ij}$ liées par $a+b-1$ relations indépendantes, $abr$ valeurs $e_{ijk}$ liées par $ab$ relations :
+\[
+abr-1=(a-1)+(b-1)+(a-1)(b-1)+ab(r-1).
+\]
+
+\subsection{Lecture géométrique : le théorème de Pythagore}\label{sec:geo}
+
+La relation $\SC_T=\SC_A+\SC_B+\SC_{AB}+\SC_R$ est un théorème de Pythagore dans $\mathbb R^{abr}$. C'est la façon la plus économique d'en voir le principe.
+
+On range les $abr$ observations dans un vecteur $y$. On définit quatre sous-espaces de $\mathbb R^{abr}$ :
+\begin{center}
+\begin{tabular}{l l c}
+\toprule
+Sous-espace & Vecteurs $x=(x_{ijk})$ tels que & Dimension\\
+\midrule
+$V_A$ & $x_{ijk}$ ne dépend que de $i$, et $\sum_i x_{i}=0$ & $a-1$\\
+$V_B$ & $x_{ijk}$ ne dépend que de $j$, et $\sum_j x_{j}=0$ & $b-1$\\
+$V_{AB}$ & $x_{ijk}$ ne dépend que de $(i,j)$, sommes nulles en $i$ et en $j$ & $(a-1)(b-1)$\\
+$V_R$ & $\sum_k x_{ijk}=0$ dans chaque cellule & $ab(r-1)$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{prop}
+Dans un plan équilibré, ces quatre sous-espaces sont deux à deux orthogonaux et leur somme est l'orthogonal $\mathbf 1^\perp$ des vecteurs constants. Les vecteurs $u$, $v$, $w$, $e$ de~\eqref{eq:ecart} sont les projections orthogonales de $y$ sur $V_A$, $V_B$, $V_{AB}$, $V_R$.
+\end{prop}
+
+\begin{proof}
+L'orthogonalité est le calcul fait dans la démonstration du théorème~\ref{thm:dec2}. Les dimensions s'additionnent : $(a-1)+(b-1)+(a-1)(b-1)+ab(r-1)=abr-1=\dim\mathbf 1^\perp$, donc la somme directe remplit $\mathbf 1^\perp$. Enfin $y-\ybar_{\dotp\dotp\dotp}\mathbf 1=u+v+w+e$ avec chaque terme dans son sous-espace : par unicité de la décomposition en somme directe orthogonale, chaque terme est la projection de $y$.
+\end{proof}
+
+Trois conséquences se lisent alors sans calcul.
+\begin{itemize}[leftmargin=1.4em]
+\item \textbf{La relation des SC.} C'est $\|y-\ybar\mathbf 1\|^2=\|u\|^2+\|v\|^2+\|w\|^2+\|e\|^2$.
+\item \textbf{Les ddl.} Ce sont les dimensions des sous-espaces.
+\item \textbf{Les lois.} Si $\varepsilon\sim\N(0;\sigma^2 I)$ et $P$ est la projection sur un sous-espace de dimension $d$, alors $\|P\varepsilon\|^2/\sigma^2\sim\chi^2_d$. Les projections sur des sous-espaces orthogonaux sont indépendantes. C'est le théorème de Cochran utilisé pour les tests.
+\end{itemize}
+
+\begin{essentiel}
+Le rôle de chaque facteur est de définir un sous-espace. Un SC mesure la longueur au carré de la projection des données sur ce sous-espace. L'équilibre du plan garantit l'orthogonalité, donc l'additivité. Sans équilibre, $V_A$ et $V_B$ (définis à partir des cellules observées) ne sont plus orthogonaux et Pythagore ne s'applique plus (section~\ref{sec:deseq}).
+\end{essentiel}
+
+\subsection{Espérances des carrés moyens en modèle fixe}
+
+\begin{prop}\label{prop:EMSfixe}
+Dans le modèle fixe~\eqref{eq:mod2},
+\[
+\begin{aligned}
+\E(\CM_A)&=\sigma^2+\frac{br}{a-1}\sum_i\alpha_i^2, &\qquad
+\E(\CM_B)&=\sigma^2+\frac{ar}{b-1}\sum_j\beta_j^2,\\
+\E(\CM_{AB})&=\sigma^2+\frac{r}{(a-1)(b-1)}\sum_{i,j}(\alpha\beta)_{ij}^2, &\qquad
+\E(\CM_R)&=\sigma^2.
+\end{aligned}
+\]
+\end{prop}
+
+\begin{proof}[Démonstration pour $\CM_A$]
+Avec les contraintes, $\ybar_{i\dotp\dotp}-\ybar_{\dotp\dotp\dotp}=\alpha_i+(\bar\varepsilon_{i\dotp\dotp}-\bar\varepsilon_{\dotp\dotp\dotp})$, car les sommes des $\beta_j$ et des $(\alpha\beta)_{ij}$ sur $j$ sont nulles. Les $\bar\varepsilon_{i\dotp\dotp}$ sont $a$ moyennes indépendantes de $br$ erreurs, de variance $\sigma^2/(br)$ ; leur somme des carrés d'écarts à leur moyenne a pour espérance $(a-1)\sigma^2/(br)$. Le terme croisé est d'espérance nulle. D'où $\E(\SC_A)=br\big[\sum_i\alpha_i^2+(a-1)\sigma^2/(br)\big]$, et on divise par $a-1$. Les autres lignes se traitent de la même façon.
+\end{proof}
+
+\textbf{Tests.} Sous la normalité, le théorème de Cochran montre que les quatre sommes de carrés divisées par $\sigma^2$ sont des $\chi^2$ indépendants à $(a-1)$, $(b-1)$, $(a-1)(b-1)$ et $ab(r-1)$ ddl quand l'effet correspondant est nul. En modèle fixe, \textbf{les trois tests se font contre le résidu} :
+\[
+F_A=\frac{\CM_A}{\CM_R},\qquad F_B=\frac{\CM_B}{\CM_R},\qquad F_{AB}=\frac{\CM_{AB}}{\CM_R}.
+\]
+
+\begin{essentiel}[Ordre de lecture]
+On lit d'abord l'interaction. Si elle est significative, l'effet de $A$ dépend du niveau de $B$ : un effet principal \og moyen\fg{} a peu de sens, on compare les niveaux de $A$ à $B$ fixé. Si elle ne l'est pas, on interprète les effets principaux.
+\end{essentiel}
+
+\subsection{Exemple 1 : tension de batteries}\label{sec:ex1}
+
+Les données sont celles de la page \emph{R \& R Six Sigma} : $a=2$ voltmètres ($A$), $b=3$ batteries ($B$), $r=3$ mesures par couple, soit $18$ valeurs. On les analyse ici en modèle fixe : ces deux voltmètres, ces trois batteries.
+
+\begin{table}[h]
+\centering
+\caption{Moyennes de cellules et moyennes marginales (V)}
+\begin{tabular}{l c c c c}
+\toprule
+& Batterie 1 & Batterie 2 & Batterie 3 & $\ybar_{i\dotp\dotp}$\\
+\midrule
+Voltmètre 1 & 1,45623 & 1,50543 & 1,52047 & 1,49404\\
+Voltmètre 2 & 1,47273 & 1,61453 & 1,69300 & 1,59342\\
+\midrule
+$\ybar_{\dotp j\dotp}$ & 1,46448 & 1,55998 & 1,60673 & $\ybar_{\dotp\dotp\dotp}=1{,}543733$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.62\textwidth,height=5.2cm,xtick={1,2,3},xticklabels={Batterie 1,Batterie 2,Batterie 3},
+  ylabel={tension moyenne (V)},/pgf/number format/use comma,legend pos=north west,legend style={font=\small},ymin=1.42,ymax=1.72]
+\addplot[bleu,thick,mark=*] coordinates {(1,1.45623)(2,1.50543)(3,1.52047)};
+\addplot[orange,thick,mark=square*] coordinates {(1,1.47273)(2,1.61453)(3,1.69300)};
+\legend{Voltmètre 1,Voltmètre 2}
+\end{axis}
+\end{tikzpicture}
+\caption{Graphique d'interaction. Les lignes ne sont pas parallèles, mais avec $r=3$ l'écart reste du même ordre que le bruit : le test tranche.}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\caption{Tableau d'analyse de la variance, modèle fixe}
+\begin{tabular}{l r r r r r}
+\toprule
+Source & SC & ddl & CM & $F$ & $p$\\
+\midrule
+Voltmètres ($A$) & 0,044442 & 1 & 0,044442 & 2,81 & 0,120\\
+Batteries ($B$) & 0,063082 & 2 & 0,031541 & 1,99 & 0,179\\
+Interaction $AB$ & 0,018472 & 2 & 0,009236 & 0,58 & 0,573\\
+Résidu & 0,189821 & 12 & 0,015818 & &\\
+\midrule
+Total & 0,315817 & 17 & & &\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La somme $0{,}044442+0{,}063082+0{,}018472+0{,}189821$ redonne bien $0{,}315817$. Aucun effet n'est significatif à 5\,\% (seuils $F_{0,95}(1;12)=4{,}75$ et $F_{0,95}(2;12)=3{,}89$). La lecture physique est nette : l'écart-type de répétition, $\sqrt{0{,}015818}\approx0{,}126$~V, est plus grand que les écarts entre moyennes. Avec trois mesures par cellule, l'expérience ne peut pas séparer les batteries.
+
+\subsection{Le calcul dans Excel}
+
+Données en colonnes : voltmètre en \nosp{A2:A19}, batterie en \nosp{B2:B19}, tension en \nosp{C2:C19}. Les fonctions ci-dessous sont celles d'Excel en français.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{l X}
+\toprule
+\textbf{Grandeur} & \textbf{Formule}\\
+\midrule
+$\SC_T$ & \texttt{=SOMME.CARRES.ECARTS(C2:C19)}\\
+moyenne d'une cellule & \texttt{=MOYENNE.SI.ENS(\$C\$2:\$C\$19;\$A\$2:\$A\$19;1;\$B\$2:\$B\$19;2)}\\
+moyennes marginales & \texttt{=MOYENNE.SI(\$A\$2:\$A\$19;1;\$C\$2:\$C\$19)}, idem pour $B$\\
+$\SC_A$ & $b\,r\times$\texttt{SOMME.CARRES.ECARTS} des $a$ moyennes de $A$ (ici $9\times\dots$)\\
+$\SC_B$ & $a\,r\times$\texttt{SOMME.CARRES.ECARTS} des $b$ moyennes de $B$ (ici $6\times\dots$)\\
+$\SC_R$ & somme des \texttt{SOMME.CARRES.ECARTS} des $ab$ cellules\\
+$\SC_{AB}$ & $\SC_T-\SC_A-\SC_B-\SC_R$ (justifié par le théorème~\ref{thm:dec2})\\
+$p$ & \texttt{=LOI.F.DROITE(F;ddl1;ddl2)} ; seuil : \texttt{=INVERSE.LOI.F.DROITE(0,05;ddl1;ddl2)}\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+L'utilitaire d'analyse propose \og Anova : deux facteurs avec réplication\fg{}. Il calcule le même tableau, mais \textbf{seulement en modèle fixe} : tous les $F$ sont formés contre le résidu. Pour un modèle aléatoire ou mixte, il faut refaire les $F$ à la main (section suivante).
+
+\subsection{Le calcul dans R}
+
+\begin{code}
+bat <- data.frame(A = factor(rep(1:2, each = 9)), B = factor(rep(rep(1:3, each = 3), 2)),\\
+\hspace*{2em}y = c(1.4727,1.4206,1.4754,1.5083,1.5739,1.4341,1.5517,1.5483,1.4614,\\
+\hspace*{4em}1.3337,1.6078,1.4767,1.4066,1.5951,1.8419,1.7087,1.8259,1.5444))\\
+fit <- aov(y \textasciitilde{} A * B, data = bat)\ \ \ \# A * B = A + B + A:B\\
+summary(fit)\\
+with(bat, interaction.plot(B, A, y))\\
+model.tables(fit, "means")
+\end{code}
+
+% =====================================================================
+\section{Facteurs fixes, aléatoires ou mixtes}\label{sec:aleatoire}
+
+Quand $A$ et $B$ sont aléatoires, on remplace les effets par des variables aléatoires indépendantes : $\alpha_i\sim\N(0;\sigma_A)$, $\beta_j\sim\N(0;\sigma_B)$, $(\alpha\beta)_{ij}\sim\N(0;\sigma_{AB})$, indépendantes entre elles et des erreurs. Les sommes de carrés sont les mêmes ; leurs espérances changent.
+
+\begin{prop}[Modèle aléatoire à deux facteurs]\label{prop:EMSalea}
+\[
+\begin{aligned}
+\E(\CM_A)&=\sigma^2+r\sigma_{AB}^2+br\sigma_A^2, &\qquad
+\E(\CM_B)&=\sigma^2+r\sigma_{AB}^2+ar\sigma_B^2,\\
+\E(\CM_{AB})&=\sigma^2+r\sigma_{AB}^2, &\qquad
+\E(\CM_R)&=\sigma^2.
+\end{aligned}
+\]
+\end{prop}
+
+\begin{proof}[Démonstration pour $\CM_A$]
+Cette fois $\ybar_{i\dotp\dotp}-\ybar_{\dotp\dotp\dotp}=(\alpha_i-\bar\alpha)+\big(\overline{(\alpha\beta)}_{i\dotp}-\overline{(\alpha\beta)}_{\dotp\dotp}\big)+(\bar\varepsilon_{i\dotp\dotp}-\bar\varepsilon_{\dotp\dotp\dotp})$ : la moyenne des interactions sur $j$ n'est plus nulle, c'est une variable aléatoire de variance $\sigma_{AB}^2/b$. Les trois parties sont indépendantes ; chacune est l'écart à leur moyenne de $a$ variables indépendantes de variances $\sigma_A^2$, $\sigma_{AB}^2/b$ et $\sigma^2/(br)$. D'où $\E(\SC_A)=br(a-1)\big[\sigma_A^2+\sigma_{AB}^2/b+\sigma^2/(br)\big]$.
+\end{proof}
+
+\begin{essentiel}[Conséquence pour les tests]
+En modèle aléatoire, l'effet de $A$ se teste \textbf{contre l'interaction}, pas contre le résidu : sous $H_0:\sigma_A^2=0$, $\E(\CM_A)=\E(\CM_{AB})$, donc $F_A=\CM_A/\CM_{AB}$ suit $\mathcal F\big(a-1;(a-1)(b-1)\big)$. L'interaction se teste toujours contre le résidu.
+\end{essentiel}
+
+\textbf{Modèle mixte} ($A$ fixe, $B$ aléatoire, interaction aléatoire). Dans le modèle dit restreint (contrainte $\sum_i(\alpha\beta)_{ij}=0$ pour chaque $j$), on a $\E(\CM_A)=\sigma^2+r\sigma_{AB}^2+\frac{br}{a-1}\sum\alpha_i^2$ et $\E(\CM_B)=\sigma^2+ar\sigma_B^2$ : $A$ se teste contre $AB$, $B$ contre le résidu. Dans le modèle non restreint, $\E(\CM_B)$ contient aussi $r\sigma_{AB}^2$ et $B$ se teste contre $AB$. Les deux conventions coexistent dans les logiciels (Montgomery, \emph{Design and Analysis of Experiments}, chapitre sur les facteurs aléatoires) : il faut savoir laquelle est utilisée.
+
+\textbf{Estimation des composantes de variance.} On égale les carrés moyens observés à leurs espérances et on résout (méthode des moments, dite méthode ANOVA) :
+\[
+\hat\sigma^2=\CM_R,\quad \hat\sigma_{AB}^2=\frac{\CM_{AB}-\CM_R}{r},\quad \hat\sigma_A^2=\frac{\CM_A-\CM_{AB}}{br},\quad \hat\sigma_B^2=\frac{\CM_B-\CM_{AB}}{ar}.
+\]
+Ces estimateurs sont sans biais, mais peuvent être négatifs. Un estimateur négatif signale une composante probablement nulle ; l'usage est de la remplacer par $0$, ou de retirer le terme du modèle et de refaire l'analyse.
+
+\textbf{Exemple 1 en modèle aléatoire.} Si les deux voltmètres et les trois batteries étaient tirés de populations, les tests deviendraient $F_A=0{,}044442/0{,}009236=4{,}81$ avec $(1;2)$ ddl ($p=0{,}160$) et $F_B=0{,}031541/0{,}009236=3{,}41$ avec $(2;2)$ ddl ($p=0{,}227$). Les seuils à 5\,\% sont $18{,}5$ et $19{,}0$ : avec deux ddl au dénominateur, ces tests n'ont presque aucune puissance. Les composantes estimées valent $\hat\sigma^2=0{,}015818$, $\hat\sigma_{AB}^2=(0{,}009236-0{,}015818)/3<0$ (remplacée par $0$), $\hat\sigma_A^2=0{,}003912$, $\hat\sigma_B^2=0{,}003717$.
+
+\begin{attention}[Deux ou trois niveaux d'un facteur aléatoire]
+Estimer une variance à partir de deux voltmètres ou de trois batteries, c'est estimer un écart-type avec un ou deux ddl. Le chiffre obtenu est presque arbitraire. Un facteur aléatoire demande assez de niveaux ; c'est la principale critique à faire à l'exemple des batteries quand on le présente comme une étude R\&R.
+\end{attention}
+
+% =====================================================================
+\section{Deux facteurs sans répétition}\label{sec:sansrep}
+
+Avec $r=1$, chaque cellule ne contient qu'une observation : $y_{ij}=\ybar_{ij\dotp}$ et la somme $\SC_R$ du théorème~\ref{thm:dec2} est nulle. La relation devient
+\[
+\SC_T=\SC_A+\SC_B+\SC_{AB},
+\]
+et rien ne permet plus de séparer l'interaction de l'erreur. On adopte alors le \textbf{modèle additif} $y_{ij}=\mu+\alpha_i+\beta_j+\varepsilon_{ij}$, et $\SC_{AB}$ joue le rôle de résidu avec $(a-1)(b-1)$ ddl. Si une interaction existe, elle gonfle ce résidu : les tests deviennent prudents (ils rejettent moins souvent) et perdent de la puissance.
+
+\subsection{Le test d'additivité de Tukey}
+
+Tukey (1949) a proposé de récupérer \emph{un} ddl dans le résidu pour tester une forme particulière d'interaction, $(\alpha\beta)_{ij}=\lambda\,\alpha_i\beta_j$, la plus fréquente en pratique (effets multiplicatifs, échelle mal choisie). Avec $\hat\alpha_i=\ybar_{i\dotp}-\ybar_{\dotp\dotp}$ et $\hat\beta_j=\ybar_{\dotp j}-\ybar_{\dotp\dotp}$ :
+\[
+\SC_N=\frac{\big(\sum_{i,j}y_{ij}\hat\alpha_i\hat\beta_j\big)^2}{\sum_i\hat\alpha_i^2\,\sum_j\hat\beta_j^2},
+\]
+\[
+F_N=\frac{\SC_N}{(\SC_{AB}-\SC_N)/\big[(a-1)(b-1)-1\big]}\sim\mathcal F\big(1;(a-1)(b-1)-1\big)\ \text{sous l'additivité}.
+\]
+On obtient le même test en ajoutant au modèle additif la variable $\hat y_{ij}^2$ (carré des valeurs ajustées) : c'est la forme que donne R ci-dessous.
+
+\subsection{Exemple 2 : la grille d'un flash mesure}
+
+Sept étudiants ont mesuré au pied à coulisse au 1/50 le petit diamètre de cinq butées, une fois chacun : $a=7$ opérateurs ($O$), $b=5$ butées ($P$), $r=1$.
+
+\begin{table}[h]
+\centering
+\caption{Flash mesure : diamètres lus (mm)}
+\begin{tabular}{c c c c c c}
+\toprule
+Étudiant & Butée 1 & Butée 2 & Butée 3 & Butée 4 & Butée 5\\
+\midrule
+1 & 11,92 & 11,94 & 11,98 & 11,96 & 11,96\\
+2 & 11,94 & 11,92 & 11,92 & 11,94 & 11,94\\
+3 & 11,92 & 11,92 & 11,94 & 11,94 & 11,96\\
+4 & 11,94 & 11,90 & 11,92 & 11,96 & 11,96\\
+5 & 11,94 & 11,90 & 11,94 & 11,92 & 11,90\\
+6 & 11,94 & 11,92 & 11,94 & 11,96 & 11,94\\
+7 & 11,94 & 11,92 & 11,96 & 12,00 & \textbf{11,91}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Modèle additif, les deux facteurs testés contre le résidu}
+\begin{tabular}{l r r r r r}
+\toprule
+Source & SC & ddl & CM & $F$ & $p$\\
+\midrule
+Opérateurs & 0,003149 & 6 & 0,0005248 & 1,44 & 0,242\\
+Butées & 0,005154 & 4 & 0,0012886 & 3,53 & 0,021\\
+Résidu ($=\SC_{AB}$) & 0,008766 & 24 & 0,0003652 & &\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Le test de Tukey donne $\SC_N=0{,}000349$, $F_N=0{,}95$ avec $(1;23)$ ddl, $p=0{,}34$ : rien n'indique une interaction de forme multiplicative. Le modèle additif est acceptable.
+
+\textbf{Lecture.} L'écart-type résiduel vaut $\sqrt{0{,}0003652}\approx0{,}019$~mm. Il mélange la répétabilité du geste, l'arrondi au $0{,}02$~mm et une éventuelle interaction opérateur-butée, qu'on ne peut pas séparer sans répétition. L'effet des butées est à peine significatif : l'instrument voit mal les pièces. C'est exactement la question qu'une étude R\&R chiffre, avec des répétitions.
+
+\begin{attention}[Une valeur impossible]
+L'étudiant 7 a lu 11,91 sur la butée 5. Au 1/50, le centième est toujours pair : c'est une erreur de lecture ou de saisie. Si on la remplace par 11,92, le test des butées passe à $F=3{,}85$ ($p=0{,}015$) et celui des opérateurs à $F=1{,}65$ ($p=0{,}18$). Une seule valeur déplace les conclusions : il faut contrôler les données avant toute analyse.
+\end{attention}
+
+\begin{code}
+X <- matrix(c(11.92,11.94,11.98,11.96,11.96, 11.94,11.92,11.92,11.94,11.94,\\
+\hspace*{2em}11.92,11.92,11.94,11.94,11.96, 11.94,11.90,11.92,11.96,11.96,\\
+\hspace*{2em}11.94,11.90,11.94,11.92,11.90, 11.94,11.92,11.94,11.96,11.94,\\
+\hspace*{2em}11.94,11.92,11.96,12.00,11.91), nrow = 7, byrow = TRUE)\\
+fl <- data.frame(O = factor(rep(1:7, 5)), P = factor(rep(1:5, each = 7)), y = as.vector(X))\\
+f0 <- lm(y \textasciitilde{} O + P, data = fl); anova(f0)\\
+fl\$q <- fitted(f0)\textasciicircum2\ \ \ \# test de Tukey à 1 ddl\\
+anova(lm(y \textasciitilde{} O + P + q, data = fl))
+\end{code}
+
+% =====================================================================
+\section{Trois facteurs}\label{sec:trois}
+
+\subsection{Le modèle et la décomposition}
+
+Avec un troisième facteur $C$ à $c$ niveaux et $r$ répétitions par cellule :
+\[
+y_{ijkl}=\mu+\alpha_i+\beta_j+\gamma_k+(\alpha\beta)_{ij}+(\alpha\gamma)_{ik}+(\beta\gamma)_{jk}+(\alpha\beta\gamma)_{ijk}+\varepsilon_{ijkl}.
+\]
+Les termes nouveaux sont l'effet principal $\gamma_k$, deux interactions doubles $(\alpha\gamma)$, $(\beta\gamma)$ et l'\textbf{interaction triple} $(\alpha\beta\gamma)_{ijk}$ : elle est non nulle quand l'interaction $AB$ elle-même change selon le niveau de $C$.
+
+\begin{thm}[Décomposition à trois facteurs]
+Dans un plan complet équilibré,
+\[
+\SC_T=\SC_A+\SC_B+\SC_C+\SC_{AB}+\SC_{AC}+\SC_{BC}+\SC_{ABC}+\SC_R,
+\]
+avec, par exemple,
+\begin{align*}
+\SC_A&=bcr\sum_i(\ybar_{i\dotp\dotp\dotp}-\ybar_{\dotp\dotp\dotp\dotp})^2,\\
+\SC_{AB}&=cr\sum_{i,j}(\ybar_{ij\dotp\dotp}-\ybar_{i\dotp\dotp\dotp}-\ybar_{\dotp j\dotp\dotp}+\ybar_{\dotp\dotp\dotp\dotp})^2,\\
+\SC_{ABC}&=r\sum_{i,j,k}\big(\ybar_{ijk\dotp}-\ybar_{ij\dotp\dotp}-\ybar_{i\dotp k\dotp}-\ybar_{\dotp jk\dotp}\\&\hspace{6em}+\ybar_{i\dotp\dotp\dotp}+\ybar_{\dotp j\dotp\dotp}+\ybar_{\dotp\dotp k\dotp}-\ybar_{\dotp\dotp\dotp\dotp}\big)^2,\\
+\SC_R&=\sum_{i,j,k,l}(y_{ijkl}-\ybar_{ijk\dotp})^2.
+\end{align*}
+\end{thm}
+
+La démonstration est celle du théorème~\ref{thm:dec2} : l'écart à la moyenne générale se découpe en huit morceaux, et chaque double produit s'annule parce qu'un des deux facteurs somme à zéro sur un indice que l'autre ne contient pas. Le terme de l'interaction triple suit la règle d'inclusion-exclusion : on retire toutes les moyennes à deux indices, on rajoute celles à un indice, on retire la moyenne générale.
+
+\begin{table}[h]
+\centering
+\caption{Degrés de liberté et espérances des carrés moyens, modèle fixe}
+\begin{tabular}{l l l}
+\toprule
+Source & ddl & $\E(\CM)$\\
+\midrule
+$A$ & $a-1$ & $\sigma^2+\frac{bcr}{a-1}\sum\alpha_i^2$\\
+$AB$ & $(a-1)(b-1)$ & $\sigma^2+\frac{cr}{(a-1)(b-1)}\sum(\alpha\beta)_{ij}^2$\\
+$ABC$ & $(a-1)(b-1)(c-1)$ & $\sigma^2+\frac{r}{(a-1)(b-1)(c-1)}\sum(\alpha\beta\gamma)_{ijk}^2$\\
+Résidu & $abc(r-1)$ & $\sigma^2$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Les lignes $B$, $C$, $AC$, $BC$ s'écrivent par symétrie. En modèle fixe, les sept effets se testent contre le résidu. Avec $k$ facteurs, le modèle complet compte $2^k-1$ effets : $3$ pour deux facteurs, $7$ pour trois, $15$ pour quatre.
+
+\subsection{Et en modèle aléatoire ?}
+
+Avec trois facteurs aléatoires, l'espérance du carré moyen d'un effet principal contient trois interactions. Pour un plan pièces ($P$) $\times$ opérateurs ($O$) $\times$ autre facteur ($T$) :
+\[
+\E(\CM_P)=\sigma^2+r\sigma_{POT}^2+or\sigma_{PT}^2+tr\sigma_{PO}^2+otr\sigma_P^2
+\]
+(Burdick et al., tableau 8.17). \textbf{Aucun carré moyen n'a l'espérance qu'il faudrait au dénominateur} sous $H_0:\sigma_P^2=0$. On forme alors un quasi-$F$ par combinaison de carrés moyens, par exemple
+\[
+F'=\frac{\CM_P+\CM_{POT}}{\CM_{PO}+\CM_{PT}},
+\]
+dont les ddl se calculent par l'approximation de Satterthwaite : pour une combinaison $\sum_q\CM_q$, $\nu\approx\big(\sum_q\CM_q\big)^2\big/\sum_q\big(\CM_q^2/\nu_q\big)$. Sur les carrés moyens publiés par Burdick et al. (tableau 8.18 : $\CM_P=102{,}8$, $\CM_{PO}=1{,}074$, $\CM_{PT}=1{,}884$, $\CM_{POT}=0{,}4183$), on obtient $F'=34{,}9$ avec environ $(8{,}1\,;\,29{,}8)$ ddl.
+
+\subsection{Peut-on négliger l'interaction $ABC$ ?}\label{sec:abc}
+
+La réponse dépend du plan.
+
+\begin{enumerate}[leftmargin=1.4em]
+\item \textbf{Avec des répétitions ($r\ge2$)}, il n'y a aucune raison de la négliger a priori : $\SC_{ABC}$ et $\SC_R$ sont séparées, on teste $F_{ABC}=\CM_{ABC}/\CM_R$. Si elle est significative, aucune interaction double ne s'interprète seule.
+\item \textbf{Sans répétition ($r=1$)}, $\SC_R=0$ et la relation devient $\SC_T=\SC_A+\SC_B+\SC_C+\SC_{AB}+\SC_{AC}+\SC_{BC}+\SC_{ABC}$. On n'a pas le choix : $\SC_{ABC}$ sert d'estimation de l'erreur, avec $(a-1)(b-1)(c-1)$ ddl. Négliger $ABC$ n'est alors pas une décision statistique mais une \textbf{hypothèse de modèle}, à justifier.
+\end{enumerate}
+
+\textbf{Pourquoi l'hypothèse est souvent raisonnable.} Deux principes empiriques des plans d'expériences la soutiennent : la \emph{parcimonie} (peu d'effets sont importants) et la \emph{hiérarchie} (les effets principaux dominent les interactions doubles, qui dominent les triples). Ce sont des constats d'expérience, pas des théorèmes.
+
+\textbf{Ce qui se passe si elle est fausse.} En modèle fixe, si $ABC\ne0$, le carré moyen pris comme résidu surestime $\sigma^2$ : les tests rejettent moins souvent, ils restent \emph{prudents} (pas de faux effet créé), mais ils perdent de la puissance. Une simulation sur un plan $3\times3\times3$ sans répétition l'illustre ($\sigma=1$, 4\,000 tirages par case, graine 2026). L'effet $ABC$ est un motif fixe $k\,(\alpha\beta\gamma)_{ijk}$ qui respecte les contraintes de somme nulle, normé pour que $\sum(\alpha\beta\gamma)^2_{ijk}/8=1$. Le carré moyen pris comme résidu a donc pour espérance $1+k^2$.
+
+\begin{center}
+\begin{tabular}{l c c c}
+\toprule
+& $k=0$ & $k=1$ & $k=2$\\
+\midrule
+$\E(\CM_{ABC})$ & 1 & 2 & 5\\
+Rejet à tort, $A$ sans effet (risque 5\,\%) & 5,1\,\% & 0,9\,\% & 0,0\,\%\\
+Puissance, effet linéaire de $A$ (1 par niveau) & 88\,\% & 57\,\% & 5\,\%\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Regrouper d'autres interactions avec le résidu.} On peut aller plus loin et verser dans le résidu les interactions doubles non significatives, pour gagner des ddl. C'est légitime si la règle est fixée avant de voir les résultats, mais ce n'est jamais neutre : on teste ensuite les effets avec un résidu choisi d'après les données. L'exemple 3 le montre.
+
+\subsection{Exemple 3 : un plan d'usinage $3^3$ sans répétition}
+
+Le fichier \texttt{rugo\_vib.csv} donne la rugosité $Ra$ pour un plan complet à trois facteurs à trois niveaux, sans répétition : $D\in\{0{,}15;\,0{,}33;\,0{,}5\}$, $V\in\{140;\,210;\,280\}$, $f\in\{0{,}08;\,0{,}16;\,0{,}22\}$ (noms des colonnes du fichier ; probablement profondeur de passe, vitesse de coupe et avance). Il y a $27$ essais et $26$ ddl au total.
+
+\begin{table}[h]
+\centering
+\caption{Plan $3^3$, l'interaction triple sert de résidu (8 ddl)}
+\begin{tabular}{l r r r r r}
+\toprule
+Source & SC & ddl & CM & $F$ & $p$\\
+\midrule
+$D$ & 0,3874 & 2 & 0,1937 & 25,3 & 0,0003\\
+$V$ & 0,0876 & 2 & 0,0438 & 5,72 & 0,029\\
+$f$ & 4,9247 & 2 & 2,4624 & 321 & $<10^{-7}$\\
+$D\times V$ & 0,1059 & 4 & 0,0265 & 3,46 & 0,064\\
+$D\times f$ & 0,2062 & 4 & 0,0515 & 6,73 & 0,011\\
+$V\times f$ & 0,0995 & 4 & 0,0249 & 3,25 & 0,073\\
+$D\times V\times f$ (résidu) & 0,0613 & 8 & 0,0077 & &\\
+\midrule
+Total & 5,8726 & 26 & & &\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.62\textwidth,height=5.2cm,xtick={1,2,3},xticklabels={$f=0{,}08$,$f=0{,}16$,$f=0{,}22$},
+  ylabel={$Ra$ moyen},/pgf/number format/use comma,legend pos=north west,legend style={font=\small}]
+\addplot[bleu,thick,mark=*] coordinates {(1,1.047)(2,1.280)(3,1.890)};
+\addplot[orange,thick,mark=square*] coordinates {(1,1.200)(2,1.587)(3,2.133)};
+\addplot[vert,thick,mark=triangle*] coordinates {(1,1.073)(2,1.560)(3,2.393)};
+\legend{$D=0{,}15$,$D=0{,}33$,$D=0{,}5$}
+\end{axis}
+\end{tikzpicture}
+\caption{Interaction $D\times f$ : l'effet de l'avance grandit avec $D$.}
+\end{figure}
+
+\textbf{Lecture.} L'avance $f$ domine ($\SC_f$ représente 84\,\% de $\SC_T$) : $Ra$ moyen passe de 1,11 à 1,48 puis 2,14. L'interaction $D\times f$ est significative : l'effet de l'avance est plus fort aux grandes valeurs de $D$. Les résidus du modèle à interactions doubles ne contredisent pas la normalité (Shapiro-Wilk, $p=0{,}73$).
+
+\textbf{Effet du regroupement.} Si on verse $D\times V$ et $V\times f$ (non significatives à 5\,\%) dans le résidu, celui-ci passe à 16 ddl et $\CM_R=0{,}0167$. L'effet de $V$ n'est plus significatif ($F=2{,}63$, $p=0{,}10$, contre $p=0{,}029$ avant), et $D\times f$ devient limite ($p=0{,}046$). Les deux analyses sont défendables ; elles ne disent pas la même chose sur $V$. Il faut annoncer la règle de regroupement avant le calcul, et le dire dans le compte rendu.
+
+\begin{code}
+d <- read.csv2("rugo\_vib.csv")\\
+d\$D <- factor(d\$D); d\$V <- factor(d\$V); d\$f <- factor(d\$f)\\
+summary(aov(Ra \textasciitilde{} D * V * f, data = d))\ \ \ \# r = 1 : pas de résidu, pas de test\\
+summary(aov(Ra \textasciitilde{} (D + V + f)\textasciicircum2, data = d))\ \ \# ABC devient le résidu\\
+summary(aov(Ra \textasciitilde{} D + V + f + D:f, data = d))\ \ \# regroupement de DV et Vf
+\end{code}
+
+% =====================================================================
+\section[Plans déséquilibrés]{Plans déséquilibrés : sommes de carrés de types I, II et III}\label{sec:deseq}
+
+Une mesure perdue suffit à casser l'équilibre. Les sous-espaces des effets cessent d'être orthogonaux : la part de variation \og attribuée\fg{} à $A$ dépend de ce qu'on a déjà mis dans le modèle. On note $\SC(A\,|\,B)$ la diminution de la somme des carrés résiduelle quand on ajoute $A$ à un modèle qui contient déjà $B$.
+
+\begin{center}
+\begin{tabular}{l l p{4.6cm}}
+\toprule
+Type & SC de $A$ & Ce que cela teste\\
+\midrule
+I (séquentiel) & $\SC(A)$ si $A$ entre en premier & dépend de l'ordre\\
+II & $\SC(A\,|\,B)$ & $A$ ajusté sur $B$, sans l'interaction\\
+III & $\SC(A\,|\,B,AB)$ (contrastes à somme nulle) & $A$ ajusté sur tout le reste\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Exemple.} On retire deux des trois mesures de la cellule (voltmètre 1, batterie 1) dans l'exemple~1. Il reste 16 observations, $\SC_T=0{,}293253$.
+
+\begin{center}
+\begin{tabular}{l c c c c c}
+\toprule
+Source & ddl & Type I ($A$ puis $B$) & Type I ($B$ puis $A$) & Type II & Type III\\
+\midrule
+$A$ & 1 & 0,029011 & 0,047141 & 0,047141 & 0,029183\\
+$B$ & 2 & 0,060959 & 0,042829 & 0,060959 & 0,035224\\
+$AB$ & 2 & 0,015370 & 0,015370 & 0,015370 & 0,015370\\
+Résidu & 10 & 0,187913 & 0,187913 & 0,187913 & 0,187913\\
+\midrule
+Somme & 15 & 0,293253 & 0,293253 & 0,311383 & 0,267690\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Lecture.} Seul le type I respecte la relation $\SC_T=\sum\SC$, mais il change avec l'ordre. Les types II et III ne s'additionnent plus. Ici aucune conclusion ne bascule (toutes les $p$-valeurs dépassent 0,14), mais la part de $A$ varie de 0,029 à 0,047 selon la convention.
+
+\textbf{Quel type choisir ?}
+\begin{itemize}[leftmargin=1.4em]
+\item Si l'interaction est négligeable, le type II teste chaque effet principal au mieux : c'est le choix de Fox et Weisberg~[8] (principe de marginalité).
+\item Si l'interaction est forte, tester un effet principal \og en moyenne\fg{} a peu de sens, quel que soit le type. Le type III le fait quand même, ce qui est discuté dans la littérature.
+\item En R, \texttt{anova()} donne le type I. \texttt{car::Anova(fit, type = 2)} donne le type II. Le type III exige des contrastes à somme nulle, sinon le résultat est faux sans message d'erreur.
+\item L'utilitaire d'analyse d'Excel ne traite que les plans équilibrés : son outil \og avec réplication\fg{} demande le même nombre de lignes par échantillon~[6].
+\end{itemize}
+
+\begin{code}
+d <- bat[-c(1, 2), ]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \# plan déséquilibré\\
+anova(lm(y \textasciitilde{} A * B, d)); anova(lm(y \textasciitilde{} B * A, d))\ \ \# type I, deux ordres\\
+car::Anova(lm(y \textasciitilde{} A * B, d), type = 2)\\
+options(contrasts = c("contr.sum", "contr.poly"))\\
+car::Anova(lm(y \textasciitilde{} A * B, d), type = 3)
+\end{code}
+
+% =====================================================================
+\section{Vérifier les hypothèses}\label{sec:hyp}
+
+\begin{enumerate}[leftmargin=1.4em]
+\item \textbf{Indépendance.} Elle ne se teste pas après coup, elle se construit : ordre des essais tiré au hasard, vraies répétitions.
+\item \textbf{Normalité des erreurs.} Graphique quantile-quantile des résidus, test de Shapiro-Wilk. L'ANOVA à effectifs égaux est assez robuste à un écart modéré.
+\item \textbf{Égalité des variances.} Résidus en fonction des valeurs ajustées, tests de Bartlett ou de Levene. Une dispersion qui croît avec la moyenne appelle une transformation (logarithme, Box-Cox).
+\item \textbf{Plan équilibré.} Sans équilibre, les sommes de carrés dépendent de l'ordre des termes. Voir la section~\ref{sec:deseq}.
+\item \textbf{Résolution de la mesure.} Des valeurs arrondies créent des ex aequo : la normalité est alors approximative et l'erreur contient l'arrondi, d'écart-type $q/\sqrt{12}$ pour un pas $q$.
+\end{enumerate}
+
+% =====================================================================
+\section{Fiche méthode}\label{sec:fiche}
+
+\begin{essentiel}[Conduire une ANOVA à plusieurs facteurs]
+\begin{enumerate}[leftmargin=1.4em,itemsep=2pt]
+\item \textbf{Avant l'essai.} Lister les facteurs, leurs niveaux, et décider pour chacun : fixe ou aléatoire. Fixer le nombre de vraies répétitions. Tirer l'ordre des essais au hasard.
+\item \textbf{Écrire le modèle.} Effets principaux, interactions, erreur. Si $r=1$, choisir dès maintenant l'interaction qui servira de résidu.
+\item \textbf{Calculer les SC et les ddl.} Vérifier que les SC s'additionnent (plan équilibré) et que les ddl totalisent $N-1$.
+\item \textbf{Choisir les dénominateurs.} Lire les espérances des carrés moyens : on divise par le carré moyen qui a la même espérance sous $H_0$. En modèle fixe, c'est le résidu. En modèle aléatoire, c'est souvent une interaction.
+\item \textbf{Lire d'abord l'interaction la plus haute.} Si elle est significative, interpréter cellule par cellule ; sinon, passer aux effets d'ordre inférieur.
+\item \textbf{Contrôler les résidus.} Normalité, variances, valeurs aberrantes, effet de la résolution.
+\item \textbf{Annoncer les choix.} Modèle, type de SC, règle de regroupement, données écartées.
+\end{enumerate}
+\end{essentiel}
+
+% =====================================================================
+\section{Exercices corrigés}\label{sec:exos}
+
+\textbf{Exercice 1 (préparer une étude R\&R).} Dix pièces ($P$) sont mesurées deux fois par trois opérateurs ($O$). Les deux facteurs sont aléatoires.
+\begin{enumerate}[label=\alph*),leftmargin=1.6em]
+\item Donner les ddl de chaque ligne du tableau d'ANOVA.
+\item Contre quel carré moyen teste-t-on l'effet opérateur ?
+\end{enumerate}
+
+\emph{Corrigé.} a) $P$ : 9 ; $O$ : 2 ; $PO$ : $9\times2=18$ ; résidu : $10\times3\times(2-1)=30$ ; total : $59=60-1$. b) D'après la propriété~\ref{prop:EMSalea}, $\E(\CM_O)=\sigma^2+r\sigma_{PO}^2+pr\,\sigma_O^2$. Sous $H_0:\sigma_O^2=0$ cette espérance est celle de $\CM_{PO}$. On calcule donc $F=\CM_O/\CM_{PO}$, à $(2;18)$ ddl. Avec seulement 2 ddl au numérateur, ce test est peu puissant : c'est un défaut de plan, pas de calcul.
+
+\textbf{Exercice 2 (modèle mixte).} Trois machines (fixe) et quatre régleurs tirés au hasard (aléatoire), deux pièces par couple. Donner les ddl et le dénominateur de chaque test dans le modèle restreint, puis dans le modèle non restreint.
+
+\emph{Corrigé.} ddl : machines 2, régleurs 3, interaction 6, résidu $12\times1=12$, total 23. Machines : contre l'interaction, à $(2;6)$ ddl, dans les deux modèles. Interaction : contre le résidu, à $(6;12)$ ddl. Régleurs : contre le résidu à $(3;12)$ ddl dans le modèle restreint ; contre l'interaction à $(3;6)$ ddl dans le modèle non restreint (section~\ref{sec:aleatoire}).
+
+\textbf{Exercice 3 (trois facteurs aléatoires).} On ajoute un troisième facteur à l'exercice 1 : deux instruments ($T$). Chaque combinaison pièce, opérateur, instrument est mesurée deux fois.
+\begin{enumerate}[label=\alph*),leftmargin=1.6em]
+\item Combien d'effets et quels ddl ?
+\item Quels effets ont un test $F$ exact ?
+\end{enumerate}
+
+\emph{Corrigé.} a) Sept effets plus le résidu : $P$ 9, $O$ 2, $T$ 1, $PO$ 18, $PT$ 9, $OT$ 2, $POT$ 18, résidu $60\times1=60$ ; total $119=120-1$. b) $POT$ se teste contre le résidu. Chaque interaction double se teste contre $POT$ : par exemple $\E(\CM_{PO})=\sigma^2+r\sigma^2_{POT}+tr\sigma^2_{PO}$. Les effets principaux n'ont pas de test exact : il faut un quasi-$F$ (section~\ref{sec:trois}). Quatre effets ont donc un test exact. Avec 1 ddl pour $T$, l'estimation de $\sigma_T^2$ est de toute façon illusoire.
+
+\textbf{Exercice 4 (sans répétition).} Dans l'exemple 2 ($r=1$, opérateurs et butées aléatoires), que vaut l'espérance du carré moyen résiduel ? Que peut-on en conclure sur la répétabilité ?
+
+\emph{Corrigé.} Le résidu est l'interaction : $\E(\CM_{PO})=\sigma^2+\sigma^2_{PO}$. L'estimation $0{,}0003652$ mélange la répétabilité et l'interaction. Elle majore la variance de répétabilité, sans pouvoir la séparer. Il faut des répétitions pour aller plus loin.
+
+\textbf{Exercice 5 (géométrie).} Montrer que $\dim V_{AB}=(a-1)(b-1)$.
+
+\emph{Corrigé.} Un vecteur de $V_{AB}$ est déterminé par un tableau $(w_{ij})$ de taille $a\times b$ à sommes nulles en ligne et en colonne. On choisit librement les $(a-1)(b-1)$ valeurs $w_{ij}$, $i<a$, $j<b$. La dernière colonne est imposée par les sommes en ligne, la dernière ligne par les sommes en colonne. La case $(a,b)$ reçoit deux définitions, qui coïncident : toutes deux valent $\sum_{i<a,\,j<b}w_{ij}$. L'application qui envoie le tableau sur ses valeurs libres est donc une bijection linéaire, d'où la dimension.
+
+% =====================================================================
+\section[Ce qui change par rapport aux anciennes pages]{Ce qui change par rapport aux pages ANOVA et R\&R Six Sigma}
+
+\begin{enumerate}[leftmargin=1.4em]
+\item \textbf{Fixe ou aléatoire.} La page R\&R affiche d'abord des $F$ calculés contre le résidu (modèle fixe), puis utilise les espérances du modèle aléatoire pour estimer les composantes. Les deux ne vont pas ensemble : dans le modèle aléatoire, les effets principaux se testent contre l'interaction (section~\ref{sec:aleatoire}). C'est ce que fait le paquet \texttt{SixSigma} ($F=3{,}415$ et $4{,}812$).
+\item \textbf{Modèle complet ou réduit.} Le calcul à la main garde l'interaction, le paquet la retire : les composantes diffèrent sans que la page dise pourquoi. La règle de retrait doit être explicite.
+\item \textbf{Nombre de niveaux.} Deux voltmètres et trois batteries ne permettent pas d'estimer des variances (section~\ref{sec:aleatoire}).
+\item \textbf{La page ANOVA} traite les opérateurs comme seul facteur alors que les pièces varient aussi : l'effet pièces gonfle le résidu. Sa démonstration de l'espérance de $\SC_R$ a été corrigée en novembre 2026.
+\end{enumerate}
+
+% =====================================================================
+\section{Sources}
+
+\begin{enumerate}[label={[\arabic*]},leftmargin=2.2em,itemsep=3pt]
+\item R. K. Burdick, C. M. Borror, D. C. Montgomery, \emph{Design and Analysis of Gauge R\&R Studies: Making Decisions with Confidence Intervals in Random and Mixed ANOVA Models}, ASA-SIAM, 2005. Annexe A (ANOVA), chapitre 4 (principes des plans), section 8.4 et tableaux 8.17 et 8.18 (trois facteurs aléatoires).
+\item D. C. Montgomery, \emph{Design and Analysis of Experiments}, Wiley, 8\textsuperscript{e} édition, 2013. Plans factoriels, modèles fixes, aléatoires et mixtes (restreint et non restreint).
+\item J. W. Tukey, \og One degree of freedom for non-additivity\fg{}, \emph{Biometrics}, vol.~5, 1949, p.~232-242.
+\item F. E. Satterthwaite, \og An approximate distribution of estimates of variance components\fg{}, \emph{Biometrics Bulletin}, vol.~2, 1946, p.~110-114.
+\item S. R. Searle, G. Casella, C. E. McCulloch, \emph{Variance Components}, Wiley, 1992. Méthode ANOVA d'estimation des composantes et estimations négatives.
+\item Microsoft, \og Utiliser l'utilitaire d'analyse pour effectuer des analyses de données complexes\fg{} : outils \og Anova : un facteur\fg{}, \og Anova : deux facteurs avec réplication\fg{}, \og Anova : deux facteurs sans réplication\fg{}. \url{https://support.microsoft.com/fr-fr/Excel/use-the-analysis-toolpak-to-perform-complex-data-analysis}
+\item S. Jaubert, \emph{R \& R Six Sigma} (2021) et \emph{Test F pour une ANOVA à un facteur} (2020, corrigé en 2026), \url{https://sjaubert.github.io/SPCR/}. Données de l'exemple 1.
+\item J. Fox, S. Weisberg, \emph{An R Companion to Applied Regression}, Sage, 3\textsuperscript{e} édition, 2019. Paquet \texttt{car}, sommes de carrés de types II et III.
+\end{enumerate}
+
+\textbf{Reproductibilité des calculs.} Tous les nombres de ce document ont été calculés avec R 4.3.3 (scripts joints : \texttt{anova\_exemples.R}, \texttt{sim\_abc.R}) et recoupés par le calcul direct des formules du document pour les sommes de carrés. La simulation de la section~\ref{sec:abc} utilise la graine 2026 (script \texttt{sim\_abc.R}).
+
+\end{document}

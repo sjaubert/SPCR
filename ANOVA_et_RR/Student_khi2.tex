@@ -1,0 +1,584 @@
+% Pourquoi Student pour la moyenne, pourquoi le khi-deux pour l'écart-type
+% S. Jaubert, novembre 2026. Compilation : xelatex (deux passes)
+\documentclass[11pt,a4paper]{article}
+\usepackage{polyglossia}
+\setmainlanguage{french}
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[a4paper,margin=2.6cm,headheight=14pt]{geometry}
+\usepackage{xcolor}
+\definecolor{bleu}{HTML}{1F4E79}
+\definecolor{orange}{HTML}{B4530F}
+\definecolor{vert}{HTML}{2E7D32}
+\usepackage{fancyhdr}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{booktabs,array,tabularx,multirow}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usepackage{caption}
+\captionsetup{font=small,labelfont={bf,color=bleu}}
+\usepackage[colorlinks=true,linkcolor=bleu,urlcolor=blue!60!black,citecolor=bleu]{hyperref}
+\usepackage{xurl}
+\usepackage{titlesec}
+\titleformat{\section}{\Large\bfseries\color{bleu}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{bleu}}{\thesubsection}{0.6em}{}
+
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\lhead{\small Statistique appliquée · estimation}
+\rhead{\small\nouppercase{\leftmark}}
+\lfoot{\scriptsize S. Jaubert · Student et khi-deux}
+\cfoot{\thepage}
+\rfoot{\scriptsize Novembre 2026}
+
+\newtheoremstyle{sj}{6pt}{6pt}{\itshape}{}{\bfseries}{.}{0.5em}{}
+\theoremstyle{sj}
+\newtheorem{thm}{Théorème}
+\newtheorem{prop}[thm]{Propriété}
+\theoremstyle{definition}
+\newtheorem{defi}{Définition}
+\theoremstyle{remark}
+\newtheorem*{rem}{Remarque}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\V}{\mathbb{V}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\SC}{\mathrm{SC}}
+\newcommand{\CM}{\mathrm{CM}}
+\newcommand{\ybar}{\bar y}
+\newcommand{\dotp}{{\scriptscriptstyle\bullet}}
+
+\newtcolorbox{code}{colback=black!85,colframe=black!85,coltext=white,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fontupper=\footnotesize\ttfamily,breakable}
+\newtcolorbox{note}[1][]{colback=black!3,colframe=black!40,boxrule=0.5pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries\small,title={#1},breakable}
+\newtcolorbox{essentiel}[1][À retenir]{colback=bleu!6,colframe=bleu,boxrule=0.7pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries,title={#1},breakable}
+\newtcolorbox{attention}[1][Attention]{colback=orange!6,colframe=orange,boxrule=0.7pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries,title={#1},breakable}
+\providecommand{\og}{\guillemotleft\nobreakspace}
+\providecommand{\fg}{\nobreakspace\guillemotright}
+
+\newcommand{\nosp}[1]{{\XeTeXinterchartokenstate=0 #1}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\emergencystretch}{2em}
+\renewcommand{\arraystretch}{1.25}
+
+\newcommand{\Xb}{\overline{X}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\chid}{\chi^2}
+
+\begin{document}
+
+{\raggedright\Huge\bfseries\color{bleu} Pourquoi Student pour la moyenne,\\[4pt] pourquoi le khi-deux pour l'écart-type\par}
+\medskip
+{\large Intervalles de confiance d'une loi normale : les raisons, les démonstrations, les limites\par}
+\medskip
+{\small S. Jaubert · novembre 2026 · nombres calculés avec R 4.3.3\par}
+
+\bigskip
+\begin{essentiel}[La réponse en quatre phrases]
+\begin{enumerate}[leftmargin=1.4em,itemsep=1pt]
+\item Pour construire un intervalle de confiance, il faut une quantité qui relie les données au paramètre et dont la loi est connue \emph{sans connaître aucun paramètre} : un pivot.
+\item Pour $\sigma$, ce pivot est $(n-1)S^2/\sigma^2$, et sa loi est celle du khi-deux à $n-1$ ddl (théorème de Fisher).
+\item Pour $\mu$, le pivot naturel $(\Xb-\mu)/(\sigma/\sqrt n)$ contient $\sigma$, inconnu. En remplaçant $\sigma$ par $S$, on obtient $(\Xb-\mu)/(S/\sqrt n)$ : $\sigma$ s'élimine, et la loi obtenue est celle de Student.
+\item La loi de Student est donc fille du khi-deux. Les deux reposent sur la normalité, mais l'intervalle de Student y résiste bien, celui du khi-deux très mal.
+\end{enumerate}
+\end{essentiel}
+
+Ce document prolonge \emph{Petits développements autour des estimateurs statistiques}~[10], qui établit $\E(\Xb)=\mu$, $\V(\Xb)=\sigma^2/n$, l'estimateur sans biais $S^2$ et la constante $c_4$. On ne refait pas ces calculs, on s'en sert.
+
+\textbf{Notations.} $\N(\mu;\sigma)$ est la loi normale de moyenne $\mu$ et d'écart-type $\sigma$. $\varphi$ et $\Phi$ sont la densité et la fonction de répartition de $\N(0;1)$. Dans tout le document,
+\[
+\Xb=\frac1n\sum_{i=1}^nX_i,\qquad S^2=\frac{1}{n-1}\sum_{i=1}^n(X_i-\Xb)^2,\qquad \nu=n-1.
+\]
+$S^2$ est l'estimateur sans biais noté $S^2_{n-1}$ dans~[10]. $z_p$, $t_{p;\nu}$, $\chid_{p;\nu}$ désignent les quantiles d'ordre $p$ des lois $\N(0;1)$, de Student et du khi-deux.
+
+\tableofcontents
+\clearpage
+
+% =====================================================================
+\section{Rappels}\label{sec:rappels}
+
+\subsection{Population, échantillon, estimateur}
+
+\begin{center}
+\small
+\begin{tabular}{l >{\raggedright\arraybackslash}p{5.2cm} >{\raggedright\arraybackslash}p{5.2cm}}
+\toprule
+Notion & Définition & Exemple : diamètre de butées\\
+\midrule
+Population & l'ensemble des pièces que le procédé produit, dans des conditions stables & toutes les butées d'une série\\
+Paramètre & un nombre qui décrit la population, fixe et inconnu & $\mu$, $\sigma$\\
+Échantillon & $n$ pièces tirées de la population & 5 butées mesurées\\
+Estimateur & une formule appliquée à l'échantillon : c'est une variable aléatoire & $\Xb$, $S$\\
+Estimation & la valeur de l'estimateur sur un échantillon donné & $\bar x=11{,}864$, $s=0{,}0152$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Majuscules pour les variables aléatoires ($\Xb$, $S$), minuscules pour les valeurs observées ($\bar x$, $s$). La distinction compte : on calcule des probabilités sur $\Xb$, jamais sur $\bar x$, qui est un nombre.
+
+\subsection{L'hypothèse qui porte tout}
+
+Tout ce qui suit suppose $X_1,\dots,X_n$ \textbf{indépendantes et de même loi}. Ce n'est pas une formalité. Le fichier \texttt{diametre\_butee.txt} du dépôt SPCR contient dix prélèvements de cinq butées. Leurs moyennes montent de 11,864 à 12,006 ; une ANOVA à un facteur donne $F=24{,}1$ ($p=2\cdot10^{-13}$). Les cinquante valeurs ne viennent donc pas d'une même loi. Leur écart-type global vaut 0,047, alors que l'écart-type à l'intérieur des prélèvements vaut 0,021. Un intervalle de confiance calculé sur les cinquante valeurs mélangées n'aurait aucun sens. Dans la suite, on travaille sur le premier prélèvement seul :
+\[
+11{,}87\quad 11{,}86\quad 11{,}84\quad 11{,}88\quad 11{,}87\qquad(n=5,\ \bar x=11{,}864,\ s=0{,}015166).
+\]
+
+\subsection{Qu'est-ce qu'un intervalle de confiance ?}
+
+\begin{defi}
+Un intervalle de confiance de niveau $1-\alpha$ pour un paramètre $\theta$ est un intervalle $[L;U]$ dont les bornes sont des \emph{variables aléatoires}, fonctions de l'échantillon, telles que $\P(L\le\theta\le U)=1-\alpha$ quelle que soit la valeur de $\theta$.
+\end{defi}
+
+La probabilité porte sur la \emph{méthode}, pas sur le résultat. Une fois les mesures faites, $[\ell;u]$ est un intervalle de nombres : il contient $\mu$ ou non, sans probabilité. Dire \og $\mu$ a 95\,\% de chances d'être entre 11,845 et 11,883\fg{} est faux en statistique classique. Il faut dire : \og cet intervalle a été produit par une méthode qui, répétée, encadre $\mu$ dans 95\,\% des cas\fg{}. La figure~\ref{fig:ic} le montre.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=12.5cm,height=6.2cm,xmin=8.9,xmax=11.3,ymin=0,ymax=41,ytick=\empty,
+  xlabel={valeurs},ylabel={échantillon n\textsuperscript{o}},tick label style={font=\small},
+  extra x ticks={10},extra x tick style={grid=major,grid style={black!60,dashed}}]
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(8.803,1) (10.036,1)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.031,2) (10.556,2)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.778,3) (11.361,3)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.574,4) (10.529,4)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.426,5) (10.742,5)};
+\addplot[orange,very thick,mark=|,mark size=1.2pt] coordinates {(9.003,6) (9.837,6)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(8.96,7) (10.246,7)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.689,8) (11.06,8)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.18,9) (11.071,9)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(8.778,10) (10.378,10)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.064,11) (10.663,11)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.039,12) (10.705,12)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.662,13) (11.293,13)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.715,14) (11.097,14)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.343,15) (10.683,15)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.823,16) (10.692,16)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.324,17) (10.442,17)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.299,18) (10.601,18)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.912,19) (10.977,19)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.205,20) (10.892,20)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.223,21) (10.761,21)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.753,22) (11.108,22)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(8.955,23) (10.423,23)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.41,24) (10.99,24)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.692,25) (10.716,25)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.529,26) (10.704,26)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.505,27) (10.667,27)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.509,28) (10.55,28)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.298,29) (10.694,29)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.756,30) (10.787,30)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.374,31) (10.65,31)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(8.417,32) (10.443,32)};
+\addplot[orange,very thick,mark=|,mark size=1.2pt] coordinates {(10.192,33) (11.213,33)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(8.988,34) (10.175,34)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.924,35) (10.84,35)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.019,36) (10.486,36)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(8.882,37) (10.702,37)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.364,38) (10.849,38)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(9.202,39) (10.319,39)};
+\addplot[bleu,thick,mark=|,mark size=1.2pt] coordinates {(8.704,40) (10.721,40)};
+\end{axis}
+\end{tikzpicture}
+\caption{Quarante échantillons de taille 10 tirés de $\N(10;1)$, et l'intervalle de Student à 95\,\% de chacun. 38 encadrent $\mu=10$ (bleu), 2 le manquent (orange). Graine 2026.}\label{fig:ic}
+\end{figure}
+
+\subsection{La méthode du pivot}
+
+\begin{defi}
+Un \textbf{pivot} est une fonction $Q(X_1,\dots,X_n;\theta)$ des observations et du paramètre cherché, dont la loi est entièrement connue : elle ne dépend d'aucun paramètre inconnu.
+\end{defi}
+
+Si $Q$ est un pivot et $q_{\alpha/2}$, $q_{1-\alpha/2}$ ses quantiles, alors $\P(q_{\alpha/2}\le Q\le q_{1-\alpha/2})=1-\alpha$. Il reste à \og retourner\fg{} l'encadrement pour isoler $\theta$. \textbf{Toute la question du document est donc : quel pivot pour $\mu$, quel pivot pour $\sigma$ ?} La loi de Student et celle du khi-deux sont simplement les lois de ces deux pivots.
+
+% =====================================================================
+\section{Si $\sigma$ était connu}\label{sec:z}
+
+Si les $X_i$ sont de loi $\N(\mu;\sigma)$, alors $\Xb\sim\N(\mu;\sigma/\sqrt n)$~[10], donc
+\[
+Z=\frac{\Xb-\mu}{\sigma/\sqrt n}\sim\N(0;1).
+\]
+Si $\sigma$ est connu, $Z$ est un pivot, et $\P(-z_{1-\alpha/2}\le Z\le z_{1-\alpha/2})=1-\alpha$ donne
+\[
+\Xb-z_{1-\alpha/2}\frac{\sigma}{\sqrt n}\le\mu\le\Xb+z_{1-\alpha/2}\frac{\sigma}{\sqrt n},\qquad z_{0{,}975}=1{,}960.
+\]
+\textbf{Le problème.} $\sigma$ est presque toujours inconnu. La tentation est de remplacer $\sigma$ par $s$ et de garder 1,96. Mais $(\Xb-\mu)/(S/\sqrt n)$ n'est plus de loi normale : $S$ est aléatoire et varie d'un échantillon à l'autre. Quand $S$ tombe sous $\sigma$, l'intervalle est trop étroit. Le taux de couverture réel de cette méthode est plus bas que 95\,\% :
+\begin{center}
+\begin{tabular}{l c c c c}
+\toprule
+$n$ & 5 & 10 & 30 & 100\\
+\midrule
+Couverture de $\bar x\pm1{,}96\,s/\sqrt n$ & 88,0\,\% & 92,1\,\% & 94,2\,\% & 94,8\,\%\\
+\bottomrule
+\end{tabular}
+\end{center}
+(simulation, $2\cdot10^4$ tirages). Pour $n=5$, la valeur exacte est $2F_T(1{,}96)-1=87{,}8\,\%$, où $F_T$ est la fonction de répartition de Student à 4 ddl (section~\ref{sec:student}). Il faut donc la loi exacte de $(\Xb-\mu)/(S/\sqrt n)$. Elle passe par la loi de $S^2$, c'est-à-dire par le khi-deux.
+
+% =====================================================================
+\section{La loi du khi-deux}\label{sec:khi2}
+
+\subsection{Définition et premiers moments}
+
+\begin{defi}
+Si $Z_1,\dots,Z_\nu$ sont indépendantes de loi $\N(0;1)$, la loi de $K=Z_1^2+\dots+Z_\nu^2$ est la loi du khi-deux à $\nu$ degrés de liberté, notée $\chid(\nu)$.
+\end{defi}
+
+Comme $\E(Z^2)=1$ et $\E(Z^4)=3$, on a $\V(Z^2)=2$. Par indépendance, $\E(K)=\nu$ et $\V(K)=2\nu$.
+
+\subsection{Sa densité}
+
+\begin{prop}
+$\chid(\nu)$ a pour densité $f_\nu(t)=\dfrac{t^{\nu/2-1}e^{-t/2}}{2^{\nu/2}\,\Gamma(\nu/2)}$ pour $t>0$.
+\end{prop}
+
+\begin{proof}
+On utilise la fonction génératrice des moments $M(u)=\E(e^{uK})$, qui caractérise la loi. Pour $u<1/2$,
+\[
+\E\big(e^{uZ^2}\big)=\int_{-\infty}^{+\infty}\frac{1}{\sqrt{2\pi}}e^{-(1-2u)z^2/2}\dd z=\frac{1}{\sqrt{1-2u}},
+\]
+en reconnaissant l'intégrale d'une densité normale d'écart-type $1/\sqrt{1-2u}$. Par indépendance, $M_K(u)=(1-2u)^{-\nu/2}$. D'autre part, avec le changement de variable $t=2w/(1-2u)$ et $\int_0^{+\infty}w^{\nu/2-1}e^{-w}\dd w=\Gamma(\nu/2)$,
+\[
+\int_0^{+\infty}e^{ut}f_\nu(t)\dd t=\frac{1}{2^{\nu/2}\Gamma(\nu/2)}\int_0^{+\infty}t^{\nu/2-1}e^{-(1-2u)t/2}\dd t
+\]
+\[
+=\frac{1}{2^{\nu/2}\Gamma(\nu/2)}\Big(\frac{2}{1-2u}\Big)^{\nu/2}\Gamma(\nu/2)=(1-2u)^{-\nu/2}.
+\]
+Les deux fonctions génératrices coïncident sur un voisinage de 0, donc les lois aussi.
+\end{proof}
+
+La densité est dissymétrique : pour $\nu=4$, la médiane vaut 3,36 et la moyenne 4, et les quantiles à 2,5\,\% et 97,5\,\% valent 0,484 et 11,143.
+
+\subsection{Le théorème de Fisher}
+
+\begin{thm}[Fisher]\label{thm:fisher}
+Si $X_1,\dots,X_n$ sont indépendantes de loi $\N(\mu;\sigma)$, alors
+\begin{enumerate}[label=(\roman*),leftmargin=2em]
+\item $\dfrac{(n-1)S^2}{\sigma^2}$ suit la loi $\chid(n-1)$ ;
+\item $\Xb$ et $S^2$ sont indépendantes.
+\end{enumerate}
+\end{thm}
+
+\begin{proof}
+Posons $Z_i=(X_i-\mu)/\sigma$ : les $Z_i$ sont indépendantes de loi $\N(0;1)$, donc le vecteur $Z$ a pour densité $(2\pi)^{-n/2}e^{-\|z\|^2/2}$, qui ne dépend que de $\|z\|$. Soit $Q$ une matrice orthogonale dont la première ligne est $(1/\sqrt n,\dots,1/\sqrt n)$ ; la matrice de Helmert en est un exemple, avec pour ligne $k\ge2$
+\[
+\frac{1}{\sqrt{k(k-1)}}\big(\underbrace{1,\dots,1}_{k-1},\,-(k-1),\,0,\dots,0\big).
+\]
+Comme $|\det Q|=1$ et $\|Qz\|=\|z\|$, le vecteur $V=QZ$ a la même densité que $Z$ : ses coordonnées $V_1,\dots,V_n$ sont indépendantes de loi $\N(0;1)$. Or $V_1=\sqrt n\,\bar Z$, et
+\[
+\sum_{i=1}^n(Z_i-\bar Z)^2=\sum_{i=1}^nZ_i^2-n\bar Z^2=\|V\|^2-V_1^2=\sum_{j=2}^nV_j^2.
+\]
+Le membre de gauche vaut $(n-1)S^2/\sigma^2$. Le membre de droite est une somme de $n-1$ carrés de $\N(0;1)$ indépendantes : c'est (i). Il ne dépend que de $V_2,\dots,V_n$, indépendants de $V_1=\sqrt n(\Xb-\mu)/\sigma$ : c'est (ii).
+\end{proof}
+
+\begin{rem}
+Le mot \emph{degrés de liberté} prend ici son sens : les $n$ écarts $X_i-\Xb$ sont liés par $\sum(X_i-\Xb)=0$ et ne vivent que dans un espace de dimension $n-1$. Le point (ii) est propre à la loi normale : Lukacs (1942) a montré que l'indépendance de $\Xb$ et $S^2$ caractérise la loi normale~[6]. Pour toute autre loi, la moyenne et l'écart-type d'un échantillon sont liés.
+\end{rem}
+
+\subsection{Pourquoi le khi-deux pour $\sigma$}
+
+Le point (i) dit que $K=(n-1)S^2/\sigma^2$ est un \textbf{pivot} pour $\sigma$ : sa loi ne dépend ni de $\mu$ ni de $\sigma$. D'où
+\[
+\P\Big(\chid_{\alpha/2;\nu}\le\frac{\nu S^2}{\sigma^2}\le\chid_{1-\alpha/2;\nu}\Big)=1-\alpha
+\iff
+\P\Big(\frac{\nu S^2}{\chid_{1-\alpha/2;\nu}}\le\sigma^2\le\frac{\nu S^2}{\chid_{\alpha/2;\nu}}\Big)=1-\alpha.
+\]
+On prend les racines pour $\sigma$ (la racine est croissante, le niveau est conservé) :
+\[
+\boxed{\ s\sqrt{\frac{\nu}{\chid_{1-\alpha/2;\nu}}}\ \le\ \sigma\ \le\ s\sqrt{\frac{\nu}{\chid_{\alpha/2;\nu}}}\ }
+\]
+
+\textbf{Exemple.} $n=5$, $\nu=4$, $s=0{,}015166$ : $\sqrt{4/11{,}143}=0{,}599$ et $\sqrt{4/0{,}484}=2{,}874$, donc $\sigma\in[0{,}0091;0{,}0436]$.
+
+\begin{attention}[Trois remarques]
+\begin{itemize}[leftmargin=1.2em]
+\item L'intervalle n'est pas de la forme $s\pm$ quelque chose : il est \textbf{dissymétrique}, plus long vers le haut, comme la densité du khi-deux.
+\item Avec cinq valeurs, $\sigma$ est connu à un facteur 5 près (de 0,6\,$s$ à 2,9\,$s$). C'est la précision réelle d'un écart-type calculé sur un prélèvement de carte de contrôle.
+\item Le milieu de l'intervalle n'est pas une estimation \og meilleure\fg{} que $s$. L'estimateur sans biais de $\sigma$ est $S/c_4(n)$~[10].
+\end{itemize}
+\end{attention}
+
+% =====================================================================
+\section{La loi de Student}\label{sec:student}
+
+\subsection{La construction : pourquoi $\sigma$ disparaît}
+
+On écrit
+\[
+T=\frac{\Xb-\mu}{S/\sqrt n}=\frac{\dfrac{\Xb-\mu}{\sigma/\sqrt n}}{\sqrt{\dfrac{(n-1)S^2/\sigma^2}{n-1}}}=\frac{Z}{\sqrt{K/\nu}}.
+\]
+Le numérateur $Z$ suit $\N(0;1)$, le dénominateur fait intervenir $K\sim\chid(\nu)$, et $Z$ et $K$ sont \textbf{indépendants} par le théorème de Fisher. Le rapport ne contient plus $\sigma$ : $T$ est un pivot pour $\mu$.
+
+\begin{defi}
+Si $Z\sim\N(0;1)$ et $K\sim\chid(\nu)$ sont indépendants, la loi de $T=Z/\sqrt{K/\nu}$ est la loi de Student à $\nu$ degrés de liberté, notée $\mathcal T(\nu)$.
+\end{defi}
+
+\begin{essentiel}[Pourquoi Student et pas la loi normale]
+On utilise la loi de Student parce qu'on estime $\sigma$ avec les mêmes données. Le dénominateur $S$ est aléatoire ; la loi de Student compte exactement cette incertitude supplémentaire. Si $\sigma$ était connu, la loi normale suffirait. Le nombre de ddl de Student est celui de l'estimation de $\sigma$, pas la taille de l'échantillon.
+\end{essentiel}
+
+\subsection{Sa densité}
+
+\begin{prop}
+$\displaystyle f_T(t)=\frac{\Gamma\big(\frac{\nu+1}{2}\big)}{\sqrt{\nu\pi}\;\Gamma\big(\frac\nu2\big)}\Big(1+\frac{t^2}{\nu}\Big)^{-\frac{\nu+1}{2}}$ pour tout réel $t$.
+\end{prop}
+
+\begin{proof}
+On conditionne par $K=k$. Sachant $K=k$, et par indépendance, $T=Z/\sqrt{k/\nu}$ suit $\N\big(0;\sqrt{\nu/k}\big)$, de densité $\sqrt{k/\nu}\;\varphi\big(t\sqrt{k/\nu}\big)$. En intégrant contre la densité $f_\nu$ de $K$ :
+\[
+f_T(t)=\int_0^{+\infty}\sqrt{\frac k\nu}\,\frac{e^{-kt^2/(2\nu)}}{\sqrt{2\pi}}\cdot\frac{k^{\nu/2-1}e^{-k/2}}{2^{\nu/2}\Gamma(\nu/2)}\dd k
+=\frac{1}{\sqrt{2\pi\nu}\,2^{\nu/2}\Gamma(\nu/2)}\int_0^{+\infty}k^{\frac{\nu+1}{2}-1}e^{-\frac k2\left(1+\frac{t^2}{\nu}\right)}\dd k.
+\]
+Avec $a=\frac{\nu+1}{2}$ et $b=\frac12\big(1+\frac{t^2}{\nu}\big)$, l'intégrale vaut $\Gamma(a)\,b^{-a}$. Il reste
+\[
+f_T(t)=\frac{\Gamma\big(\frac{\nu+1}{2}\big)\,2^{\frac{\nu+1}{2}}}{\sqrt{2\pi\nu}\;2^{\nu/2}\,\Gamma(\nu/2)}\Big(1+\frac{t^2}{\nu}\Big)^{-\frac{\nu+1}{2}},
+\]
+et $2^{\frac{\nu+1}{2}}/(\sqrt2\cdot2^{\nu/2})=1$.
+\end{proof}
+
+\subsection{Ses propriétés}
+
+\begin{itemize}[leftmargin=1.4em]
+\item \textbf{Symétrique}, centrée en 0, comme $\N(0;1)$.
+\item \textbf{Plus dispersée} : $\V(T)=\nu/(\nu-2)$ pour $\nu>2$. Pour $\nu=4$, la variance vaut 2 ; pour $\nu=29$, 1,074.
+\item \textbf{Queues épaisses} : la densité décroît comme $|t|^{-(\nu+1)}$, pas comme $e^{-t^2/2}$. Pour $\nu=4$, $\P(T>3)=0{,}020$, contre $0{,}0013$ pour la loi normale. Pour $\nu=1$ (loi de Cauchy), $T$ n'a même pas d'espérance.
+\item \textbf{Converge vers $\N(0;1)$} quand $\nu\to\infty$. D'une part, $\big(1+\frac{t^2}{\nu}\big)^{-\frac{\nu+1}{2}}\to e^{-t^2/2}$. D'autre part, $K/\nu\to1$ (loi des grands nombres, puisque $\E(K/\nu)=1$ et $\V(K/\nu)=2/\nu$), donc $T=Z/\sqrt{K/\nu}$ se rapproche de $Z$.
+\end{itemize}
+
+\begin{center}
+\small
+\begin{tabular}{l r r r r r r r r c}
+\toprule
+$\nu$ & 1 & 2 & 4 & 9 & 19 & 29 & 49 & 99 & $\infty$\\
+\midrule
+$t_{0{,}975;\nu}$ & 12,706 & 4,303 & 2,776 & 2,262 & 2,093 & 2,045 & 2,010 & 1,984 & 1,960\\
+$\chid_{0{,}025;\nu}$ & 0,001 & 0,051 & 0,484 & 2,700 & 8,907 & 16,047 & 31,555 & 73,361 & \\
+$\chid_{0{,}975;\nu}$ & 5,024 & 7,378 & 11,143 & 19,023 & 32,852 & 45,722 & 70,222 & 128,422 & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{L'intervalle de confiance de $\mu$}
+
+$\P(-t_{1-\alpha/2;\nu}\le T\le t_{1-\alpha/2;\nu})=1-\alpha$ donne
+\[
+\boxed{\ \bar x-t_{1-\alpha/2;\nu}\frac{s}{\sqrt n}\ \le\ \mu\ \le\ \bar x+t_{1-\alpha/2;\nu}\frac{s}{\sqrt n}\ }
+\]
+\textbf{Exemple.} $n=5$, $t_{0{,}975;4}=2{,}776$ : demi-largeur $2{,}776\times0{,}015166/\sqrt5=0{,}0188$, d'où $\mu\in[11{,}845;11{,}883]$. Avec 1,96 à la place de 2,776, on aurait trouvé $[11{,}851;11{,}877]$, plus étroit de 29\,\%, et faux : sa couverture réelle n'est que de 88\,\%.
+
+\subsection{Un mot d'histoire}
+
+William Sealy Gosset, chimiste à la brasserie Guinness de Dublin, travaillait sur de très petits échantillons. Il publia en 1908 la loi de $T$ sous le pseudonyme \og Student\fg{}~[1]. Sa démonstration était incomplète ; Fisher en donna une preuve rigoureuse et introduisit la forme $Z/\sqrt{K/\nu}$ utilisée ici~[2].
+
+% =====================================================================
+\section{Et si la loi n'est pas normale ?}\label{sec:robustesse}
+
+Les deux résultats exacts supposent la normalité. Que se passe-t-il sinon ? On a simulé $2\cdot10^4$ échantillons pour quatre lois et quatre tailles, et compté la proportion d'intervalles à 95\,\% qui encadrent le vrai paramètre.
+
+\begin{center}
+\small
+\begin{tabular}{l c c c c c c c c}
+\toprule
+& \multicolumn{4}{c}{Student, pour $\mu$} & \multicolumn{4}{c}{Khi-deux, pour $\sigma$}\\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+Loi (kurtosis $\kappa$) & $n=5$ & 10 & 30 & 100 & 5 & 10 & 30 & 100\\
+\midrule
+Normale ($\kappa=0$) & 95,3 & 95,3 & 95,1 & 95,1 & 95,2 & 95,0 & 95,2 & 95,0\\
+Uniforme ($\kappa=-1{,}2$) & 93,6 & 94,8 & 95,0 & 95,0 & 98,6 & 99,3 & 99,7 & 99,8\\
+Student à 5 ddl ($\kappa=6$) & 96,0 & 95,5 & 95,0 & 95,2 & 90,5 & 87,6 & 82,6 & 78,3\\
+Exponentielle ($\kappa=6$) & 88,2 & 90,2 & 92,7 & 94,3 & 82,3 & 76,6 & 71,9 & 69,7\\
+\bottomrule
+\end{tabular}
+\end{center}
+Couvertures en \%, graine 1. L'écart dû au hasard de la simulation est d'environ $\pm0{,}3$ point. $\kappa=\E\big((X-\mu)^4\big)/\sigma^4-3$ est le kurtosis en excès, nul pour la loi normale.
+
+\subsection{Pourquoi Student résiste}
+
+Pour toute loi de variance finie, le théorème central limite donne $\sqrt n(\Xb-\mu)/\sigma\to\N(0;1)$, et la loi des grands nombres donne $S\to\sigma$. Le lemme de Slutsky permet de combiner les deux : $T=\sqrt n(\Xb-\mu)/S\to\N(0;1)$. Comme $t_{1-\alpha/2;\nu}\to z_{1-\alpha/2}$, la couverture tend vers 95\,\% \emph{quelle que soit la loi}. La convergence est lente si la loi est dissymétrique : avec la loi exponentielle, il faut $n\approx100$ pour approcher 95\,\%.
+
+\subsection{Pourquoi le khi-deux ne résiste pas}
+
+Un calcul classique, en développant $\E(S^4)$, donne pour toute loi
+\[
+\V(S^2)=\sigma^4\Big(\frac{2}{n-1}+\frac{\kappa}{n}\Big).
+\]
+L'intervalle du khi-deux est construit avec $\V(S^2)=2\sigma^4/(n-1)$, c'est-à-dire avec $\kappa=0$. Si $\kappa\ne0$, l'erreur ne disparaît pas quand $n$ grandit : pour $n$ grand, $S^2$ est à peu près normale de variance $\frac{2\sigma^4}{n}\big(1+\frac\kappa2\big)$, et la couverture de l'intervalle à 95\,\% tend vers
+\[
+2\,\Phi\Big(\frac{1{,}96}{\sqrt{1+\kappa/2}}\Big)-1.
+\]
+Pour la loi uniforme, 99,8\,\% ; pour la loi exponentielle et Student à 5 ddl, 67,3\,\%. La simulation le confirme.
+
+\begin{essentiel}[Conséquence pratique]
+\begin{itemize}[leftmargin=1.2em]
+\item L'intervalle de Student sur la moyenne supporte bien un écart modéré à la normalité, surtout si la loi est symétrique.
+\item L'intervalle du khi-deux sur $\sigma$ (et donc sur $C_p$, section~\ref{sec:cp}) n'est valable que si la loi est normale, \textbf{y compris pour de grands échantillons}. Il faut vérifier la normalité avant (droite de Henry, test de Shapiro-Wilk), et surtout l'absence de queues épaisses.
+\item Sinon : intervalle par bootstrap~[8], ou intervalle approché qui estime $\kappa$, comme celui de Bonett~[7].
+\end{itemize}
+\end{essentiel}
+
+% =====================================================================
+\section{Combien de mesures faut-il ?}\label{sec:taille}
+
+\subsection{Pour la moyenne}
+
+On veut une demi-largeur $E$. En remplaçant $s$ par une valeur plausible de $\sigma$, on cherche le plus petit $n$ tel que $t_{0{,}975;n-1}/\sqrt n\le E/\sigma$ :
+\begin{center}
+\begin{tabular}{l c c c c}
+\toprule
+$E/\sigma$ & 1 & 0,5 & 0,25 & 0,1\\
+\midrule
+$n$ minimal & 7 & 18 & 64 & 387\\
+\bottomrule
+\end{tabular}
+\end{center}
+Pour diviser la demi-largeur par 2, il faut environ 4 fois plus de mesures : la précision évolue en $1/\sqrt n$. Pour $n$ grand, $n\approx(1{,}96\,\sigma/E)^2$.
+
+\subsection{Pour l'écart-type}
+
+L'intervalle de $\sigma$ est $[a_n\,s;\,b_n\,s]$, avec $a_n=\sqrt{\nu/\chid_{0{,}975;\nu}}$ et $b_n=\sqrt{\nu/\chid_{0{,}025;\nu}}$. Ces facteurs ne dépendent que de $n$ :
+\begin{center}
+\small
+\begin{tabular}{l r r r r r r r r}
+\toprule
+$n$ & 5 & 10 & 20 & 30 & 50 & 100 & 200 & 500\\
+\midrule
+$a_n$ & 0,599 & 0,688 & 0,760 & 0,796 & 0,835 & 0,878 & 0,911 & 0,942\\
+$b_n$ & 2,874 & 1,826 & 1,461 & 1,344 & 1,246 & 1,162 & 1,109 & 1,066\\
+\bottomrule
+\end{tabular}
+\end{center}
+Il faut 30 valeurs pour connaître $\sigma$ à $-20\,\%$, $+34\,\%$ près, et 100 valeurs pour $-12\,\%$, $+16\,\%$. Pour $n$ grand, l'écart-type relatif de $S$ vaut à peu près $1/\sqrt{2(n-1)}$, toujours sous l'hypothèse normale. Estimer une dispersion demande beaucoup plus de données qu'estimer une moyenne.
+
+% =====================================================================
+\section{Application : l'intervalle de confiance de $C_p$}\label{sec:cp}
+
+Avec un intervalle de tolérance IT, $C_p=\mathrm{IT}/(6\sigma)$ et $\hat C_p=\mathrm{IT}/(6S)$. Alors
+\[
+\frac{\hat C_p}{C_p}=\frac{\sigma}{S}=\sqrt{\frac{\nu}{K}},\qquad K=\frac{\nu S^2}{\sigma^2}\sim\chid(\nu).
+\]
+C'est encore un pivot, et l'intervalle de $C_p$ se déduit de celui de $\sigma$ :
+\[
+\hat C_p\sqrt{\frac{\chid_{\alpha/2;\nu}}{\nu}}\ \le\ C_p\ \le\ \hat C_p\sqrt{\frac{\chid_{1-\alpha/2;\nu}}{\nu}}.
+\]
+Pour un $\hat C_p=1{,}33$ observé :
+\begin{center}
+\small
+\begin{tabular}{l c c c c}
+\toprule
+$n$ & 25 & 50 & 100 & 125\\
+\midrule
+Intervalle bilatéral à 95\,\% & $[0{,}96;1{,}70]$ & $[1{,}07;1{,}59]$ & $[1{,}15;1{,}52]$ & $[1{,}17;1{,}50]$\\
+Borne inférieure unilatérale à 95\,\% & 1,01 & 1,11 & 1,17 & 1,19\\
+\bottomrule
+\end{tabular}
+\end{center}
+Un $\hat C_p$ de 1,33 sur 50 valeurs garantit seulement $C_p\ge1{,}11$ avec 95\,\% de confiance. Sur le premier prélèvement de butées (IT $=0{,}15$, $n=5$), $\hat C_p=1{,}65$ et l'intervalle va de 0,57 à 2,75 : le nombre ne dit rien.
+
+\textbf{Biais de $\hat C_p$, et lien avec $c_4$.} $S/c_4$ est sans biais pour $\sigma$~[10], mais $\mathrm{IT}/(6S/c_4)$ n'est pas sans biais pour $C_p$, car $\E(1/S)\ne1/\E(S)$. Le calcul direct, avec la densité du khi-deux, donne pour $\nu>1$ :
+\[
+\E\big(K^{-1/2}\big)=\frac{\Gamma\big(\frac{\nu-1}{2}\big)}{\sqrt2\,\Gamma\big(\frac\nu2\big)},\qquad
+\frac{\E(\hat C_p)}{C_p}=\sqrt\nu\;\E\big(K^{-1/2}\big)=\sqrt{\frac\nu2}\,\frac{\Gamma\big(\frac{\nu-1}{2}\big)}{\Gamma\big(\frac\nu2\big)}.
+\]
+\begin{center}
+\small
+\begin{tabular}{l c c c c c}
+\toprule
+$n$ & 5 & 10 & 25 & 50 & 125\\
+\midrule
+$\E(\hat C_p)/C_p$ & 1,253 & 1,094 & 1,033 & 1,016 & 1,006\\
+$1/c_4(n)$ & 1,064 & 1,028 & 1,011 & 1,005 & 1,002\\
+\bottomrule
+\end{tabular}
+\end{center}
+Sur de petits échantillons, $\hat C_p$ surestime $C_p$ (25\,\% pour $n=5$, confirmé par simulation pour $n=10$ : 1,094). Corriger $S$ par $c_4$ ne suffit pas à corriger $\hat C_p$. Comme tout le reste de cette section, ces calculs supposent la normalité, et un procédé stable : sur des données qui dérivent, comme les dix prélèvements de la section~\ref{sec:rappels}, l'écart-type global mesure la dérive autant que la dispersion.
+
+% =====================================================================
+\section{Deux variances : la loi de Fisher-Snedecor}\label{sec:F}
+
+\begin{defi}
+Si $K_1\sim\chid(\nu_1)$ et $K_2\sim\chid(\nu_2)$ sont indépendants, la loi de $F=\dfrac{K_1/\nu_1}{K_2/\nu_2}$ est la loi de Fisher-Snedecor $\mathcal F(\nu_1;\nu_2)$.
+\end{defi}
+
+Pour deux échantillons normaux indépendants, le théorème de Fisher appliqué à chacun montre que
+\[
+\frac{S_1^2/\sigma_1^2}{S_2^2/\sigma_2^2}\sim\mathcal F(n_1-1;n_2-1)
+\]
+est un pivot pour le rapport $\sigma_1^2/\sigma_2^2$. C'est le test et l'intervalle de comparaison de deux variances.
+
+\textbf{Exemple.} Les prélèvements 10 et 1 des butées : $s_{10}^2/s_1^2=4{,}48$, à $(4;4)$ ddl. Les quantiles à 2,5\,\% et 97,5\,\% valent 0,104 et 9,60 : $p=0{,}18$, et le rapport des variances est compris entre 0,47 et 43. Avec cinq valeurs par groupe, une variance quatre fois plus grande n'est pas détectable.
+
+\textbf{Deux liens à connaître.}
+\begin{itemize}[leftmargin=1.4em]
+\item $T^2=Z^2/(K/\nu)$, avec $Z^2\sim\chid(1)$ : donc $T^2\sim\mathcal F(1;\nu)$. On vérifie : $t_{0{,}975;4}^2=2{,}776^2=7{,}709=F_{0{,}95}(1;4)$. Le test $t$ bilatéral et le test $F$ à 1 ddl au numérateur sont le même test.
+\item Dans une ANOVA, chaque carré moyen est, sous l'hypothèse nulle, un $\sigma^2\chid(\nu)/\nu$, et le théorème de Cochran garantit leur indépendance. Le $F$ de l'ANOVA est exactement ce rapport (document compagnon~[11]).
+\end{itemize}
+
+% =====================================================================
+\section{Synthèse}\label{sec:synthese}
+
+\begin{center}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{1.8cm} p{2.2cm} p{1.6cm} >{\raggedright\arraybackslash}p{4.1cm} >{\raggedright\arraybackslash}p{2.7cm}}
+\toprule
+On cherche & Pivot & Loi & Intervalle à $1-\alpha$ & Hypothèses\\
+\midrule
+$\mu$, $\sigma$ connu & $\dfrac{\Xb-\mu}{\sigma/\sqrt n}$ & $\N(0;1)$ & $\bar x\pm z_{1-\alpha/2}\,\sigma/\sqrt n$ & normalité, ou $n$ grand\\[8pt]
+$\mu$, $\sigma$ inconnu & $\dfrac{\Xb-\mu}{S/\sqrt n}$ & $\mathcal T(n-1)$ & $\bar x\pm t_{1-\alpha/2;\nu}\,s/\sqrt n$ & normalité ; robuste si $n$ assez grand\\[8pt]
+$\sigma$ & $\dfrac{(n-1)S^2}{\sigma^2}$ & $\chid(n-1)$ & de $s\sqrt{\nu/\chid_{1-\alpha/2;\nu}}$\newline à $s\sqrt{\nu/\chid_{\alpha/2;\nu}}$ & normalité stricte, même si $n$ est grand\\[8pt]
+$\sigma_1^2/\sigma_2^2$ & $\dfrac{S_1^2/\sigma_1^2}{S_2^2/\sigma_2^2}$ & $\mathcal F(\nu_1;\nu_2)$ & de $(s_1^2/s_2^2)/F_{1-\alpha/2}$\newline à $(s_1^2/s_2^2)/F_{\alpha/2}$ & normalité stricte\\
+\bottomrule
+\end{tabular}
+\end{center}
+Dans tous les cas : observations indépendantes et de même loi.
+
+% =====================================================================
+\section{Le calcul dans Excel et dans R}\label{sec:calcul}
+
+\textbf{Excel}, valeurs en \nosp{A2:A6} :
+\begin{center}
+\footnotesize
+\begin{tabular}{p{5.3cm} l}
+\toprule
+Grandeur & Formule\\
+\midrule
+$\bar x$, $s$ & \texttt{=MOYENNE(A2:A6)}, \texttt{=ECARTYPE.STANDARD(A2:A6)}\\
+$t_{0{,}975;\nu}$ & \texttt{=LOI.STUDENT.INVERSE.BILATERALE(0,05;4)}\\
+demi-largeur de Student & \texttt{=INTERVALLE.CONFIANCE.STUDENT(0,05;s;5)}\\
+$\chid_{0{,}025;\nu}$ (queue gauche) & \texttt{=LOI.KHIDEUX.INVERSE(0,025;4)}\\
+$\chid_{0{,}975;\nu}$ & \texttt{=LOI.KHIDEUX.INVERSE.DROITE(0,025;4)}\\
+quantile de $\mathcal F$ & \texttt{=INVERSE.LOI.F.DROITE(0,025;4;4)}\\
+\bottomrule
+\end{tabular}
+\end{center}
+Attention : l'ancienne fonction \texttt{KHIDEUX.INVERSE}, gardée pour compatibilité, donne le quantile de la queue \emph{droite}, alors que \texttt{LOI.KHIDEUX.INVERSE} donne celui de la queue gauche. Les confondre inverse les bornes.
+
+\textbf{R} (script \texttt{student\_khi2.R}) :
+\begin{code}
+x <- c(11.87, 11.86, 11.84, 11.88, 11.87); n <- length(x); s <- sd(x)\\
+t.test(x)\$conf.int\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \# intervalle de Student\\
+sqrt((n - 1) * s\textasciicircum2 / qchisq(c(0.975, 0.025), n - 1))\ \ \ \ \ \ \# intervalle de sigma\\
+var.test(y, x)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \# rapport de deux variances
+\end{code}
+
+% =====================================================================
+\section{Sources}
+
+\begin{enumerate}[label={[\arabic*]},leftmargin=2.2em,itemsep=3pt]
+\item Student (W. S. Gosset), \og The probable error of a mean\fg{}, \emph{Biometrika}, vol.~6, n\textsuperscript{o}~1, 1908, p.~1-25.
+\item R. A. Fisher, \og Applications of \og Student's\fg{} distribution\fg{}, \emph{Metron}, vol.~5, 1925, p.~90-104.
+\item NIST/SEMATECH, \emph{e-Handbook of Statistical Methods}, section 1.3.5.2, \og Confidence Limits for the Mean\fg{}, \url{https://www.itl.nist.gov/div898/handbook/eda/section3/eda352.htm}.
+\item NIST/SEMATECH, \emph{e-Handbook of Statistical Methods}, section 1.3.5.8, \og Chi-Square Test for the Standard Deviation\fg{}, \url{https://www.itl.nist.gov/div898/handbook/eda/section3/eda358.htm}.
+\item NIST/SEMATECH, \emph{e-Handbook of Statistical Methods}, section 1.3.5.9, \og F-Test for Equality of Two Variances\fg{}, \url{https://www.itl.nist.gov/div898/handbook/eda/section3/eda359.htm}.
+\item E. Lukacs, \og A characterization of the normal distribution\fg{}, \emph{Annals of Mathematical Statistics}, vol.~13, n\textsuperscript{o}~1, 1942, p.~91-93.
+\item D. G. Bonett, \og Approximate confidence interval for standard deviation of nonnormal distributions\fg{}, \emph{Computational Statistics \& Data Analysis}, vol.~50, 2006, p.~775-782.
+\item B. Efron, R. J. Tibshirani, \emph{An Introduction to the Bootstrap}, Chapman \& Hall, 1993.
+\item D. C. Montgomery, \emph{Introduction to Statistical Quality Control}, Wiley. Intervalles de confiance des indices de capabilité.
+\item S. Jaubert, \emph{Petits développements autour des estimateurs statistiques} (Estimation.pdf), version corrigée d'octobre 2026, \url{https://sjaubert.github.io/SPCR/Estimation.pdf}.
+\item S. Jaubert, \emph{L'analyse de la variance à plusieurs facteurs} et \emph{Gage R\&R et ANOVA}, novembre 2026, même dossier.
+\end{enumerate}
+
+\textbf{Reproductibilité.} Tous les nombres viennent du script \texttt{student\_khi2.R} (R 4.3.3, graines 1, 2026 et 3). Les données des butées sont celles du fichier \texttt{diametre\_butee.txt} du dépôt SPCR.
+
+\end{document}

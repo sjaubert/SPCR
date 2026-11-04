@@ -1,0 +1,658 @@
+% Gage R&R et ANOVA : qualifier un processus de mesure
+% S. Jaubert, novembre 2026. Compilation : xelatex (deux passes)
+\documentclass[11pt,a4paper]{article}
+\usepackage{polyglossia}
+\setmainlanguage{french}
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[a4paper,margin=2.6cm,headheight=14pt]{geometry}
+\usepackage{xcolor}
+\definecolor{bleu}{HTML}{1F4E79}
+\definecolor{orange}{HTML}{B4530F}
+\definecolor{vert}{HTML}{2E7D32}
+\usepackage{fancyhdr}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{booktabs,array,tabularx,multirow}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usepackage{caption}
+\captionsetup{font=small,labelfont={bf,color=bleu}}
+\usepackage[colorlinks=true,linkcolor=bleu,urlcolor=blue!60!black,citecolor=bleu]{hyperref}
+\usepackage{xurl}
+\usepackage{titlesec}
+\titleformat{\section}{\Large\bfseries\color{bleu}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{bleu}}{\thesubsection}{0.6em}{}
+
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\lhead{\small Métrologie · étude R\&R}
+\rhead{\small\nouppercase{\leftmark}}
+\lfoot{\scriptsize S. Jaubert · Gage R\&R et ANOVA}
+\cfoot{\thepage}
+\rfoot{\scriptsize Novembre 2026}
+
+\newtheoremstyle{sj}{6pt}{6pt}{\itshape}{}{\bfseries}{.}{0.5em}{}
+\theoremstyle{sj}
+\newtheorem{thm}{Théorème}
+\newtheorem{prop}[thm]{Propriété}
+\theoremstyle{definition}
+\newtheorem{defi}{Définition}
+\theoremstyle{remark}
+\newtheorem*{rem}{Remarque}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\V}{\mathbb{V}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\SC}{\mathrm{SC}}
+\newcommand{\CM}{\mathrm{CM}}
+\newcommand{\ybar}{\bar y}
+\newcommand{\dotp}{{\scriptscriptstyle\bullet}}
+
+\newtcolorbox{code}{colback=black!85,colframe=black!85,coltext=white,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fontupper=\footnotesize\ttfamily,breakable}
+\newtcolorbox{note}[1][]{colback=black!3,colframe=black!40,boxrule=0.5pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries\small,title={#1},breakable}
+\newtcolorbox{essentiel}[1][À retenir]{colback=bleu!6,colframe=bleu,boxrule=0.7pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries,title={#1},breakable}
+\newtcolorbox{attention}[1][Attention]{colback=orange!6,colframe=orange,boxrule=0.7pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries,title={#1},breakable}
+\providecommand{\og}{\guillemotleft\nobreakspace}
+\providecommand{\fg}{\nobreakspace\guillemotright}
+
+\newcommand{\nosp}[1]{{\XeTeXinterchartokenstate=0 #1}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\emergencystretch}{2em}
+\renewcommand{\arraystretch}{1.25}
+
+\newcommand{\gP}{\gamma_P}
+\newcommand{\gM}{\gamma_M}
+\newcommand{\gR}{\gamma_R}
+
+\begin{document}
+
+{\raggedright\Huge\bfseries\color{bleu} Gage R\&R et ANOVA\par}
+\medskip
+{\large Qualifier un processus de mesure : modèle, estimation, critères, intervalles de confiance et TP\par}
+\medskip
+{\small S. Jaubert · novembre 2026 · calculs faits et vérifiés avec R 4.3.3\par}
+
+\bigskip
+Une étude R\&R (répétabilité et reproductibilité) répond à une seule question : \emph{la dispersion due à la mesure est-elle petite devant ce qu'on veut voir ?} Ce qu'on veut voir, c'est soit la tolérance (décider si une pièce est bonne), soit la variation du procédé (piloter une carte de contrôle).
+
+Ce document montre que l'étude R\&R est exactement l'ANOVA à deux facteurs aléatoires du document compagnon \emph{L'analyse de la variance à plusieurs facteurs}~[9], lue en composantes de variance. Il donne les estimateurs et leurs démonstrations, les critères usuels et leur origine, la méthode des étendues, des intervalles de confiance qui disent combien l'étude est fiable, un TP au micromètre et au pied à coulisse, et l'analyse de deux jeux de données réels.
+
+\textbf{Notations.} $\N(\mu;\sigma)$ désigne la loi normale de moyenne $\mu$ et d'écart-type $\sigma$. $p$ est le nombre de pièces, $o$ le nombre d'opérateurs, $r$ le nombre d'essais par pièce et par opérateur. $\SC$ est une somme de carrés, $\nu$ son nombre de ddl, $\CM=\SC/\nu$ le carré moyen. Un point en indice marque une moyenne sur cet indice.
+
+\tableofcontents
+
+% =====================================================================
+\section{Le modèle de la mesure}\label{sec:modele}
+
+\subsection{Une mesure, deux variables}
+
+Chaque pièce a une valeur vraie $X$, inconnue. L'instrument, utilisé par un opérateur, rend une valeur $Y$. On écrit
+\[
+Y=X+E,
+\]
+où $E$ est l'erreur de mesure. Si $X$ et $E$ sont indépendantes,
+\[
+\sigma_T^2=\sigma_P^2+\sigma_M^2,
+\]
+avec $\sigma_T^2$ la variance des valeurs mesurées, $\sigma_P^2$ celle des valeurs vraies (pièces) et $\sigma_M^2$ celle de la mesure. C'est la relation qui gouverne tout le reste : ce qu'on observe est toujours plus dispersé que ce qui existe.
+
+L'étude R\&R découpe $\sigma_M^2$ en deux parts :
+\[
+\sigma_M^2=\underbrace{\sigma_E^2}_{\text{répétabilité}}+\underbrace{\sigma_O^2+\sigma_{PO}^2}_{\text{reproductibilité}}.
+\]
+\begin{itemize}[leftmargin=1.4em]
+\item $\sigma_E^2$ : dispersion quand le même opérateur remesure la même pièce avec le même instrument.
+\item $\sigma_O^2$ : dispersion des biais propres à chaque opérateur (l'un lit systématiquement un peu plus haut).
+\item $\sigma_{PO}^2$ : interaction pièce-opérateur. Le biais d'un opérateur change d'une pièce à l'autre (une pièce ovalisée mesurée à des endroits différents, une pièce difficile à tenir).
+\end{itemize}
+
+\subsection{Le vocabulaire normalisé}
+
+Le Vocabulaire international de métrologie (VIM, \nosp{JCGM 200:2012}~[7]) définit la \emph{condition de répétabilité} (article 2.20) : même procédure, mêmes opérateurs, même système de mesure, mêmes conditions de fonctionnement, même lieu, mesurages répétés sur le même objet pendant une courte période. La \emph{répétabilité de mesure} (2.21) est la fidélité dans ces conditions. La \emph{condition de reproductibilité} (2.24) fait varier les lieux, les opérateurs et les systèmes de mesure.
+
+\begin{attention}[Ce que le R\&R ne mesure pas]
+\begin{itemize}[leftmargin=1.2em]
+\item La \og reproductibilité\fg{} d'une étude R\&R ne fait varier que les opérateurs. Au sens du VIM, c'est plus proche d'une fidélité intermédiaire (2.22) que d'une reproductibilité.
+\item Le R\&R ne voit pas la \textbf{justesse} : un biais commun à tous les opérateurs (instrument mal étalonné) n'apparaît dans aucune composante. Il se traite par étalonnage, avec un étalon.
+\item Il ne voit pas non plus la \textbf{stabilité} dans le temps ni la \textbf{linéarité} sur l'étendue de mesure.
+\end{itemize}
+\end{attention}
+
+\subsection{Les trois rapports de Burdick}
+
+Burdick, Borror et Montgomery~[1] posent $\gP=\sigma_P^2$, $\gM=\sigma_M^2$ et le rapport signal sur bruit
+\[
+\gR=\frac{\gP}{\gM}=\frac{\sigma_P^2}{\sigma_M^2}.
+\]
+Tous les critères usuels sont des fonctions de $\gP$, $\gM$ ou $\gR$. Les intervalles de confiance de la section~\ref{sec:ic} portent sur ces trois quantités.
+
+% =====================================================================
+\section{Le R\&R est une ANOVA à deux facteurs aléatoires}\label{sec:anova}
+
+\subsection{Le plan et le modèle}
+
+Chacun des $o$ opérateurs mesure chacune des $p$ pièces $r$ fois. Le plan est croisé et équilibré. Le modèle est celui du document~[9], section~4 :
+\[
+y_{ijk}=\mu+P_i+O_j+(PO)_{ij}+E_{ijk},\qquad i\le p,\ j\le o,\ k\le r,
+\]
+avec $P_i\sim\N(0;\sigma_P)$, $O_j\sim\N(0;\sigma_O)$, $(PO)_{ij}\sim\N(0;\sigma_{PO})$, $E_{ijk}\sim\N(0;\sigma_E)$, toutes indépendantes.
+
+\begin{center}
+\small
+\begin{tabular}{l p{5cm} p{5.6cm}}
+\toprule
+Terme de l'ANOVA & Sens métrologique & Pourquoi aléatoire\\
+\midrule
+$P_i$ & écart de la pièce $i$ à la moyenne & les pièces représentent la production\\
+$O_j$ & biais de l'opérateur $j$ & on veut conclure pour tous les opérateurs\\
+$(PO)_{ij}$ & biais propre au couple & idem\\
+$E_{ijk}$ & écart d'une remesure à l'autre & répétabilité\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Si les opérateurs de l'étude sont les seuls qui mesureront jamais, le facteur opérateur est fixe et le modèle devient mixte. Burdick et al.~[1] traitent aussi ce cas ; les estimateurs changent peu, l'interprétation de $\sigma_O^2$ disparaît.
+
+\subsection{La décomposition et les espérances}
+
+La décomposition du document~[9] (théorème 2) s'applique sans changement :
+\[
+\SC_T=\SC_P+\SC_O+\SC_{PO}+\SC_E,
+\qquad pro-1=(p-1)+(o-1)+(p-1)(o-1)+po(r-1).
+\]
+
+\begin{prop}[Espérances des carrés moyens, modèle aléatoire]\label{prop:ems}
+\[
+\begin{aligned}
+\E(\CM_P)&=\sigma_E^2+r\sigma_{PO}^2+or\,\sigma_P^2, &\qquad \E(\CM_O)&=\sigma_E^2+r\sigma_{PO}^2+pr\,\sigma_O^2,\\
+\E(\CM_{PO})&=\sigma_E^2+r\sigma_{PO}^2, &\qquad \E(\CM_E)&=\sigma_E^2.
+\end{aligned}
+\]
+\end{prop}
+
+\begin{proof}[Démonstration pour $\CM_P$]
+$\ybar_{i\dotp\dotp}-\ybar_{\dotp\dotp\dotp}=(P_i-\bar P)+(\overline{PO}_{i\dotp}-\overline{PO}_{\dotp\dotp})+(\bar E_{i\dotp\dotp}-\bar E_{\dotp\dotp\dotp})$. Le terme $O_j$ disparaît : il est commun à toutes les pièces. Les trois parties sont indépendantes. Chacune est l'écart à leur moyenne de $p$ variables indépendantes de variances $\sigma_P^2$, $\sigma_{PO}^2/o$ et $\sigma_E^2/(or)$. Or pour $p$ variables indépendantes de variance $v$, $\E\sum_i(Z_i-\bar Z)^2=(p-1)v$. D'où $\E(\SC_P)=or(p-1)\big[\sigma_P^2+\sigma_{PO}^2/o+\sigma_E^2/(or)\big]$, et on divise par $p-1$.
+\end{proof}
+
+\subsection{Les estimateurs des composantes}
+
+On égale chaque carré moyen à son espérance (méthode des moments, dite méthode ANOVA) :
+\[
+\hat\sigma_E^2=\CM_E,\qquad
+\hat\sigma_{PO}^2=\frac{\CM_{PO}-\CM_E}{r},\qquad
+\hat\sigma_O^2=\frac{\CM_O-\CM_{PO}}{pr},\qquad
+\hat\sigma_P^2=\frac{\CM_P-\CM_{PO}}{or}.
+\]
+On en déduit
+\[
+\hat\gM=\hat\sigma_E^2+\hat\sigma_O^2+\hat\sigma_{PO}^2=\frac{\CM_O+(p-1)\CM_{PO}+p(r-1)\CM_E}{pr}.
+\]
+Ces estimateurs sont sans biais. Une estimation négative signifie que la composante est probablement nulle ou très petite : on la remplace par 0 (c'est ce que fait Minitab~[5]) et on le dit.
+
+\textbf{Les tests.} D'après la propriété~\ref{prop:ems}, l'interaction se teste contre la répétabilité, $F_{PO}=\CM_{PO}/\CM_E$. Les effets pièce et opérateur se testent contre l'interaction : $F_P=\CM_P/\CM_{PO}$ et $F_O=\CM_O/\CM_{PO}$. Tester $F_O$ contre $\CM_E$, comme le fait l'outil Excel ou un tableau d'ANOVA en modèle fixe, est une erreur de modèle.
+
+\subsection{Le modèle sans interaction}
+
+Si l'interaction n'est pas significative, on peut la retirer du modèle. Son SC rejoint le résidu :
+\[
+\CM_{E'}=\frac{\SC_{PO}+\SC_E}{(p-1)(o-1)+po(r-1)},
+\]
+\[
+\hat\sigma_O^2=\frac{\CM_O-\CM_{E'}}{pr},\qquad
+\hat\sigma_P^2=\frac{\CM_P-\CM_{E'}}{or},\qquad \hat\sigma_{PO}^2=0.
+\]
+Les effets se testent alors contre $\CM_{E'}$. Minitab retire l'interaction si sa $p$-valeur dépasse 0,05, valeur par défaut réglable~[5]. Ce regroupement est un choix fait d'après les données : il faut l'annoncer. Avec peu de ddl, une interaction réelle peut passer inaperçue (le TP de la section~\ref{sec:tp} en donne un exemple).
+
+\begin{essentiel}[Le pont entre les deux documents]
+L'étude R\&R n'ajoute rien à l'ANOVA à deux facteurs aléatoires. Elle en change la lecture : au lieu de demander \og l'effet opérateur existe-t-il ?\fg{}, elle demande \og quelle part de la variance totale vient de la mesure ?\fg{}. Les tests $F$ deviennent secondaires, les composantes de variance deviennent l'objet de l'étude.
+\end{essentiel}
+
+% =====================================================================
+\section{Les critères de décision}\label{sec:criteres}
+
+\subsection{Quatre indicateurs}
+
+Avec un multiplicateur $k$ ($k=6$ par défaut dans Minitab~[5] ; $k=5{,}15$ chez Ellistat~[3], qui couvre environ 99\,\% d'une loi normale), on définit :
+\begin{center}
+\small
+\begin{tabular}{l l p{5.6cm}}
+\toprule
+Indicateur & Formule & Question posée\\
+\midrule
+\% contribution & $100\,\sigma_M^2/\sigma_T^2$ & part de la variance totale due à la mesure\\
+\% variation de l'étude & $100\,\sigma_M/\sigma_T$ & même chose en écarts-types\\
+\% tolérance (P/T) & $100\,k\sigma_M/\mathrm{IT}$ & la mesure peut-elle trier les pièces ?\\
+ndc & $\sqrt2\,\sigma_P/\sigma_M$, tronqué & combien de classes de pièces distingue-t-on ?\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Les \% de contribution s'additionnent (ce sont des variances), les \% de variation de l'étude ne s'additionnent pas (ce sont des racines).
+
+\subsection{D'où vient le $\sqrt2$ du ndc}
+
+Soit $\rho_P=\sigma_P^2/\sigma_T^2$ la part de variance due aux pièces. C'est aussi la corrélation entre deux mesures indépendantes de la même pièce. Burdick et al.~[1] définissent le rapport signal sur bruit
+\[
+\mathrm{SNR}=\sqrt{\frac{2\rho_P}{1-\rho_P}}=\sqrt{\frac{2\sigma_P^2}{\sigma_M^2}}=\sqrt{2\gR}.
+\]
+C'est le ndc du manuel AIAG, $1{,}41\,\sigma_P/\sigma_M$, arrondi à l'entier inférieur. Le seuil ndc $\ge5$ équivaut à $\gR\ge12{,}5$, soit $\sigma_M/\sigma_T\le0{,}27$.
+
+\subsection{Les seuils publiés}
+
+\begin{center}
+\small
+\begin{tabular}{p{3.3cm} l p{6cm}}
+\toprule
+Source & Indicateur & Seuils\\
+\midrule
+AIAG MSA, 4\textsuperscript{e} éd.~[2] & \%R\&R, $k=6$ & $<10\,\%$ acceptable ; 10 à 30\,\% selon l'usage ; $>30\,\%$ refusé\\
+ & ndc & $\ge5$\\
+Ellistat~[3] & GRR $=5{,}15\,\sigma_M/\mathrm{IT}$ & $<10\,\%$ excellent ; $<20\,\%$ acceptable ;\\
+ & & 20 à 30\,\% limite ; $>30\,\%$ inacceptable\\
+ & $\mathrm{Cpc}=\mathrm{IT}/(5{,}15\,\sigma_M)$ & $\ge4$\\
+Wikipédia~[4] & P/T & $<0{,}1$ fiable ; $>0{,}3$ inadapté\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Deux remarques sur ce tableau.
+\begin{itemize}[leftmargin=1.4em]
+\item Le manuel AIAG n'a pas été consulté directement : ces seuils sont ceux que citent la plupart des supports, et Burdick et al.~[1] discutent ceux du P/T et du ndc. Ce sont des conventions, pas des résultats démontrés.
+\item Chez Ellistat, $\mathrm{Cpc}=1/\mathrm{GRR}$. Le seuil $\mathrm{Cpc}\ge4$ correspond donc à GRR $\le25\,\%$, ce qui ne coïncide pas avec le seuil \og acceptable\fg{} de 20\,\% du même tableau. L'écart est mineur, mais il faut savoir lequel on applique.
+\end{itemize}
+
+\subsection{Tolérance ou variation du procédé ?}
+
+Le \% de variation de l'étude dépend des pièces choisies : dix pièces presque identiques donnent un mauvais score à un excellent instrument. Le \% de tolérance ne dépend que de $\sigma_M$ et de l'IT.
+\begin{itemize}[leftmargin=1.4em]
+\item Pour \textbf{trier} des pièces (contrôle de réception, contrôle final), on juge sur le \% de tolérance.
+\item Pour \textbf{piloter} un procédé (carte de contrôle, capabilité), on juge sur $\sigma_M/\sigma_T$ ou le ndc, avec des pièces représentatives de la production.
+\end{itemize}
+
+\subsection{Capabilité observée et capabilité vraie}
+
+La carte de contrôle voit $\sigma_T$, pas $\sigma_P$. Avec $C_p=\mathrm{IT}/(6\sigma)$ :
+\[
+C_p^{\text{observé}}=\frac{\mathrm{IT}}{6\sigma_T}=\frac{\mathrm{IT}}{6\sqrt{\sigma_P^2+\sigma_M^2}}=\frac{C_p^{\text{vrai}}}{\sqrt{1+1/\gR}}.
+\]
+Une mesure médiocre fait paraître le procédé moins capable qu'il ne l'est. Avec $\gR=10$, la perte est de 5\,\% ; avec $\gR=1$, de 29\,\%.
+
+\subsection{La résolution}
+
+Un instrument qui arrondit au pas $q$ ajoute une erreur à peu près uniforme sur $[-q/2;q/2]$, d'écart-type $q/\sqrt{12}$, dès que la dispersion réelle dépasse le pas. Cette erreur entre dans $\sigma_E$. La règle usuelle demande une résolution au plus égale au dixième de la grandeur à juger (tolérance ou variation du procédé).
+
+% =====================================================================
+\section{La méthode des étendues}\label{sec:etendues}
+
+C'est la méthode \og à la main\fg{} du manuel AIAG, qu'Ellistat appelle méthode RANGE et juge \og plus approchée\fg{}~[3]. Elle remplace les carrés moyens par des étendues.
+
+\subsection{Le principe : la constante $d_2^*$}
+
+Pour $n$ variables indépendantes de loi $\N(\mu;\sigma)$, l'étendue $R$ vérifie $\E(R)=d_2(n)\,\sigma$ et $\sigma(R)=d_3(n)\,\sigma$, où $d_2$ et $d_3$ sont les constantes des cartes de contrôle. Si on fait la moyenne $\bar R$ de $g$ étendues indépendantes,
+\[
+\E(\bar R^2)=\V(\bar R)+\E(\bar R)^2=\Big(\frac{d_3^2}{g}+d_2^2\Big)\sigma^2.
+\]
+Avec $d_2^*=\sqrt{d_2^2+d_3^2/g}$, l'estimateur $(\bar R/d_2^*)^2$ est donc \emph{sans biais pour $\sigma^2$}. Quand $g$ est grand, $d_2^*\approx d_2$. Quand on n'a qu'une étendue ($g=1$), la correction compte.
+
+\subsection{Les trois estimations}
+
+\begin{enumerate}[leftmargin=1.4em]
+\item \textbf{Répétabilité.} Dans chacune des $po$ cellules, l'étendue des $r$ essais. Leur moyenne $\bar{\bar R}$ donne $\hat\sigma_E=\bar{\bar R}/d_2(r)=K_1\,\bar{\bar R}$.
+\item \textbf{Opérateurs.} L'étendue $R_O$ des $o$ moyennes d'opérateurs (une seule étendue). Chaque moyenne d'opérateur contient aussi l'erreur moyenne, de variance $\sigma_E^2/(pr)$, qu'on retranche :
+\[
+\hat\sigma_O^2=\Big(\frac{R_O}{d_2^*(o;1)}\Big)^2-\frac{\hat\sigma_E^2}{pr}=(K_2R_O)^2-\frac{\hat\sigma_E^2}{pr}.
+\]
+\item \textbf{Pièces.} L'étendue $R_P$ des $p$ moyennes de pièces : $\hat\sigma_P=R_P/d_2^*(p;1)=K_3R_P$.
+\end{enumerate}
+
+Les constantes calculées par cette formule redonnent celles qu'on trouve dans les supports AIAG :
+\begin{center}
+\small
+\begin{tabular}{l c c l}
+\toprule
+Constante & Cas & Valeur & Calcul\\
+\midrule
+$K_1=1/d_2(r)$ & $r=2$ ; $r=3$ & 0,8862 ; 0,5908 & $1/1{,}1284$ ; $1/1{,}6926$\\
+$K_2=1/d_2^*(o;1)$ & $o=2$ ; $o=3$ & 0,7071 ; 0,5231 & $1/\sqrt{1{,}1284^2+0{,}8525^2}$\\ & & & $1/\sqrt{1{,}6926^2+0{,}8884^2}$\\
+$K_3=1/d_2^*(p;1)$ & $p=10$ & 0,3146 & $1/\sqrt{3{,}0775^2+0{,}7975^2}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Comparaison avec l'ANOVA}
+
+Sur les données simulées du micromètre (section~\ref{sec:tp}) :
+\begin{center}
+\begin{tabular}{l c c c c c}
+\toprule
+Méthode & $\hat\sigma_E$ & $\hat\sigma_O$ & $\hat\sigma_M$ & $\hat\sigma_P$ & ndc\\
+\midrule
+Étendues & 0,00156 & 0,00108 & 0,00189 & 0,02862 & 21,4\\
+ANOVA & 0,00157 & 0,00104 & 0,00189 & 0,02941 & 22,1\\
+\bottomrule
+\end{tabular}
+\end{center}
+Les deux méthodes concordent ici. La méthode des étendues a trois défauts : elle ne voit pas l'interaction, elle utilise moins bien l'information (une étendue ignore les valeurs intermédiaires), et une seule valeur extrême la déplace. On la garde pour le calcul à la main, on conclut avec l'ANOVA.
+
+% =====================================================================
+\section{Combien l'étude est-elle fiable ? Les intervalles de confiance}\label{sec:ic}
+
+\subsection{Le problème}
+
+$\hat\sigma_O^2$ repose sur $o-1$ ddl : deux ddl avec trois opérateurs. Une variance estimée sur deux ddl est presque sans valeur : l'intervalle à 95\,\% de $\sigma^2$ va de $0{,}27\,s^2$ à $39{,}5\,s^2$. Un \% R\&R calculé sans intervalle de confiance donne une précision illusoire.
+
+\subsection{La méthode MLS}
+
+Burdick et al.~[1] recommandent les intervalles MLS (\emph{modified large sample}, Graybill et Wang). Pour une combinaison à coefficients positifs $\gamma=\sum_q c_q\,\theta_q$ des espérances $\theta_q=\E(\CM_q)$, estimée par $\hat\gamma=\sum_qc_qS_q$ (avec $S_q$ le carré moyen observé, à $\nu_q$ ddl) :
+\[
+L=\hat\gamma-\sqrt{\textstyle\sum_q G_q^2c_q^2S_q^2},\qquad U=\hat\gamma+\sqrt{\textstyle\sum_q H_q^2c_q^2S_q^2},
+\]
+\[
+G_q=1-\frac{1}{F_{1-\alpha/2}(\nu_q;\infty)},\qquad H_q=\frac{1}{F_{\alpha/2}(\nu_q;\infty)}-1.
+\]
+Pour une seule composante, ces bornes redonnent exactement l'intervalle du khi-deux. Pour $\gM$ dans le modèle avec interaction, $c=\big(\tfrac{1}{pr};\tfrac{p-1}{pr};\tfrac{r-1}{r}\big)$ sur $(S_O;S_{PO};S_E)$. Pour $\gP$, qui fait intervenir une différence $S_P-S_{PO}$, et pour le rapport $\gR$, les formules ont des termes croisés : elles sont programmées dans \texttt{rr\_functions.R} d'après Burdick et al. (chapitre 3 pour le modèle avec interaction, chapitre 5 pour le modèle sans interaction).
+
+\subsection{Validation du programme}
+
+Avant de s'en servir, on a vérifié que le programme redonne les exemples numériques du livre.
+\begin{center}
+\small
+\begin{tabular}{p{5.6cm} c c c}
+\toprule
+Exemple & $\gP$ & $\gM$ & $\gR$\\
+\midrule
+Chapitre 3, MLS (livre et programme) & $[28{,}3;105]$ & $[1{,}37;3{,}43]$ & $[10{,}9;67{,}2]$\\
+Chapitre 3, intervalles généralisés (programme, $10^5$ tirages) & $[28{,}3;105]$ & $[1{,}36;3{,}44]$ & $[12{,}2;61{,}3]$\\
+Chapitre 5, MLS sans interaction (livre et programme) & $[7{,}52;13{,}2]$ & $[0{,}0754;0{,}221]$ & $[40{,}7;161]$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Les intervalles généralisés (GCI) sont une autre méthode du même livre, fondée sur la simulation de quantités pivotales. Ils confirment les bornes MLS.
+
+\subsection{Ce que disent les intervalles}
+
+\begin{essentiel}
+Avec trois opérateurs, la borne haute de $\sigma_M$ est souvent trois à quatre fois l'estimation. Sur le TP simulé, le micromètre a un \% tolérance estimé de 7,5\,\%, mais l'intervalle à 95\,\% va de 6,3\,\% à 27,8\,\% (section~\ref{sec:tp}). On ne peut donc pas affirmer qu'il est sous 10\,\%. Ici la borne haute vient presque entièrement du terme opérateur, à 2 ddl : pour resserrer l'intervalle, il faut surtout plus d'opérateurs. Ajouter des essais ou des pièces n'y change presque rien.
+\end{essentiel}
+
+% =====================================================================
+\section{Les erreurs de classement}\label{sec:classement}
+
+Le \% tolérance reste abstrait. Ce qui coûte, ce sont les pièces mal classées. Avec des limites $[\mathrm{LI};\mathrm{LS}]$, une valeur vraie $X\sim\N(\mu;\sigma_P)$ et une mesure $Y=X+E$, $E\sim\N(0;\sigma_M)$ indépendante, Burdick et al.~[1] définissent :
+\[
+\delta=P(Y\notin[\mathrm{LI};\mathrm{LS}]\mid X\in[\mathrm{LI};\mathrm{LS}])\ \text{(rejet à tort)},
+\]
+\[
+\beta=P(Y\in[\mathrm{LI};\mathrm{LS}]\mid X\notin[\mathrm{LI};\mathrm{LS}])\ \text{(acceptation à tort)}.
+\]
+Le numérateur de $\delta$ se calcule par une intégrale simple :
+\[
+P(X\in S,\ Y\notin S)=\int_{\mathrm{LI}}^{\mathrm{LS}}\frac{1}{\sigma_P}\varphi\Big(\frac{x-\mu}{\sigma_P}\Big)\Big[1-\Phi\Big(\frac{\mathrm{LS}-x}{\sigma_M}\Big)+\Phi\Big(\frac{\mathrm{LI}-x}{\sigma_M}\Big)\Big]\,dx.
+\]
+
+Application aux valeurs estimées du TP (butée $\varnothing$ 11,85 à 12,00, procédé centré en 11,925) :
+\begin{center}
+\small
+\begin{tabular}{p{4.6cm} c c c c c}
+\toprule
+Cas & $\sigma_P$ & $\sigma_M$ & $\delta$ & $\beta$ & ppm\\
+\midrule
+Micromètre, procédé du TP ($C_p\approx0{,}85$) & 0,0294 & 0,0019 & 0,09\,\% & 6,7\,\% & 880 + 716\\
+Pied à coulisse, procédé du TP & 0,0298 & 0,0098 & 0,78\,\% & 23,4\,\% & 7\,734 + 2\,802\\
+Micromètre, procédé capable ($C_p=1{,}33$) & 0,0188 & 0,0019 & 0,0015\,\% & 10,5\,\% & 15 + 7\\
+Pied à coulisse, procédé capable & 0,0188 & 0,0098 & 0,035\,\% & 35,4\,\% & 354 + 23\\
+\bottomrule
+\end{tabular}
+\end{center}
+La dernière colonne donne, par million de pièces produites, les bonnes pièces rejetées puis les mauvaises pièces acceptées.
+
+\textbf{Lecture.} $\beta$ est une probabilité conditionnelle : elle grandit quand le procédé devient capable, parce que les rares pièces hors tolérance sont alors juste au bord. Ce qui compte pour le client, c'est le nombre absolu de mauvaises pièces acceptées (dernière colonne). Avec le pied à coulisse sur le procédé du TP, il y en a environ 2\,800 par million : quatre fois plus qu'avec le micromètre.
+
+% =====================================================================
+\section{TP : micromètre contre pied à coulisse}\label{sec:tp}
+
+\subsection{Objectif et matériel}
+
+Qualifier deux instruments pour le contrôle d'une butée de diamètre 11,85 à 12,00~mm (IT $=0{,}15$~mm), et montrer sur un même lot de pièces que la conclusion dépend de l'instrument, pas des pièces.
+\begin{itemize}[leftmargin=1.4em]
+\item 10 butées tournées, numérotées sur une face cachée à l'opérateur.
+\item Un micromètre 0-25~mm au millième, un pied à coulisse au 1/50 (pas de 0,02~mm).
+\item 3 opérateurs, un animateur qui présente les pièces et note les résultats.
+\end{itemize}
+
+\subsection{Protocole}
+
+\begin{enumerate}[leftmargin=1.4em]
+\item \textbf{Choisir les pièces} pour qu'elles couvrent la variation de la production. Pour un jugement sur la tolérance seule, le choix compte moins, puisque le \% tolérance ne dépend que de $\sigma_M$.
+\item \textbf{Repérer le lieu de mesure} (trait au feutre, hauteur fixée). Sinon l'ovalisation des pièces passe dans l'interaction pièce-opérateur.
+\item \textbf{Tirer au hasard} l'ordre des pièces pour chaque opérateur et chaque passage (en R : \texttt{sample(1:10)}).
+\item \textbf{Mesurer à l'aveugle} : l'opérateur ne voit ni le numéro de la pièce ni ses mesures précédentes.
+\item \textbf{Refaire la mise en place} à chaque mesure : poser la pièce, la reprendre. Trois lectures sans démonter ne sont pas trois essais.
+\item \textbf{Trois passages} complets par opérateur, espacés si possible, soit 90 mesures par instrument.
+\item \textbf{Saisir en format long} : une ligne par mesure, colonnes \texttt{P ; O ; k ; y}.
+\end{enumerate}
+
+\subsection{Résultats simulés}
+
+\begin{attention}[Données simulées]
+Les résultats qui suivent ne viennent pas d'un atelier. Ils sont simulés (graine 20261104) pour montrer ce qu'on doit obtenir. Valeurs vraies : $X=11{,}925+\N(0;0{,}020)$. Micromètre : $\sigma_O=0{,}0012$, $\sigma_{PO}=0{,}0006$, $\sigma_E=0{,}0015$, arrondi au millième. Pied à coulisse : $\sigma_O=0{,}004$, $\sigma_{PO}=0{,}002$, $\sigma_E=0{,}006$, arrondi à 0,02. Les fichiers \texttt{tp\_micrometre.csv} et \texttt{tp\_pied.csv} sont joints : remplacez-les par vos mesures.
+\end{attention}
+
+\begin{center}
+\captionof{table}{ANOVA du micromètre (modèle complet)}
+\begin{tabular}{l r r r r r}
+\toprule
+Source & ddl & SC & CM & $F$ & $p$\\
+\midrule
+Pièces & 9 & $7{,}009\cdot10^{-2}$ & $7{,}788\cdot10^{-3}$ & &\\
+Opérateurs & 2 & $6{,}969\cdot10^{-5}$ & $3{,}484\cdot10^{-5}$ & &\\
+Interaction & 18 & $4{,}853\cdot10^{-5}$ & $2{,}696\cdot10^{-6}$ & 1,12 & 0,358\\
+Répétabilité & 60 & $1{,}447\cdot10^{-4}$ & $2{,}411\cdot10^{-6}$ & &\\
+\bottomrule
+\end{tabular}
+\end{center}
+L'interaction n'est pas significative ($p=0{,}358$) : on la regroupe, $\CM_{E'}=2{,}477\cdot10^{-6}$ sur 78 ddl. Alors $F_P=3\,144$ et $F_O=14{,}1$ ($p=6\cdot10^{-6}$).
+
+\begin{center}
+\captionof{table}{ANOVA du pied à coulisse (modèle complet)}
+\begin{tabular}{l r r r r r}
+\toprule
+Source & ddl & SC & CM & $F$ & $p$\\
+\midrule
+Pièces & 9 & $7{,}284\cdot10^{-2}$ & $8{,}093\cdot10^{-3}$ & &\\
+Opérateurs & 2 & $1{,}129\cdot10^{-3}$ & $5{,}644\cdot10^{-4}$ & &\\
+Interaction & 18 & $1{,}093\cdot10^{-3}$ & $6{,}074\cdot10^{-5}$ & 0,72 & 0,778\\
+Répétabilité & 60 & $5{,}067\cdot10^{-3}$ & $8{,}444\cdot10^{-5}$ & &\\
+\bottomrule
+\end{tabular}
+\end{center}
+Regroupement : $\CM_{E'}=7{,}897\cdot10^{-5}$ sur 78 ddl, $F_P=102{,}5$, $F_O=7{,}15$ ($p=0{,}0014$).
+
+\begin{center}
+\captionof{table}{Composantes et critères (IT $=0{,}15$, $k=6$, intervalles MLS à 95\,\%)}
+\begin{tabular}{l c c}
+\toprule
+& Micromètre & Pied à coulisse\\
+\midrule
+$\hat\sigma_E$ (répétabilité) & 0,00157 & 0,00889\\
+$\hat\sigma_R$ (reproductibilité) & 0,00104 & 0,00402\\
+$\hat\sigma_M$ & 0,00189 & 0,00975\\
+$\hat\sigma_P$ & 0,02941 & 0,02984\\
+\% contribution & 0,41\,\% & 9,65\,\%\\
+\% variation de l'étude & 6,4\,\% & 31,1\,\%\\
+\% tolérance & 7,5\,\% & 39,0\,\%\\
+ndc & 22 & 4\\
+\midrule
+$\sigma_M$, intervalle & $[0{,}00159;0{,}00695]$ & $[0{,}00846;0{,}0286]$\\
+\% tolérance, intervalle & $[6{,}3\,\%;27{,}8\,\%]$ & $[33{,}8\,\%;115\,\%]$\\
+ndc ($\sqrt{2\gR}$), intervalle & $[5{,}8;43{,}3]$ & $[1{,}4;8{,}3]$\\
+Valeurs distinctes relevées & 42 & 7\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[xbar stacked, width=12cm, height=3.6cm, xmin=0, xmax=100, bar width=12pt,
+  symbolic y coords={Pied à coulisse,Micromètre}, ytick=data, enlarge y limits=0.5,
+  xlabel={\% de la variance totale}, legend style={at={(0.5,1.08)},anchor=south,legend columns=3,font=\small},
+  tick label style={font=\small}]
+\addplot[fill=bleu!70] coordinates {(99.591,Micromètre) (90.346,Pied à coulisse)};
+\addplot[fill=orange!80] coordinates {(0.285,Micromètre) (8.012,Pied à coulisse)};
+\addplot[fill=vert!70] coordinates {(0.124,Micromètre) (1.642,Pied à coulisse)};
+\legend{pièces, répétabilité, opérateurs}
+\end{axis}
+\end{tikzpicture}
+\caption{\% contribution des composantes, données simulées.}
+\end{figure}
+
+\subsection{Lecture}
+
+\begin{itemize}[leftmargin=1.4em]
+\item \textbf{Le micromètre est apte} au contrôle de cette cote : \% tolérance 7,5\,\%, ndc 22. La borne haute de l'intervalle (27,8\,\%) rappelle qu'avec trois opérateurs on ne peut pas garantir mieux que \og acceptable\fg{}.
+\item \textbf{Le pied à coulisse est refusé} : 39\,\% de la tolérance, et même la borne basse (33,8\,\%) dépasse 30\,\%. La conclusion est sûre malgré le petit plan.
+\item \textbf{La résolution explique une grande part de la répétabilité du pied.} L'arrondi à 0,02 apporte $0{,}02/\sqrt{12}=0{,}0058$, soit $0{,}0058^2/0{,}0089^2\approx42\,\%$ de $\hat\sigma_E^2$. Le pas de 0,02 vaut $1/7{,}5$ de l'IT, plus que le dixième demandé.
+\item \textbf{Les deux instruments voient les mêmes pièces} ($\hat\sigma_P\approx0{,}030$) : c'est la mesure qui change, pas le lot.
+\item \textbf{Une interaction réelle est passée inaperçue.} La simulation contient $\sigma_{PO}=0{,}002$ pour le pied, et le test donne $p=0{,}78$. Avec 18 ddl et un résidu de 0,0089, une interaction de cet ordre est invisible. Le regroupement ne prouve pas l'absence d'interaction.
+\item \textbf{Les estimations retrouvent les valeurs simulées.} Pour le pied, $\sigma_M$ vrai vaut $\sqrt{0{,}006^2+0{,}0058^2+0{,}004^2+0{,}002^2}\approx0{,}0095$ (arrondi compris), pour une estimation de 0,0098. Pour le micromètre, 0,0020 pour 0,0019.
+\item \textbf{Le procédé lui-même n'est pas capable} : $C_p\approx0{,}85$. Mesuré au pied, il paraît encore moins capable, $C_p^{\text{observé}}=0{,}80$ (section~\ref{sec:criteres}).
+\end{itemize}
+
+% =====================================================================
+\section{Deux jeux de données réels}\label{sec:reel}
+
+\subsection{Cinq pièces, sept opérateurs, trois essais}
+
+Fichier \texttt{mesure\_7op\_5pieces\_3run.csv} du dépôt SPCR. Valeurs de 50,020 à 50,050~mm, neuf valeurs distinctes, le plus souvent au pas de 0,005 ; l'opérateur 1 a noté deux valeurs au millième.
+
+\begin{center}
+\begin{tabular}{l r r r r r}
+\toprule
+Source & ddl & SC & CM & $F$ & $p$\\
+\midrule
+Pièces & 4 & $6{,}092\cdot10^{-4}$ & $1{,}523\cdot10^{-4}$ & 6,20 & 0,0014\\
+Opérateurs & 6 & $1{,}357\cdot10^{-3}$ & $2{,}262\cdot10^{-4}$ & 9,21 & $3\cdot10^{-5}$\\
+Interaction & 24 & $5{,}898\cdot10^{-4}$ & $2{,}457\cdot10^{-5}$ & 1,73 & 0,040\\
+Répétabilité & 70 & $9{,}933\cdot10^{-4}$ & $1{,}419\cdot10^{-5}$ & &\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+L'interaction est significative à 5\,\% : on la garde, et $F_P$, $F_O$ sont calculés contre elle. Les composantes valent, en \% de la variance totale : répétabilité 38,2\,\%, interaction 9,3\,\%, opérateurs 36,2\,\%, pièces 16,4\,\%. D'où $\hat\sigma_M=0{,}0056$, $\hat\sigma_P=0{,}0025$, \% variation de l'étude 91,5\,\%, ndc $=0{,}63$, donc 0. L'intervalle MLS de $\gR$ est $[0{,}024;1{,}99]$ : même au mieux, le ndc ne dépasse pas 2. Les résultats REML (paquet \texttt{lme4}) sont identiques, comme attendu pour un plan équilibré.
+
+\textbf{Diagnostic.} L'opérateur 7 se détache : moyenne 50,0323 contre 50,0397 à 50,0433 pour les autres, écart-type 0,0082 contre 0,0032 à 0,0041. À titre exploratoire, sans lui, l'interaction disparaît ($p=0{,}445$), $\hat\sigma_M$ tombe à 0,0024 et le ndc monte à 2,1.
+
+\begin{attention}[Retirer un opérateur]
+Écarter l'opérateur 7 après avoir vu les résultats n'est pas une conclusion : c'est une piste. La bonne suite est d'observer sa façon de mesurer, de corriger le mode opératoire, puis de refaire une étude. Même sans lui, les cinq pièces sont trop semblables ($\hat\sigma_P=0{,}0036$) pour un ndc correct.
+\end{attention}
+
+La tolérance de cette pièce n'est pas dans le fichier. On peut seulement dire, avec $k=6$ et $\hat\sigma_M=0{,}0056$, qu'un \% tolérance de 10\,\% demanderait un IT d'au moins 0,335~mm, et un \% tolérance de 30\,\% un IT d'au moins 0,112~mm.
+
+\subsection{Dix pièces, sept opérateurs, deux essais}
+
+Fichier \texttt{Bachelor\_RR.csv} du dépôt, rendu anonyme dans le fichier joint \path{RR_10pieces_7operateurs_anonyme.csv} (opérateurs Op1 à Op7). Valeurs de 39,75 à 40,07~mm, résolution 0,01~mm d'après les valeurs, 19 valeurs distinctes.
+
+\begin{center}
+\begin{tabular}{l r r r r r}
+\toprule
+Source & ddl & SC & CM & $F$ & $p$\\
+\midrule
+Pièces & 9 & 0,02510 & 0,002789 & &\\
+Opérateurs & 6 & 0,07361 & 0,012269 & &\\
+Interaction & 54 & 0,08381 & 0,001552 & 0,85 & 0,738\\
+Répétabilité & 70 & 0,12845 & 0,001835 & &\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Interaction regroupée : $\CM_{E'}=0{,}001712$ sur 124 ddl. $F_P=1{,}63$ ($p=0{,}11$) : \textbf{l'étude ne distingue pas les pièces entre elles}. $F_O=7{,}17$ ($p=1{,}4\cdot10^{-6}$) : les opérateurs diffèrent nettement. Composantes : répétabilité 73,9\,\%, opérateurs 22,8\,\%, pièces 3,3\,\%. $\hat\sigma_E=0{,}041$, $\hat\sigma_M=0{,}047$, $\hat\sigma_P=0{,}0088$, \% variation de l'étude 98,3\,\%, ndc $=0{,}26$. La borne basse MLS de $\gP$ est 0.
+
+\textbf{Valeurs suspectes.} Toutes les mesures sont entre 39,75 et 39,90, sauf quatre : 39,92 (Op4, pièce 6) et 40,07, 40,07, 40,00 (Op7, pièces 2, 7, 9). Sans elles (plan alors déséquilibré, estimation REML), $\hat\sigma_M=0{,}029$ et le ndc vaut 0,42. La conclusion ne change pas.
+
+\textbf{Diagnostic.} Deux causes se cumulent. Les dix pièces sont presque identiques : $\hat\sigma_P\approx0{,}009$~mm, sous la résolution de 0,01~mm. Aucun instrument ne peut les classer, et le \% de variation de l'étude est condamné d'avance. La mesure elle-même est dispersée ($\hat\sigma_M\approx0{,}05$~mm) et dépend de l'opérateur. Pour juger cet instrument, il faut des pièces qui couvrent la tolérance et juger sur le \% tolérance : avec $k=6$, un résultat sous 30\,\% exigerait un IT d'au moins 0,95~mm.
+
+% =====================================================================
+\section{Le calcul dans Excel}\label{sec:excel}
+
+Données en format long : pièce en \nosp{A2:A91}, opérateur en \nosp{B2:B91}, essai en \nosp{C2:C91}, mesure en \nosp{D2:D91} ($p=10$, $o=3$, $r=3$).
+
+\begin{center}
+\footnotesize
+\begin{tabular}{p{4.2cm} l}
+\toprule
+Grandeur & Formule\\
+\midrule
+$\SC_T$ & \texttt{=SOMME.CARRES.ECARTS(D2:D91)}\\
+moyenne de la pièce $i$ (en \nosp{G2:G11}, $i$ en \nosp{F2:F11}) & \texttt{=MOYENNE.SI.ENS(\$D\$2:\$D\$91;\$A\$2:\$A\$91;F2)}\\
+$\SC_P$ & \texttt{=3*3*SOMME.CARRES.ECARTS(G2:G11)}\\
+moyenne de l'opérateur $j$ (en \nosp{J2:J4}) & idem avec la colonne B\\
+$\SC_O$ & \texttt{=10*3*SOMME.CARRES.ECARTS(J2:J4)}\\
+moyenne de cellule (tableau \nosp{M2:O11}) & \texttt{=MOYENNE.SI.ENS(\$D\$2:\$D\$91;\$A\$2:\$A\$91;\$L2;}\\ & \texttt{\ \ \$B\$2:\$B\$91;M\$1)}\\
+$\SC_{\text{cellules}}$ & \texttt{=3*SOMME.CARRES.ECARTS(M2:O11)}\\
+$\SC_{PO}$ & $\SC_{\text{cellules}}-\SC_P-\SC_O$\\
+$\SC_E$ & $\SC_T-\SC_{\text{cellules}}$\\
+$p$-valeur & \texttt{=LOI.F.DROITE(F;ddl1;ddl2)}\\
+composante & \texttt{=MAX(0;(CM\_O-CM\_PO)/(10*3))}, etc.\\
+ndc & \texttt{=ENT(RACINE(2)*sP/sM)}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+L'utilitaire d'analyse (\og Anova : deux facteurs avec réplication\fg{}) donne les mêmes SC, mais il calcule tous les $F$ contre la répétabilité, comme en modèle fixe. Il faut refaire $F_P$ et $F_O$ à la main, contre $\CM_{PO}$ ou contre $\CM_{E'}$ selon le modèle retenu. Il attend de plus les données en tableau (une colonne par opérateur, $r$ lignes par pièce).
+
+% =====================================================================
+\section{Le calcul dans R}\label{sec:R}
+
+Le script \texttt{rr\_etude.R} contient la fonction complète (choix du modèle, composantes, critères, intervalles MLS, contrôle REML). Le cœur tient en quelques lignes :
+
+\begin{code}
+d <- read.csv2("tp\_micrometre.csv"); d\$P <- factor(d\$P); d\$O <- factor(d\$O)\\
+p <- 10; o <- 3; r <- 3\\
+s <- summary(aov(y \textasciitilde{} P * O, data = d))[[1]]; CM <- s[, "Mean Sq"]; ddl <- s[, "Df"]\\
+pint <- pf(CM[3] / CM[4], ddl[3], ddl[4], lower.tail = FALSE)\\
+if (pint >= 0.05) \{ \ \# interaction regroupée avec la répétabilité\\
+\ \ CME <- sum(s[3:4, "Sum Sq"]) / sum(ddl[3:4])\\
+\ \ vE <- CME; vPO <- 0; vO <- max(0, (CM[2] - CME) / (p*r)); vP <- max(0, (CM[1] - CME) / (o*r))\\
+\} else \{\\
+\ \ vE <- CM[4]; vPO <- max(0, (CM[3] - CM[4]) / r)\\
+\ \ vO <- max(0, (CM[2] - CM[3]) / (p*r)); vP <- max(0, (CM[1] - CM[3]) / (o*r)) \}\\
+sM <- sqrt(vE + vO + vPO); sP <- sqrt(vP)\\
+c(pct\_tol = 100 * 6 * sM / 0.15, pct\_etude = 100 * sM / sqrt(sM\textasciicircum2 + sP\textasciicircum2), ndc = sqrt(2) * sP / sM)\\
+\# contrôle : library(lme4); VarCorr(lmer(y \textasciitilde{} 1 + (1|P) + (1|O), data = d))
+\end{code}
+
+% =====================================================================
+\section{Ce qui change par rapport à la page R\&R Six Sigma}\label{sec:change}
+
+\begin{enumerate}[leftmargin=1.4em]
+\item \textbf{Les tests.} Les effets pièce et opérateur se testent contre l'interaction (ou le résidu regroupé), pas contre la répétabilité.
+\item \textbf{La règle de regroupement} de l'interaction est annoncée avant le calcul (ici $p\ge0{,}05$, comme Minitab).
+\item \textbf{Le jugement porte sur deux critères distincts} : \% tolérance pour trier, ndc ou \% variation de l'étude pour piloter.
+\item \textbf{Chaque critère est accompagné d'un intervalle de confiance.} Avec trois opérateurs, il est large, et il faut le dire.
+\item \textbf{Les exemples à deux voltmètres et trois batteries} ne conviennent pas : on n'estime pas une variance avec deux ou trois niveaux (document~[9], section~4).
+\end{enumerate}
+
+% =====================================================================
+\section{Sources}
+
+\begin{enumerate}[label={[\arabic*]},leftmargin=2.2em,itemsep=3pt]
+\item R. K. Burdick, C. M. Borror, D. C. Montgomery, \emph{Design and Analysis of Gauge R\&R Studies: Making Decisions with Confidence Intervals in Random and Mixed ANOVA Models}, ASA-SIAM, 2005. Chapitre 1 (critères, SNR, erreurs de classement), chapitre 3 (modèle avec interaction, MLS et intervalles généralisés), chapitre 5 (modèle sans interaction).
+\item AIAG, \emph{Measurement Systems Analysis, Reference Manual}, 4\textsuperscript{e} édition, 2010. Non consulté directement.
+\item Ellistat, \og Qu'est-ce que le Gage R\&R ?\fg{}, \url{https://ellistat.com/quest-ce-que-le-gage-rr/}. Seuils, Cpc, méthodes RANGE et ANAVAR, plans 3 opérateurs $\times$ 10 pièces $\times$ 3 mesures.
+\item Wikipédia (en), \og ANOVA gauge R\&R\fg{}, \url{https://en.wikipedia.org/wiki/ANOVA_gauge_R\%26R}. Modèle aléatoire, seuils du P/T.
+\item Minitab, \og Methods and formulas for gage R\&R table in Crossed Gage R\&R Study\fg{}, \url{https://support.minitab.com/minitab/help-and-how-to/quality-and-process-improvement/measurement-system-analysis/how-to/gage-study/crossed-gage-r-r-study/methods-and-formulas/gage-r-r-table}, et \og Specify the default settings for gage R\&R studies\fg{}, \url{https://support.minitab.com/en-us/minitab/help-and-how-to/minitab-environment/settings-and-defaults/control-charts-and-quality-tools/gage-r-r-study/}. Multiplicateur 6 et seuil 0,05 de retrait de l'interaction par défaut, composantes négatives ramenées à 0.
+\item NIST/SEMATECH, \emph{e-Handbook of Statistical Methods}, section 2.4, \og Gauge R\&R studies\fg{}, \url{https://itl.nist.gov/div898/handbook/mpc/section4/mpc4.htm}.
+\item \nosp{JCGM 200:2012}, \emph{Vocabulaire international de métrologie} (VIM), 3\textsuperscript{e} édition, articles 2.20 à 2.25, \url{https://jcgm.bipm.org/vim/en/2.20.html}.
+\item D. C. Montgomery, \emph{Design and Analysis of Experiments}, Wiley, 8\textsuperscript{e} édition, 2013. Modèles aléatoires et mixtes.
+\item S. Jaubert, \emph{L'analyse de la variance à plusieurs facteurs}, novembre 2026, document compagnon (même dossier).
+\item S. Jaubert, \emph{R \& R Six Sigma}, \url{https://sjaubert.github.io/SPCR/}, et fichiers de données du dépôt SPCR.
+\end{enumerate}
+
+\textbf{Reproductibilité des calculs.} Tous les nombres ont été calculés avec R 4.3.3 (scripts joints \texttt{rr\_functions.R}, \texttt{rr\_etude.R}). Les intervalles MLS ont été validés sur les exemples de Burdick et al. avant usage. Les composantes ANOVA ont été recoupées par REML (\texttt{lme4}).
+
+\end{document}

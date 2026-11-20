@@ -1,6 +1,8 @@
 ## Quelques textes autour du SPC
 ### [Petit développement sur les estimateurs](https://sjaubert.github.io/SPCR/Estimation.pdf?target=_blank)
 
+### [Pourquoi Student pour la moyenne, pourquoi le khi-deux pour l'écart-type](https://sjaubert.github.io/SPCR/ANOVA_et_RR/Student_khi2.pdf?target=_blank)
+
 <b><a href="http://archive.ics.uci.edu/ml/datasets.php?format=&task=reg&att=&area=comp&numAtt=&numIns=&type=&sort=nameUp&view=table" target="_blank">data set : Machine Learning Repository</a> </b>
 
 <a href="https://sjaubert.github.io/SPCR/ACOEM/Atelier_Vibratoire_BV12.html" target="_blank">Analyse vibratoire</a>
@@ -12,6 +14,10 @@
 [Test F pour une ANOVA](https://sjaubert.github.io/SPCR/ANOVA.html?target=_blank)
 
 [Etude R&R](https://sjaubert.github.io/SPCR/R-R-Six-Sigma.html?target=_blank)
+
+[Gage R&R et ANOVA : modèle, estimation, critères, intervalles de confiance et TP (PDF)](https://sjaubert.github.io/SPCR/ANOVA_et_RR/Gage_RR_ANOVA.pdf?target=_blank)
+
+[L'analyse de la variance à plusieurs facteurs : modèles, interactions, facteurs fixes et aléatoires (PDF)](https://sjaubert.github.io/SPCR/ANOVA_et_RR/ANOVA_plusieurs_facteurs.pdf?target=_blank)
 ### Etude capabilité
 [Capability cas normal ](https://sjaubert.github.io/SPCR/capability.html?target=_blank)
 

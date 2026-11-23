@@ -1,11 +1,11 @@
 ---
 title: "R & R Six Sigma"
 author: "S. Jaubert"
-date: "`r format(Sys.time(), ' %d %B %Y')`"
+date: "17 juin 2021"
 output:
+  pdf_document: default
   word_document: default
   html_document: default
-  pdf_document: default
 ---
 
 # ANOVA à deux facteurs
@@ -16,9 +16,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Mesure du voltage de batteries
 
-Nous avons $a=2$ appareils de mesure $i=1,2$ (voltmètre facteur A "the appraisers") et $b=3$ types de batteries $j=1,2,3$ (facteur B ou "parts" en anglais).
+Nous avons $a=2$ appareils de mesure, $i=1,2$ (voltmètres, facteur A, « *appraisers* » en anglais), et $b=3$ batteries, $j=1,2,3$ (facteur B, « *parts* » en anglais).
 
-Le voltage des batteries est mesuré avec chaque voltmètre $R=3$ fois, soit $a\times b\times R=18$ mesures.
+Chaque batterie est mesurée $R=3$ fois avec chaque voltmètre, soit $a\times b\times R=18$ mesures.
 
 ```{r}
 a<-2
@@ -40,15 +40,15 @@ batteries<-data.frame(voltmeter,battery,run,voltage)
 batteries
 ```
 
-En toute rigueur nous devrions vérifier que :
+En toute rigueur, nous devrions vérifier que :
 
--   les échantillons sont issus d'une population normale
+-   chaque échantillon est issu d'une population normale
 
 -   les variances conditionnelles (variances dans chaque sous-population) sont identiques : **homoscédasticité**
 
 -   les sous-échantillons sont indépendants
 
-Néanmoins en pratique l'ANOVA est assez robuste.
+Néanmoins, en pratique, l'ANOVA est assez robuste à ces écarts.
 
 ```{r warning=FALSE, include=FALSE}
 library(dplyr)
@@ -87,7 +87,7 @@ str(batteries)
 datatable(batteries, class = 'cell-border stripe')
 ```
 
-Soit $x_{ijr}$ l'observation numéro $r$ dans l'échantillon $E_{ij}$ où $(i,j)\in \left \{ 1,2 \right \} \times \left \{ 1,2,3 \right \}$
+Soit $x_{ijr}$ l'observation numéro $r$ dans l'échantillon $E_{ij}$ où $(i,j)\in \left \{ 1,2 \right \} \times \left \{ 1,2,3 \right \}$.
 
 ![](tableau.jpg)
 
@@ -120,30 +120,33 @@ Que nous obtenons avec les commandes :
 (xbar_.j<-apply(mat_Xbar_ij,2,mean))
 ```
 
-et la moyenne générale $\overline {\overline{X}} :$
+et la moyenne générale $\overline{\overline{X}}$ :
 
 ```{r}
 (xbarbar<-mean(batteries$voltage))
 ```
 
-#### Hypothèses
+### Hypothèses
 
-$H_{0} : \mu_{i.}=\mu ,\; \forall \; i$
+Trois tests sont réalisés : l'effet du facteur A (voltmètre), l'effet du facteur B (batterie) et l'effet de l'interaction A×B.
 
-$H_{0} : \mu_{.j}=\mu , \; \forall \; j$
+$H_{0}^{A} : \mu_{i.}=\mu ,\; \forall \; i$
 
-$H_{0} : \mu_{ij}=\mu ,\; \forall \; i,j$
+$H_{0}^{B} : \mu_{.j}=\mu , \; \forall \; j$
 
-Décomposition de la moyenne :
+$H_{0}^{AB} : \mu_{ij}-\mu_{i.}-\mu_{.j}+\mu=0 ,\; \forall \; i,j$ (pas d'interaction)
+
+Décomposition de l'écart à la moyenne générale :
 
 $x_{ijr}-\overline {\overline{X}}=(\overline{x}_{i.}-\overline {\overline{X}})+(\overline{x}_{.j}-\overline {\overline{X}})+(\overline{x}_{ij}-\overline{x}_{i.}-\overline{x}_{.j}+\overline {\overline{X}})+(x_{ijr}-\overline{x}_{ij})$
 
-D'où :
-
+D'où (les doubles produits s'annulent) :
 
 $$
 \begin{matrix}SCT & = &SCE_{A}  & + & SCE_{B} & + & SCE_{AB} & + &SCR \\  \sum_{i=1}^{a}\sum_{j=1}^{b}\sum_{r=1}^{R}\left ( x_{ijr}-\overline {\overline{X}} \right )^{2}& = & \sum_{i=1}^{a}(\overline{x}_{i.}-\overline {\overline{X}})^{2}\times b\times R & + & \sum_{j=1}^{b}(\overline{x}_{.j}-\overline {\overline{X}})^{2}\times a\times R & + & SCE_{AB} & + & \sum_{i=1}^{a}\sum_{j=1}^{b}\sum_{r=1}^{R}(x_{ijr}-\overline{x}_{ij})^{2}\end{matrix}
 $$
+
+avec $SCE_{AB}=R\sum_{i=1}^{a}\sum_{j=1}^{b}(\overline{x}_{ij}-\overline{x}_{i.}-\overline{x}_{.j}+\overline{\overline{X}})^{2}$.
 
 Calculons ces termes :
 
@@ -184,16 +187,16 @@ for (i in 1:2) {
 
 ```
 
-Le tableau ci-dessous résume ces résultats, pour les moyennes des carrés il suffit de diviser les Sommes des Carrés par leurs degrés de liberté :
+Le tableau ci-dessous résume ces résultats : pour obtenir les moyennes des carrés, il suffit de diviser les sommes des carrés par leurs degrés de liberté :
 
 ![](tab_varia.jpg)
 
 
-(nous pouvons utiliser des acronymes anglais ou français ainsi SSE et SCR sont identiques ainsi que MSE et MCR)
+(nous pouvons utiliser des acronymes anglais ou français : SSE et SCR sont identiques, de même que MSE et MCR)
 
 
 
-Tout ceci est assez fastidieux, heureusement avec *R* tous ces termes se retrouvent très facilement :
+Tout ceci est assez fastidieux. Heureusement, avec *R*, tous ces termes se retrouvent très facilement :
 
 ### ANOVA avec R
 
@@ -203,11 +206,13 @@ result<-anova(lm(voltage~battery+voltmeter+battery*voltmeter,
 result
 ```
 
+Remarque : les valeurs de $F$ et de $p$ de `anova()` supposent un modèle à effets fixes (chaque effet est testé par rapport au carré moyen résiduel). Dans une étude R&R, les facteurs sont aléatoires : l'interaction se teste avec $MSAB/MSE$, et, tant que l'interaction est conservée dans le modèle, les facteurs A et B avec $MSA/MSAB$ et $MSB/MSAB$ (voir plus bas le tableau du package SixSigma : $F_A=4.812$ et $F_B=3.415$).
+
 Décomposition de la variabilité :
 
 ![](total_variability.png)
 
-La répétabilité, $\sigma^{2}_{repeatability}=\frac{SCR}{ab(R-1)}$ est obtenue directement comme le "Residuals Mean Sq" de la 4ème ligne:
+La répétabilité, $\sigma^{2}_{repeatability}=\frac{SCR}{ab(R-1)}$ est obtenue directement comme le « Residuals Mean Sq » de la 4e ligne :
 
 ```{r}
 result$`Mean Sq`[4]
@@ -225,11 +230,15 @@ La variabilité due à l'interaction Batterie-Voltmètre, $\sigma^{2}_{Interacti
 (result$`Mean Sq`[3]-result$`Mean Sq`[4])/R
 ```
 
-(cette valeur étant négative nous prendrons zéro)
+(cette valeur étant négative, nous prendrons zéro)
 
-La reproductibilité, $\sigma^{2}_{reproducibility}=\sigma^{2}_{Appraisers}+\sigma^{2}_{Interaction}$ est alors : 0.003911723
+La reproductibilité, $\sigma^{2}_{reproducibility}=\sigma^{2}_{Appraisers}+\sigma^{2}_{Interaction}$ est alors :
 
-Le gage R&R, mesure la variabilité provoquée par le système de mesure, que nous comparerons ensuite à la variabilité totale.
+```{r}
+max(0, (result$`Mean Sq`[2]-result$`Mean Sq`[3])/(b*R)) + max(0, (result$`Mean Sq`[3]-result$`Mean Sq`[4])/R)
+```
+
+Le Gage R&R mesure la variabilité provoquée par le système de mesure, que nous comparerons ensuite à la variabilité totale.
 
 $\sigma^{2}_{R\&R}=\sigma^{2}_{repeatability}+\sigma^{2}_{reproducibility}$, prend la valeur :
 
@@ -240,30 +249,30 @@ result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(b*R)
 La variation due au processus, $\sigma^{2}_{Part \; to \;Part}=\frac{MSB-MSAB}{a\times R}$ :
 
 ```{r}
-(result$`Mean Sq`[1]-result$`Mean Sq`[3])/(2*3)
+(result$`Mean Sq`[1]-result$`Mean Sq`[3])/(a*R)
 ```
 
 Enfin, la variabilité totale $\sigma^{2}_{Totale}=\sigma^{2}_{R\&R}+\sigma^{2}_{Part \; to \;Part}$ :
 
 ```{r}
-result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(3*3)+(result$`Mean Sq`[1]-result$`Mean Sq`[3])/(2*3)
+result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(b*R)+(result$`Mean Sq`[1]-result$`Mean Sq`[3])/(a*R)
 ```
 
-Pour qu'un système de mesure soit précis, la contribution de la variabilité du Gage R&R ne doit pas dépasser 10% de la variabilité totale.
+Pour qu'un système de mesure soit acceptable, le rapport entre l'écart type du Gage R&R et l'écart type total ne doit pas dépasser 10 %.
 
 $\%Gage \;R\&R=\frac{\sigma_{R\&R}}{\sigma_{Totale}}<10\%$
 
-Une valeur comprise entre 10 et 30% peut être acceptable.
+Une valeur comprise entre 10 et 30 % peut être acceptable.
 
-Une valeur supérieure à 30% représente un mauvais système de mesure.
+Une valeur supérieure à 30 % représente un mauvais système de mesure.
 
 Dans notre exemple, nous avons :
 
 ```{r}
-sqrt(result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(3*3))/sqrt(result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(3*3)+(result$`Mean Sq`[1]-result$`Mean Sq`[3])/(2*3))
+sqrt(result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(b*R))/sqrt(result$`Mean Sq`[4]+(result$`Mean Sq`[2]-result$`Mean Sq`[3])/(b*R)+(result$`Mean Sq`[1]-result$`Mean Sq`[3])/(a*R))
 ```
 
-Ce qui signifie que la plus grande partie de la variation du processus est due à la variabilité du système de mesure.
+Ce rapport (91.7 %) signifie que la plus grande partie de la variation observée est due à la variabilité du système de mesure et non aux différences entre batteries.
 
 ### Utilisation du Package SixSigma de R
 
@@ -276,10 +285,13 @@ gage_rr<-ss.rr(var = voltage,part = battery,appr = voltmeter,data = batteries,ma
 gage_rr
 ```
 
+Le package retient ici le modèle réduit : l'interaction n'est pas significative ($p=0.573>0.05$), elle est donc regroupée avec la répétabilité. Le Gage R&R représente alors 93.13 % de la variation totale (%StudyVar), contre 91.7 % dans notre calcul où l'interaction est seulement ramenée à zéro. Le nombre de catégories distinctes est 1.
+
 ## 7 opérateurs
 
+Sept opérateurs ont chacun mesuré 10 pièces, 2 fois chacune, soit 140 mesures.
+
 ```{r}
-setwd("D:/OneDrive - CFAI Centre/Bachelor/R&R")
 dd<-read.csv("https://sjaubert.github.io/SPCR/Bachelor_RR.csv",header = T,dec = ".",sep = ";")
 ```
 
@@ -297,3 +309,7 @@ theme_classic()+geom_violin()
 library(SixSigma)
 gage_rr<-ss.rr(var = mesure,part = part,appr = operateur,data = dd,main = "Six Sigma Gage R&R Measure",sub = "diamètre de niveau à bulle")
 ```
+
+------------------------------------------------------------------------
+
+*Document créé le 17 juin 2021. Révisions : 23 juin 2021, 25 juin 2021, 26 juin 2021, 23 novembre 2026.*

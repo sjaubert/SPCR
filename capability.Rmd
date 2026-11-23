@@ -1,0 +1,210 @@
+---
+title: "Analyse de capabilité (cas Normal)"
+author: "S. Jaubert"
+date: "13 octobre 2019"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+```
+
+En maîtrise statistique des procédés (MSP, ou SPC en anglais), l'analyse de la capabilité est une étape importante de la phase de mesure (le M du DMAIC).
+
+Par une analyse de capabilité, nous mesurons dans quelle mesure la performance du processus répond aux exigences du client. Ces exigences sont traduites par des limites de spécification LSL et USL (limites inférieure et supérieure).
+
+Ces spécifications sont « la voix du client » (VoC) : en dehors de ces limites, la performance du processus est inacceptable. Mais rester dans les limites ne suffit pas : **le processus est performant lorsqu'il s'approche de la cible avec aussi peu de variation que possible.**
+
+L'idée est de comparer les spécifications de la voix du client aux limites naturelles du processus, « la voix du processus » (VoP). Ces limites naturelles valent $\mu \pm 3\sigma$ pour les valeurs individuelles. Il ne faut pas les confondre avec les limites de contrôle UCL et LCL d'une carte des moyennes, qui valent $\mu \pm 3\sigma/\sqrt{n}$.
+
+L'analyse de capabilité quantifie cet écart à l'aide d'indices et d'outils graphiques.
+
+## Indices de capabilité
+
+Les indices de capabilité comparent les exigences du client (les spécifications) à la performance du processus.
+
+> $Capabilité =\dfrac{USL - LSL }{6\sigma}$ (que nous noterons $C_{p}$)
+
+On suppose ici que $X$, la grandeur étudiée, suit une loi normale de moyenne $\mu$ et d'écart type $\sigma$, et que le processus est centré : $\mu=\dfrac{USL+LSL}{2}$.
+
+La proportion de pièces non conformes est alors :
+
+$$p=P(X\leq LSL) + P(X\geq USL) = 2-2\Phi\left(\frac{USL-LSL}{2\sigma}\right) = 2-2\Phi(3C_{p})$$
+
+en utilisant $6\sigma C_{p}=USL - LSL$.
+
+On voit souvent un $C_{p} = \dfrac{4}{3} \approx 1{,}33$. Il correspond à une proportion de non conformes d'environ 63 par million (6 pour 100 000) :
+
+```{r}
+2 - 2 * pnorm(4)
+```
+
+Pour $C_{p} = \dfrac{5}{3} \approx 1{,}67$, la proportion de non conformes est d'environ 0,6 par million (6 pour 10 millions) :
+
+```{r}
+2 - 2 * pnorm(5)
+```
+
+La formule $C_{p} =\dfrac{USL - LSL }{6\sigma}$ ne dit rien du centrage du processus par rapport au milieu de l'intervalle de tolérance. Pour en tenir compte, nous utilisons l'indice :
+
+$$C_{pk}=\min\left\{ \frac{USL-\mu}{3\sigma} ; \frac{\mu-LSL}{3\sigma}\right\}$$
+
+On a toujours $C_{pk}\leq C_{p}$, avec égalité si $\mu=\dfrac{USL+LSL}{2}$.
+
+Un autre indice est très utilisé, le $C_{pm}$ (indice de Taguchi). Il tient compte à la fois de la dispersion et du centrage par rapport à la cible (voir ici : <https://hal.archives-ouvertes.fr/hal-00974315/document>) :
+
+$$C_{pm} =\frac{USL - LSL}{6\sqrt{\sigma^{2}+\left ( \mu - cible\right )^{2}}}=\frac{C_{p}}{\sqrt{1+9\left ( C_{p} - C_{pk}\right )^{2}}}$$
+
+La seconde égalité n'est vraie que si la cible est au milieu de la tolérance.
+
+De même, pour tenir compte du décentrage avec le $C_{pk}$ :
+
+$$C_{pmk} =\frac{\min\left \{ USL - \mu ; \mu -LSL\right \} }{3\sqrt{\sigma^{2}+\left ( \mu - cible\right )^{2}}}=\frac{C_{pk}}{\sqrt{1+\left ( \dfrac{\mu-cible}{\sigma}\right )^{2}}}$$
+
+Si le processus est parfaitement centré sur la cible, et si la cible est au milieu de la tolérance, on a évidemment $C_{pm}=C_{p}=C_{pk}=C_{pmk}$.
+
+**Remarque.** Les hypothèses faites plus haut sont discutables, celle de normalité en particulier. Il faut aussi garder à l'esprit que $\sigma$ et $\mu$ sont inconnus : ces indices sont des estimations, et elles ont une incertitude. Les études qui portent sur les indices de capabilité hors du cadre normal (distributions asymétriques par exemple) sont plus rares.
+
+## Court terme et long terme
+
+Pour estimer $\sigma$, il faut non seulement tenir compte de la taille de l'échantillon, mais aussi choisir l'horizon de temps, « court » ou « long ». D'où deux types de dispersion :
+
+- la dispersion court terme (ou instantanée) : les écarts entre pièces à l'intérieur d'un même sous-groupe ;
+- la dispersion long terme (ou globale) : celle observée sur le procédé pendant un temps suffisant pour que les 5 M (Machine, Main-d'œuvre, Milieu, Matière, Méthodes) aient eu une influence (voir M. Pillet).
+
+Pour compliquer les choses, différentes normes et notations sont apparues depuis une quarantaine d'années (voir à ce propos l'article de Maurice Pillet : « Le point sur les études de capabilité ou d'aptitude »).
+
+De nos jours, la plupart des industriels s'alignent sur la norme IATF 16949 (publiée en 2016, elle a remplacé l'ISO/TS 16949). Les indices les plus utilisés sont $C_{p}$ et $C_{pk}$ pour le court terme, $P_{p}$ et $P_{pk}$ pour le long terme (*Process Performance*), et l'indice de Taguchi $C_{pm}$ (voir B. Leroux, *Outils avancés pour le management, niveau C*, Ellipses).
+
+Il faut être prudent dans la lecture des indices, et savoir sur quelle estimation de l'écart type ils reposent :
+
+- $C_{p}$ et $C_{pk}$ utilisent un écart type court terme, estimé à partir de la dispersion à l'intérieur des sous-groupes (par exemple $\bar{R}/d_2$) ;
+- $P_{p}$ et $P_{pk}$ utilisent l'écart type global de toutes les mesures.
+
+Lorsque les données sont supposées provenir d'une loi normale, on peut établir des intervalles et des limites de confiance pour $C_{p}$ ou $P_{p}$. L'intervalle de confiance à $100(1-\alpha)\,\%$ est :
+
+$$\hat{C_{p}}\sqrt{\frac{\chi_{1-\alpha/2,\nu }^{2}}{\nu }}\leq C_{p}\leq \hat{C_{p}}\sqrt{\frac{\chi_{\alpha/2,\nu }^{2}}{\nu }}$$
+
+où $\chi_{p,\nu }^{2}$ est la valeur de la loi du khi-deux à $\nu$ degrés de liberté qui est dépassée avec la probabilité $p$, et où $\nu=n-1$ ($n$ est le nombre de mesures).
+
+La borne inférieure dans le cas unilatéral est :
+
+$$\hat{C_{p}}\sqrt{\frac{\chi_{1-\alpha,\nu }^{2}}{\nu }}\leq C_{p}$$
+
+## Exemple avec le package qcc
+
+Quelques exemples de calcul avec R. Chargeons la librairie `qcc` (*quality control charting*) :
+
+```{r, message=FALSE}
+library(qcc)
+```
+
+Nous prenons pour exemple les 200 observations (40 échantillons de 5 mesures) du jeu de données `pistonrings` de la librairie `qcc`.
+
+```{r}
+data(pistonrings)
+diameter <- qcc.groups(pistonrings$diameter, pistonrings$sample)
+dim(diameter)     # une matrice de 40 lignes (échantillons) et 5 colonnes (mesures)
+diameter[2:11, ]  # les échantillons 2 à 11
+```
+
+Nous créons à présent un objet `qcc`, comme si nous voulions tracer une carte de contrôle. Examinons les échantillons 2 à 11, soit 10 échantillons successifs de 5 mesures :
+
+```{r}
+q1 <- qcc(diameter[2:11, ], type = "xbar")
+```
+
+Aucun point ne sort des limites : sur ces 10 échantillons, le processus est stable. Les limites de contrôle sont ici estimées sur 10 échantillons seulement, ce qui est peu.
+
+Nous pouvons maintenant obtenir les indices de capabilité et une représentation graphique du processus avec la fonction `process.capability`, après avoir fixé les spécifications du client :
+
+```{r}
+LSL <- 73.96
+USL <- 74.04
+```
+
+```{r}
+process.capability(object = q1, spec.limits = c(LSL, USL))
+```
+
+L'écart type estimé ($0{,}00894$) vient de l'étendue moyenne des sous-groupes : c'est bien un écart type court terme.
+
+Outre les indices, un intervalle de confiance est fourni, ce qui est utile pour le suivi de la capabilité.
+
+Lecture du résultat :
+
+- le processus est capable : $C_{p}=1{,}491>1{,}33$ ;
+- il est bien centré : $C_{pk}=1{,}477$ est très proche de $C_{p}$, l'écart $C_{p}-C_{pk}$ mesure le décentrage ; $C_{pu}<C_{pl}$ indique que la moyenne est un peu plus proche de la limite supérieure ;
+- l'incertitude reste importante avec 50 mesures : la borne basse de l'intervalle de confiance de $C_{p}$ est $1{,}197$, donc inférieure à $1{,}33$. Avec cet échantillon, on ne peut pas affirmer au niveau de confiance de 95 % que $C_{p}\geq 1{,}33$.
+
+On peut retrouver cette borne avec la formule de l'intervalle de confiance, pour $n=50$ et donc $\nu=49$ :
+
+```{r}
+Cp <- 1.491
+nu <- 49
+Cp * sqrt(qchisq(c(0.025, 0.975), df = nu) / nu)
+```
+
+## Étude court terme et long terme avec le package SixSigma
+
+Une étude de capabilité plus complète, avec une sortie graphique, peut aussi être réalisée avec le package `SixSigma`. À titre d'exemple, nous calculons cette fois les indices à court terme et à long terme :
+
+- `xLT` : les 200 mesures (long terme) ;
+- `xST` : les mesures 6 à 55, c'est-à-dire les 50 mesures des échantillons 2 à 11 déjà étudiés (court terme).
+
+```{r, message=FALSE, fig.width=7, fig.height=8}
+library(SixSigma)
+ss.study.ca(xLT = pistonrings$diameter,
+            xST = pistonrings$diameter[6:55],
+            LSL = LSL, USL = USL, Target = 74,
+            alpha = 0.05, f.sub = "Diamètre")
+```
+
+### Interprétation
+
+Le graphique du haut est un histogramme des données de l'échantillon, avec la cible et les limites de spécification. Les courbes de densité sont tracées pour les densités empiriques et théoriques (court et long terme).
+
+Le graphique du bas est un diagramme quantile-quantile (Q-Q) qui permet de vérifier si les données sont distribuées normalement. Quand elles le sont, les points sont approximativement alignés sur une droite. Les tests de normalité affichés (Shapiro-Wilk et Lilliefors) portent sur les données court terme.
+
+Les indices sont calculés avec les données court terme et long terme. Pour le long terme, on obtient $P_{p}$ et $P_{pk}$ :
+
+| | Court terme | Long terme |
+|:--|:--:|:--:|
+| Moyenne | 74,0004 | 74,0036 |
+| Écart type | 0,0093 | 0,0114 |
+| $C_p$ ou $P_p$ | 1,44 | 1,17 |
+| $C_{pk}$ ou $P_{pk}$ | 1,43 | 1,06 |
+
+Quelques points de lecture :
+
+- Les valeurs court terme diffèrent de celles de `qcc` ($C_{p}=1{,}49$) parce que `ss.study.ca` estime $\sigma$ par l'écart type des 50 valeurs, et non par l'étendue moyenne des sous-groupes.
+- Sur le long terme, la capabilité chute : $P_{p}=1{,}17<1{,}33$. La chute vient surtout de l'augmentation de la dispersion (l'écart type passe de $0{,}0093$ à $0{,}0114$). La moyenne se décale un peu (de $74{,}0004$ à $74{,}0036$), ce qui explique l'écart entre $P_{p}$ et $P_{pk}$.
+- Le DPMO long terme affiché (environ $45\,700$) est calculé avec le décalage conventionnel de $1{,}5\,\sigma$ du Six Sigma. Ce n'est ni une fréquence observée (aucune des 200 mesures n'est hors tolérance), ni la proportion théorique pour une loi normale de même moyenne et même écart type, qui vaut environ 780 par million :
+
+```{r}
+x <- pistonrings$diameter
+sum(x < LSL | x > USL)                              # pièces hors tolérance observées
+pnorm(LSL, mean(x), sd(x)) + 1 - pnorm(USL, mean(x), sd(x))  # proportion théorique
+```
+
+- Sur les 50 valeurs court terme, les deux tests de normalité ne concluent pas de la même façon (Shapiro-Wilk : $p=0{,}128$ ; Lilliefors : $p=0{,}017$). Sur les 200 valeurs, les deux acceptent la normalité :
+
+```{r}
+shapiro.test(x)$p.value
+nortest::lillie.test(x)$p.value
+```
+
+### Le processus est-il stable à long terme ?
+
+Les indices de capabilité n'ont de sens que si le processus est stable. Vérifions-le avec la carte des moyennes de l'ensemble des 40 échantillons. Les 25 premiers échantillons servent de référence pour calculer les limites, les 15 suivants sont ajoutés à la carte :
+
+```{r}
+q2 <- qcc(diameter[1:25, ], type = "xbar", newdata = diameter[26:40, ])
+```
+
+Les échantillons 37, 38 et 39 sortent des limites de contrôle, et à partir du 34e les moyennes restent toutes au-dessus de la ligne centrale. Il y a donc une dérive de la moyenne en fin de série : le processus n'est pas stable sur le long terme. $P_{p}$ et $P_{pk}$ décrivent la performance réellement observée, mais il faut d'abord chercher les causes spéciales de cette dérive avant de conclure sur la capabilité du processus.
+
+*Document créé le 13 octobre 2019. Révisions : 2 novembre 2026, 23 novembre 2026.*

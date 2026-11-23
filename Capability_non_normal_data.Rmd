@@ -1,0 +1,203 @@
+---
+title: "Analyse de capabilité avec des données non normales"
+author: "S. Jaubert"
+date: "13 octobre 2019"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+```
+
+Le développement des indices de capabilité suppose que les données sont issues d'une distribution normale. Il est possible de calculer des indices avec des données provenant de distributions non normales, mais leur interprétation est différente : la correspondance entre un $C_{pk}$ et la proportion de pièces non conformes n'est plus valable.
+
+Pour illustrer notre propos, commençons par charger les données :
+
+```{r}
+donnees <- read.csv2("https://sjaubert.github.io/SPCR/device.csv", header = TRUE)
+# pour corriger un petit problème de format (la colonne est lue comme du texte)
+donnees$x <- as.numeric(as.character(donnees$x))
+```
+
+Ces données sont les diamètres de 100 aiguilles pour des buses de pistolet de peinture. La spécification est $2{,}00 \pm 0{,}05$ mm, soit $LSL=1{,}95$ et $USL=2{,}05$. Les relevés ont été effectués par des prélèvements à intervalles réguliers : 20 échantillons de taille 5. Les valeurs du fichier sont donc rangées dans l'ordre des prélèvements, et chaque échantillon est formé de 5 valeurs consécutives.
+
+## Cartes de contrôle, sans se préoccuper de la normalité
+
+Regardons d'abord la carte des moyennes. Nous rangeons les 100 valeurs en une matrice de 20 lignes (échantillons) et 5 colonnes (mesures) :
+
+```{r, message=FALSE}
+library(qcc)
+```
+
+```{r}
+diameter <- matrix(donnees$x, ncol = 5, byrow = TRUE)
+q1 <- qcc(diameter, type = "xbar")
+```
+
+Les limites de contrôle sont calculées à partir des données elles-mêmes : la ligne centrale est la moyenne générale ($1{,}9876$). Il faut laisser `qcc` la calculer. Si on lui impose un centre (par exemple `center = 2`, la cible), la carte et les indices qui en découlent supposent le processus centré sur la cible, ce qui n'est pas le cas ici.
+
+Un seul point sort des limites (l'échantillon 8, au-dessus de la limite haute UCL). Un procédé stable est une condition préalable à toute étude de capabilité : ici, ce point est à examiner (cause spéciale ?) avant de conclure.
+
+Toujours sans se préoccuper de la normalité, calculons malgré tout les indices de capabilité :
+
+```{r}
+process.capability(q1, spec.limits = c(1.95, 2.05), target = 2)
+```
+
+Lecture des résultats :
+
+- $C_{p}=1{,}05$ : la dispersion court terme occupe presque tout l'intervalle de tolérance, sans aucune marge.
+- $C_{pk}=0{,}79$, avec $C_{pl}=0{,}79$ et $C_{pu}=1{,}31$ : le processus est décentré vers la limite inférieure (moyenne $1{,}9876$ pour une cible de $2$).
+- Les indices sont donc inférieurs à 1,33 (et même à 1 pour $C_{pk}$) : le processus n'est pas capable, **si l'on accepte l'hypothèse de normalité**.
+- Les lignes `Exp` donnent les proportions de non conformes attendues sous cette hypothèse : $0{,}91\,\%$ sous la limite inférieure et $0\,\%$ au-dessus de la limite supérieure. Or l'observation est inverse : aucune valeur sous $LSL$, et une valeur ($2{,}053$) au-dessus de $USL$.
+
+Cette contradiction doit nous alerter : avons-nous le droit de décider avec ces indices ? C'est oublier que nous n'avons pas vérifié l'hypothèse de normalité.
+
+## Vérification de la normalité
+
+Commençons par une appréciation visuelle :
+
+```{r}
+MASS::truehist(donnees$x, nbins = 30)
+```
+
+L'asymétrie de cet histogramme doit nous interpeller : la queue est plus longue à droite.
+
+Appuyons-nous sur un graphique quantile-quantile (diagramme de Henry) :
+
+```{r}
+qqnorm(donnees$x); qqline(donnees$x, col = "red")
+```
+
+Les points s'écartent de la droite, surtout pour les grandes valeurs.
+
+Une double évaluation, visuelle et par un test, est toujours préférable. Posons les hypothèses suivantes :
+
+- hypothèse nulle $H_{0}$ : les données proviennent d'une distribution normale ;
+- hypothèse alternative $H_{1}$ : les données ne sont pas distribuées normalement.
+
+Comme dans tout test d'hypothèse, le bénéfice du doute est accordé à l'hypothèse nulle. Un tel test détermine s'il existe suffisamment de preuves pour rejeter $H_{0}$. Passer le test ne prouve pas que les données sont normales ; mais si le test échoue, il faut utiliser une autre approche.
+
+Le test le plus couramment utilisé est le test de Shapiro et Wilk (1965). Sa statistique $W$ mesure la linéarité du diagramme quantile-quantile : plus $W$ est proche de 1, plus les points sont alignés. Pour une présentation en français, voir E. Morice (1972) : <http://www.numdam.org/article/RSA_1972__20_2_5_0.pdf>.
+
+```{r}
+shapiro.test(donnees$x)
+```
+
+La p-value est très faible ($1{,}5\times10^{-5}$) : il est très improbable que cette série suive une loi normale. Nous rejetons l'hypothèse de normalité.
+
+## Que faire de données non normales ?
+
+Plusieurs pistes sont possibles. On peut :
+
+1. rechercher une transformation des données initiales pour qu'elles se conforment à une distribution normale, par exemple $X \mapsto \left (X+\Delta \right )^{p}=X'$ pour $p\neq 0$. Pour que cette transformation soit une fonction continue de $p$, on utilise le logarithme naturel quand $p=0$ : $X \mapsto \ln\left (X+\Delta \right )=X'$. Il faut que $\Delta$ soit tel que toutes les valeurs $X+\Delta$ soient strictement positives ;
+2. trouver une distribution alternative qui corresponde aux données, ce qui demande d'adapter les indices de capabilité ;
+3. approcher la distribution des données par une courbe de Johnson (<https://en.wikipedia.org/wiki/Johnson%27s_SU_distribution>) ;
+4. appliquer la transformation de Box et Cox (1964), qui préserve l'ordre des données et ne change que la forme de leur distribution.
+
+La transformation de Box et Cox est :
+
+$$X'=\frac{X^{\lambda}-1}{\lambda} \text{ si } \lambda\neq0 \qquad\qquad X'=\ln(X) \text{ si } \lambda=0$$
+
+Il faut choisir $\lambda$. On peut maximiser le coefficient de corrélation de la droite de Henry (entre les quantiles théoriques et les quantiles empiriques), ou utiliser le maximum de vraisemblance, comme le fait la fonction `boxcox()` du paquet `MASS` de R.
+
+Toutes ces techniques ont leurs forces et leurs faiblesses. Il est souvent nécessaire de faire plusieurs essais.
+
+## Transformation de Box et Cox
+
+Voyons ce que donne la fonction `boxcox()`. La courbe est le logarithme de la vraisemblance en fonction de $\lambda$, avec son intervalle de confiance à 95 %.
+
+```{r, message=FALSE}
+library(MASS)
+result <- boxcox(donnees$x ~ 1, plotit = TRUE, lambda = seq(-6, 6, 0.01))
+result$x[which.max(result$y)]
+```
+
+Rien de concluant : le maximum est atteint au bord de la plage testée ($\lambda=-6$). Translatons les données et recommençons :
+
+```{r}
+xprime <- donnees$x - 1.8   # attention à rester strictement positif
+result <- boxcox(xprime ~ 1, plotit = TRUE, lambda = seq(-6, 6, 0.01))
+```
+
+Après cette translation, le maximum est atteint à $\lambda=-2{,}88$, et la courbe est maximale à l'intérieur de la plage testée :
+
+```{r}
+(lambda <- result$x[which.max(result$y)])
+range(result$x[result$y > max(result$y) - qchisq(0.95, 1) / 2])  # IC à 95 % de lambda
+```
+
+**Mise en garde.** L'intervalle de confiance de $\lambda$ est très large (de $-4{,}67$ à $-1{,}17$). De plus, $\lambda$ dépend fortement de la translation $\Delta=-1{,}8$, choisie arbitrairement :
+
+```{r}
+for (s in c(1.9, 1.8, 1.7)) {
+  r <- boxcox(donnees$x - s ~ 1, plotit = FALSE, lambda = seq(-6, 6, 0.01))
+  cat("translation", s, ": lambda =", r$x[which.max(r$y)], "\n")
+}
+```
+
+La suite de l'étude est donc une illustration de la méthode, pas une certitude : une autre translation donnerait un autre $\lambda$, donc d'autres indices.
+
+Testons l'hypothèse de normalité des données transformées :
+
+```{r}
+new_donnees <- (xprime^lambda - 1) / lambda
+shapiro.test(new_donnees)
+```
+
+La p-value passe de $1{,}5\times10^{-5}$ avant transformation à $0{,}865$ : nous ne rejetons plus la normalité.
+
+```{r}
+qqnorm(new_donnees); qqline(new_donnees, col = "red")
+```
+
+## Indices de capabilité après transformation
+
+Après cette transformation, nous calculons les indices de capabilité, sans oublier de transformer également les spécifications et la cible :
+
+```{r}
+New_spec   <- ((c(1.95, 2.05) - 1.8)^lambda - 1) / lambda
+New_target <- ((2 - 1.8)^lambda - 1) / lambda
+c(New_spec, New_target)
+```
+
+Construisons la carte des moyennes sur les données transformées, avec la même organisation en échantillons :
+
+```{r}
+new_diameter <- matrix(new_donnees, ncol = 5, byrow = TRUE)
+new_q <- qcc(new_diameter, type = "xbar")
+```
+
+Aucun point ne sort des limites, alors que l'échantillon 8 sortait sur les données brutes : avec une distribution asymétrique, les limites symétriques de la carte sont mal adaptées, même avec des échantillons de taille 5. Pour une carte des moyennes, la normalité est moins critique (théorème central limite) que pour une carte des valeurs individuelles et des étendues mobiles (XmR), où elle est indispensable.
+
+```{r}
+process.capability(new_q, spec.limits = New_spec, target = New_target)
+```
+
+Le centre de la carte, $-44{,}65$, est la moyenne des données transformées. Il est différent de la cible transformée ($-35{,}43$), parce que la transformation n'est pas linéaire : le milieu de l'intervalle de tolérance transformé ($-50{,}03$) n'est lui-même pas la cible transformée.
+
+Lecture des résultats :
+
+- $C_{p}=1{,}03$ : comme avant la transformation, la dispersion occupe presque tout l'intervalle de tolérance.
+- $C_{pk}=0{,}85$, limité par la limite supérieure ($C_{pu}=0{,}85$, $C_{pl}=1{,}21$). Avant transformation, c'était la limite inférieure qui limitait ($C_{pl}=0{,}79$). La transformation prend en compte l'asymétrie : la queue de droite est plus longue que ne le suppose la loi normale.
+- Les proportions attendues hors tolérance, $0{,}015\,\%$ sous $LSL$ et $0{,}52\,\%$ au-dessus de $USL$, sont maintenant cohérentes avec l'observation (aucune valeur sous $LSL$, une valeur sur 100 au-dessus de $USL$).
+- Avec $C_{pk}<1$ et $C_{p}\simeq 1$, le processus n'est pas capable. Un seuil de 1,33 est souvent exigé.
+
+**Conclusion.** Sur ces données, la conclusion générale (processus non capable, un peu décentré) reste la même avec ou sans transformation. Ce qui change, c'est le côté où se trouvent les non conformes, et donc la manière de régler le processus : en supposant la loi normale, on est tenté de relever la moyenne pour s'éloigner de $LSL$, alors que les pièces non conformes observées sont du côté de $USL$.
+
+**Références**
+
+- « Analyse de capabilité (cas normal) » : <https://sjaubert.github.io/SPCR/capability.html>
+- R. Rakotomalala, « Tests de normalité », Université Lyon 2 : <http://eric.univ-lyon2.fr/~ricco/cours/cours/Test_Normalite.pdf>
+- S. S. Shapiro et M. B. Wilk, « An analysis of variance test for normality (complete samples) », *Biometrika*, 52, 1965, p. 591-611.
+- E. Morice, « Tests de normalité d'une distribution observée », *Revue de statistique appliquée*, 20 (2), 1972.
+- G. E. P. Box et D. R. Cox, « An analysis of transformations », *Journal of the Royal Statistical Society, série B*, 26 (2), 1964, p. 211-252.
+- A. Signorell, L. Chhay et R. J. Hyndman, *DescTools : Tools for Descriptive Statistics*, 2016, package R version 0.99.18.
+- J. Fox et S. Weisberg, *An R Companion to Applied Regression*, SAGE Publications, 2019.
+- E. L. Cano, J. M. Moguerza et M. Prieto Corcoba, *Quality Control with R : An ISO Standards Approach*, Springer, 2015.
+- E. L. Cano, J. M. Moguerza et A. Redchuk, *Six Sigma with R : Statistical Engineering for Process Improvement*, Springer, 2012.
+
+*Document créé le 13 octobre 2019. Révisions : 23 novembre 2026.*
